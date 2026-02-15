@@ -19,10 +19,16 @@ class _chatoraState extends State<chatora> {
             style: const ButtonStyle(
               backgroundColor: WidgetStatePropertyAll<Color>(Color(0xFFF5DAFF)),
             ),
-            iconSize: 20,
             icon: const Icon(Icons.home, color: Colors.white),
             onPressed: () {},
             tooltip: 'home',
+          ),
+        ],
+      ),
+      body: Stack(
+        children: [
+          Positioned.fill(
+            child: Image.asset('images/b1.png', fit: BoxFit.cover),
           ),
         ],
       ),
