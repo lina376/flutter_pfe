@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:ora/screens/chat.dart';
 import 'package:ora/screens/connecter.dart';
 import 'package:ora/screens/creecompte.dart';
@@ -26,8 +27,8 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'ora app',
-      theme: ThemeData(primaryColor: Colors.blue),
-      home: const Chatv(),
+      theme: ThemeData(primaryColor: Colors.blue, fontFamily: 'Jomhuria'),
+      home: const connecter(),
       debugShowCheckedModeBanner: false,
     );
   }
