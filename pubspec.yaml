@@ -58,6 +58,16 @@ flutter:
   uses-material-design: true
   assets:
     - images/b1.png
+    - images/b2.png
+    - images/b3.png
+    - images/b4.png
+    - images/b5.png
+    - images/b6.png
+    - images/robot0.png
+    - images/robot1.png
+    - images/robot2.png
+    - images/robot3.png
+
 
 
   # An image asset can refer to one or more resolution-specific "variants", see

@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
-class chatora extends StatefulWidget {
-  const chatora({super.key});
+class Chatv extends StatefulWidget {
+  const Chatv({super.key});
 
   @override
-  State<chatora> createState() => _chatoraState();
+  State<Chatv> createState() => _ChatvState();
 }
 
-class _chatoraState extends State<chatora> {
+class _ChatvState extends State<Chatv> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(

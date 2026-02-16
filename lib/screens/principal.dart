@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
-class chatora extends StatefulWidget {
-  const chatora({super.key});
+class principal extends StatefulWidget {
+  const principal({super.key});
 
   @override
-  State<chatora> createState() => _chatoraState();
+  State<principal> createState() => _principalState();
 }
 
-class _chatoraState extends State<chatora> {
+class _principalState extends State<principal> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -35,7 +35,7 @@ class _chatoraState extends State<chatora> {
         height: double.infinity,
         decoration: BoxDecoration(
           image: DecorationImage(
-            image: AssetImage("images/b1.png"),
+            image: AssetImage("images/b5.png"),
             fit: BoxFit.cover,
           ),
         ),
