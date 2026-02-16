@@ -11,8 +11,17 @@ class _chatoraState extends State<chatora> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage("images/b1.png"),
+            fit: BoxFit.cover,
+          ),
+        ),
+      ),
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
         elevation: 0,
         actions: [
           IconButton(
@@ -22,13 +31,6 @@ class _chatoraState extends State<chatora> {
             icon: const Icon(Icons.home, color: Colors.white),
             onPressed: () {},
             tooltip: 'home',
-          ),
-        ],
-      ),
-      body: Stack(
-        children: [
-          Positioned.fill(
-            child: Image.asset('images/b1.png', fit: BoxFit.cover),
           ),
         ],
       ),
