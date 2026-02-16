@@ -15,6 +15,7 @@ class MyApp extends StatelessWidget {
       title: 'ora app',
       theme: ThemeData(primaryColor: Colors.blue),
       home: const chatora(),
+      debugShowCheckedModeBanner: false,
     );
   }
 }
