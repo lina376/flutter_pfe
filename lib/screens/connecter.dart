@@ -54,41 +54,43 @@ class _connecterState extends State<connecter> {
                   style: TextStyle(color: Colors.white, fontSize: 14),
                 ),
               ),
-              Stack(children: [
-                Positioned(top:50, child: TextField(
-                  decoration: InputDecoration(
-                  hintText: "email@gmail.com",
-                  filled: true,
-                  fillColor: Colors.white, //pour arriere blanc
-                  border: OutlineInputBorder(
-                    gapPadding: 3.0,
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(width: 0.5),
+              Stack(
+                children: [
+                  Positioned(
+                    child: TextField(
+                      decoration: InputDecoration(
+                        hintText: "email@gmail.com",
+                        filled: true,
+                        fillColor: Colors.white, //pour arriere blanc
+                        border: OutlineInputBorder(
+                          gapPadding: 3.0,
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(width: 0.5),
+                        ),
+                      ),
+                    ),
                   ),
-                ),
-              ),
-              )
-              ],)
-              
-              Positioned(
-                top: 400,
-                left: 10,
-                child: Text(
-                  "Email",
-                  style: TextStyle(color: Colors.white, fontSize: 14),
-                ),
-              ),
-              TextField(
-                decoration: InputDecoration(
-                  hintText: "********",
-                  filled: true,
-                  fillColor: Colors.white, //pour arriere blanc
-                  border: OutlineInputBorder(
-                    gapPadding: 3.0,
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(width: 0.5),
+                  Positioned(
+                    top: 400,
+                    left: 10,
+                    child: Text(
+                      "Email",
+                      style: TextStyle(color: Colors.white, fontSize: 14),
+                    ),
                   ),
-                ),
+                  TextField(
+                    decoration: InputDecoration(
+                      hintText: "********",
+                      filled: true,
+                      fillColor: Colors.white, //pour arriere blanc
+                      border: OutlineInputBorder(
+                        gapPadding: 3.0,
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(width: 0.5),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
