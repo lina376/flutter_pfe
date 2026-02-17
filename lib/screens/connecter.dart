@@ -21,6 +21,17 @@ class _connecterState extends State<connecter> {
             fit: BoxFit.cover,
           ),
         ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              const SizedBox(height: 70, width: 80),
+              Text(
+                'Bienvenue',
+                style: TextStyle(fontSize: 46, color: Colors.white),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
