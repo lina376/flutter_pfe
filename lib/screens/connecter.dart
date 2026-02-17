@@ -22,12 +22,19 @@ class _connecterState extends State<connecter> {
           ),
         ),
         child: SafeArea(
-          child: Column(
+          child: Stack(
             children: [
-              const SizedBox(height: 70, width: 80),
-              Text(
-                'Bienvenue',
-                style: TextStyle(fontSize: 46, color: Colors.white),
+              Positioned(
+                top: 150,
+                left: 10,
+                child: Text(
+                  'Bienvenue',
+                  style: TextStyle(
+                    fontSize: 46,
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
             ],
           ),
