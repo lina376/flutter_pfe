@@ -36,6 +36,60 @@ class _connecterState extends State<connecter> {
                   ),
                 ),
               ),
+              Align(
+                alignment: Alignment(0, -0.35),
+                child: Text(
+                  "Se connecter",
+                  style: TextStyle(
+                    color: const Color.fromARGB(255, 114, 118, 120),
+                    fontSize: 14,
+                  ),
+                ),
+              ),
+              Positioned(
+                top: 300,
+                left: 10,
+                child: Text(
+                  "Email",
+                  style: TextStyle(color: Colors.white, fontSize: 14),
+                ),
+              ),
+              Stack(children: [
+                Positioned(top:50, child: TextField(
+                  decoration: InputDecoration(
+                  hintText: "email@gmail.com",
+                  filled: true,
+                  fillColor: Colors.white, //pour arriere blanc
+                  border: OutlineInputBorder(
+                    gapPadding: 3.0,
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(width: 0.5),
+                  ),
+                ),
+              ),
+              )
+              ],)
+              
+              Positioned(
+                top: 400,
+                left: 10,
+                child: Text(
+                  "Email",
+                  style: TextStyle(color: Colors.white, fontSize: 14),
+                ),
+              ),
+              TextField(
+                decoration: InputDecoration(
+                  hintText: "********",
+                  filled: true,
+                  fillColor: Colors.white, //pour arriere blanc
+                  border: OutlineInputBorder(
+                    gapPadding: 3.0,
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(width: 0.5),
+                  ),
+                ),
+              ),
             ],
           ),
         ),
