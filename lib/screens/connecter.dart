@@ -100,7 +100,7 @@ class _connecterState extends State<connecter> {
                       ),
                     ),
                   ),
-                  //mrigl
+
                   Positioned(
                     top: 490,
                     right: 135,
