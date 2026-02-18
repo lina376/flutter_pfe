@@ -52,8 +52,10 @@ class _notes2State extends State<notes2> {
             fit: BoxFit.cover,
           ),
         ),
+        
         child: SafeArea(child: Stack(
           children: [
+          
             
           ],
         ),),
