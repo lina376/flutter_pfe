@@ -94,6 +94,19 @@ class _mesnotesState extends State<mesnotes> {
                 right: 10,
                 child: NoteCard(dateText: "02 Jan 12:08", title: "Note 1"),
               ),
+              Stack(
+                children: [
+                  Positioned(
+                    top: 658,
+                    left: 1,
+                    child: SizedBox(
+                      width: 340,
+                      height: 50,
+                      child: SearchBarWidget(),
+                    ),
+                  ),
+                ],
+              ),
             ],
           ),
         ),
@@ -145,6 +158,40 @@ class NoteCard extends StatelessWidget {
             ),
           ),
           const Icon(Icons.favorite_border, color: Colors.white),
+        ],
+      ),
+    );
+  }
+}
+
+class SearchBarWidget extends StatelessWidget {
+  const SearchBarWidget({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.15),
+        borderRadius: BorderRadius.circular(30),
+        border: Border.all(color: Colors.white.withOpacity(0.2)),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.search, color: Colors.white),
+          const SizedBox(width: 10),
+          const Expanded(
+            child: TextField(
+              style: TextStyle(color: Colors.white),
+              decoration: InputDecoration(
+                hintText: "Chercher",
+                hintStyle: TextStyle(color: Colors.white70),
+                border: InputBorder.none,
+              ),
+            ),
+          ),
+          const Icon(Icons.mic, color: Colors.white),
         ],
       ),
     );
