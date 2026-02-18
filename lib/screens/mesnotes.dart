@@ -39,6 +39,36 @@ class _mesnotesState extends State<mesnotes> {
             fit: BoxFit.cover,
           ),
         ),
+        child: SafeArea(
+          child: Stack(
+            children: [
+              Positioned(
+                top: 40,
+                right: 290,
+                child: Text(
+                  "Mes",
+                  style: TextStyle(
+                    fontSize: 46,
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              Positioned(
+                top: 85,
+                right: 257,
+                child: Text(
+                  "Notes",
+                  style: TextStyle(
+                    fontSize: 46,
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
