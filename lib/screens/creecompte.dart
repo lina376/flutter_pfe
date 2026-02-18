@@ -25,7 +25,7 @@ class _creecompteState extends State<creecompte> {
           child: Stack(
             children: [
               Positioned(
-                top: 150,
+                top: 85,
                 right: 10,
                 child: Text(
                   "Créer",
@@ -46,6 +46,39 @@ class _creecompteState extends State<creecompte> {
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
                   ),
+                ),
+              ),
+              Positioned(
+                top: 310,
+                left: 12,
+                child: Text(
+                  "Nom",
+                  style: TextStyle(color: Colors.white, fontSize: 14),
+                ),
+              ),
+              Positioned(
+                top: 340,
+                left: 10,
+                right: 10,
+                child: TextField(
+                  decoration: InputDecoration(
+                    hintText: "********",
+                    filled: true,
+                    fillColor: Colors.white, //pour arriere blanc
+                    border: OutlineInputBorder(
+                      gapPadding: 3.0,
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide(width: 0.5),
+                    ),
+                  ),
+                ),
+              ),
+              Positioned(
+                top: 400,
+                left: 12,
+                child: Text(
+                  "Prénom",
+                  style: TextStyle(color: Colors.white, fontSize: 14),
                 ),
               ),
             ],
