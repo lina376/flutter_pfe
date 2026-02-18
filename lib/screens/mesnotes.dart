@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:math';
 
 class mesnotes extends StatefulWidget {
   const mesnotes({super.key});
@@ -66,22 +67,14 @@ class _mesnotesState extends State<mesnotes> {
                   ),
                 ),
               ),
-
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 40),
-                  const Text(
-                    "Mes\nNotes",
-                    style: TextStyle(fontSize: 42, fontWeight: FontWeight.bold),
-                  ),
-                ],
-              ),
-
               Positioned(
                 top: 10,
                 right: 10,
-                child: Image.asset('images/robot2.png', width: 110),
+
+                child: Transform.rotate(
+                  angle: -pi / 4,
+                  child: Image.asset('images/robot2.png', width: 110),
+                ),
               ),
             ],
           ),
