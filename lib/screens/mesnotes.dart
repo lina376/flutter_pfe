@@ -105,6 +105,22 @@ class _mesnotesState extends State<mesnotes> {
                       child: SearchBarWidget(),
                     ),
                   ),
+                  Positioned(
+                    bottom: 15,
+                    right: 8,
+                    child: Container(
+                      width: 52,
+                      height: 52,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.25),
+                        shape: BoxShape.circle,
+                      ),
+                      child: IconButton(
+                        icon: const Icon(Icons.draw, color: Colors.white),
+                        onPressed: () {},
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ],
