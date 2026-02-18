@@ -25,7 +25,7 @@ class _creecompteState extends State<creecompte> {
           child: Stack(
             children: [
               Positioned(
-                top: 85,
+                top: 40,
                 right: 10,
                 child: Text(
                   "Créer",
@@ -37,7 +37,7 @@ class _creecompteState extends State<creecompte> {
                 ),
               ),
               Positioned(
-                top: 130,
+                top: 80,
                 right: 10,
                 child: Text(
                   "un compte",
@@ -49,7 +49,7 @@ class _creecompteState extends State<creecompte> {
                 ),
               ),
               Positioned(
-                top: 250,
+                top: 170,
                 left: 12,
                 child: Text(
                   "Nom",
@@ -57,12 +57,12 @@ class _creecompteState extends State<creecompte> {
                 ),
               ),
               Positioned(
-                top: 280,
+                top: 200,
                 left: 10,
                 right: 10,
                 child: TextField(
                   decoration: InputDecoration(
-                    hintText: "********",
+                    hintText: "Nom",
                     filled: true,
                     fillColor: Colors.white, //pour arriere blanc
                     border: OutlineInputBorder(
@@ -74,7 +74,7 @@ class _creecompteState extends State<creecompte> {
                 ),
               ),
               Positioned(
-                top: 345,
+                top: 265,
                 left: 12,
                 child: Text(
                   "Prénom",
@@ -82,12 +82,12 @@ class _creecompteState extends State<creecompte> {
                 ),
               ),
               Positioned(
-                top: 375,
+                top: 295,
                 left: 10,
                 right: 10,
                 child: TextField(
                   decoration: InputDecoration(
-                    hintText: "********",
+                    hintText: "Prénom",
                     filled: true,
                     fillColor: Colors.white, //pour arriere blanc
                     border: OutlineInputBorder(
@@ -99,7 +99,7 @@ class _creecompteState extends State<creecompte> {
                 ),
               ),
               Positioned(
-                top: 440,
+                top: 360,
                 left: 12,
                 child: Text(
                   "Email",
@@ -107,7 +107,7 @@ class _creecompteState extends State<creecompte> {
                 ),
               ),
               Positioned(
-                top: 470,
+                top: 390,
                 left: 10,
                 right: 10,
                 child: TextField(
@@ -124,7 +124,7 @@ class _creecompteState extends State<creecompte> {
                 ),
               ),
               Positioned(
-                top: 532,
+                top: 455,
                 left: 12,
                 child: Text(
                   "Mot de passe",
@@ -132,7 +132,7 @@ class _creecompteState extends State<creecompte> {
                 ),
               ),
               Positioned(
-                top: 565,
+                top: 485,
                 left: 10,
                 right: 10,
                 child: TextField(
@@ -149,7 +149,7 @@ class _creecompteState extends State<creecompte> {
                 ),
               ),
               Positioned(
-                top: 627,
+                top: 550,
                 left: 12,
                 child: Text(
                   "Confirmer mot de passe",
@@ -157,7 +157,7 @@ class _creecompteState extends State<creecompte> {
                 ),
               ),
               Positioned(
-                top: 660,
+                top: 580,
                 left: 10,
                 right: 10,
                 child: TextField(
