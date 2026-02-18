@@ -29,7 +29,6 @@ class MyApp extends StatelessWidget {
       title: 'ora app',
       theme: ThemeData(primaryColor: Colors.blue, fontFamily: 'Jomhuria'),
       home: const mesnotes(),
-
       debugShowCheckedModeBanner: false,
     );
   }

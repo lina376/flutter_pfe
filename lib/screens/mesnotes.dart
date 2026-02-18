@@ -29,7 +29,20 @@ class _mesnotesState extends State<mesnotes> {
             iconSize: 40,
             constraints: const BoxConstraints(minHeight: 50, minWidth: 50),
           ),
+          
         ],
+        leading:  IconButton(
+            style: const ButtonStyle(
+              backgroundColor: WidgetStatePropertyAll<Color>(
+                Color.fromARGB(194, 88, 70, 142),
+              ),
+            ),
+            icon: const Icon(Icons.chevron_left, color: Colors.white),
+            onPressed: () {},
+            tooltip: 'chevron',
+            iconSize: 40,
+            constraints: const BoxConstraints(minHeight: 50, minWidth: 50),
+          ),
       ),
       body: Container(
         width: double.infinity,
