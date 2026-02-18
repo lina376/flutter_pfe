@@ -37,7 +37,7 @@ class _creecompteState extends State<creecompte> {
                 ),
               ),
               Positioned(
-                top: 188,
+                top: 130,
                 right: 10,
                 child: Text(
                   "un compte",
@@ -49,15 +49,15 @@ class _creecompteState extends State<creecompte> {
                 ),
               ),
               Positioned(
-                top: 310,
+                top: 250,
                 left: 12,
                 child: Text(
                   "Nom",
-                  style: TextStyle(color: Colors.white, fontSize: 14),
+                  style: TextStyle(color: Colors.white, fontSize: 15),
                 ),
               ),
               Positioned(
-                top: 340,
+                top: 280,
                 left: 10,
                 right: 10,
                 child: TextField(
@@ -74,11 +74,103 @@ class _creecompteState extends State<creecompte> {
                 ),
               ),
               Positioned(
-                top: 400,
+                top: 345,
                 left: 12,
                 child: Text(
                   "Prénom",
                   style: TextStyle(color: Colors.white, fontSize: 14),
+                ),
+              ),
+              Positioned(
+                top: 375,
+                left: 10,
+                right: 10,
+                child: TextField(
+                  decoration: InputDecoration(
+                    hintText: "********",
+                    filled: true,
+                    fillColor: Colors.white, //pour arriere blanc
+                    border: OutlineInputBorder(
+                      gapPadding: 3.0,
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide(width: 0.5),
+                    ),
+                  ),
+                ),
+              ),
+              Positioned(
+                top: 440,
+                left: 12,
+                child: Text(
+                  "Email",
+                  style: TextStyle(color: Colors.white, fontSize: 14),
+                ),
+              ),
+              Positioned(
+                top: 470,
+                left: 10,
+                right: 10,
+                child: TextField(
+                  decoration: InputDecoration(
+                    hintText: "email@gmail.com",
+                    filled: true,
+                    fillColor: Colors.white, //pour arriere blanc
+                    border: OutlineInputBorder(
+                      gapPadding: 3.0,
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide(width: 0.5),
+                    ),
+                  ),
+                ),
+              ),
+              Positioned(
+                top: 532,
+                left: 12,
+                child: Text(
+                  "Mot de passe",
+                  style: TextStyle(color: Colors.white, fontSize: 14),
+                ),
+              ),
+              Positioned(
+                top: 565,
+                left: 10,
+                right: 10,
+                child: TextField(
+                  decoration: InputDecoration(
+                    hintText: "********",
+                    filled: true,
+                    fillColor: Colors.white, //pour arriere blanc
+                    border: OutlineInputBorder(
+                      gapPadding: 3.0,
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide(width: 0.5),
+                    ),
+                  ),
+                ),
+              ),
+              Positioned(
+                top: 627,
+                left: 12,
+                child: Text(
+                  "Confirmer mot de passe",
+                  style: TextStyle(color: Colors.white, fontSize: 14),
+                ),
+              ),
+              Positioned(
+                top: 660,
+                left: 10,
+                right: 10,
+                child: TextField(
+                  decoration: InputDecoration(
+                    hintText: "********",
+                    filled: true,
+                    fillColor: Colors.white, //pour arriere blanc
+                    border: OutlineInputBorder(
+                      gapPadding: 3.0,
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide(width: 0.5),
+                    ),
+                  ),
                 ),
               ),
             ],
