@@ -66,6 +66,23 @@ class _mesnotesState extends State<mesnotes> {
                   ),
                 ),
               ),
+
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 40),
+                  const Text(
+                    "Mes\nNotes",
+                    style: TextStyle(fontSize: 42, fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+
+              Positioned(
+                top: 10,
+                right: 10,
+                child: Image.asset('images/robot2.png', width: 110),
+              ),
             ],
           ),
         ),
