@@ -27,7 +27,7 @@ class _connecterState extends State<connecter> {
             children: [
               Positioned(
                 top: 150,
-                left: 10,
+                left:90,
                 child: Text(
                   'Bienvenue',
                   style: TextStyle(
@@ -102,7 +102,7 @@ class _connecterState extends State<connecter> {
                   ),
 
                   Positioned(
-                    top: 490,
+                    top: 510,
                     right: 135,
                     left: 135,
                     child: ElevatedButton(
