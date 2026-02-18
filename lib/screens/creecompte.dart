@@ -173,6 +173,26 @@ class _creecompteState extends State<creecompte> {
                   ),
                 ),
               ),
+
+              Positioned(
+                top: 670,
+                right: 10,
+                left: 250,
+                child: ElevatedButton(
+                  onPressed: () {},
+                  child: Text(
+                    "S'inscrire",
+                    style: TextStyle(
+                      color: const Color.fromARGB(136, 10, 11, 22),
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    shape: StadiumBorder(),
+                    backgroundColor: const Color.fromARGB(172, 153, 129, 180),
+                    elevation: 1,
+                  ),
+                ),
+              ),
             ],
           ),
         ),
