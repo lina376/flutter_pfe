@@ -105,9 +105,7 @@ class _principalState extends State<principal> {
                       width: 120,
                       height: 44,
                       child: ElevatedButton(
-                        onPressed: () {
-                          // action discuter
-                        },
+                        onPressed: () {},
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color.fromARGB(
                             221,

@@ -10,7 +10,7 @@ import 'package:ora/screens/mesnotes.dart';
 import 'package:ora/screens/notes2.dart';
 import 'package:ora/screens/calendrier.dart';
 import 'package:ora/screens/paramettre.dart';
-import 'package:ora/screens/profil.dart';
+import 'package:ora/screens/Profil.dart';
 import 'package:ora/screens/favorise.dart';
 import 'package:ora/screens/notifications.dart';
 import 'package:ora/screens/notifications2.dart';
@@ -22,14 +22,12 @@ void main() {
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
-
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'ora app',
       theme: ThemeData(primaryColor: Colors.blue, fontFamily: 'Jomhuria'),
-      home: const principal(),
+      home: const Profil(),
       debugShowCheckedModeBanner: false,
     );
   }
