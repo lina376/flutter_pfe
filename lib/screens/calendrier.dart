@@ -52,6 +52,24 @@ class _calendrierState extends State<calendrier> {
             fit: BoxFit.cover,
           ),
         ),
+        child: SafeArea(
+          child: Stack(
+            children: [
+              Positioned(
+                top: 30,
+                left: 10,
+                child: Text(
+                  'Calendrier',
+                  style: TextStyle(
+                    fontSize: 46,
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
