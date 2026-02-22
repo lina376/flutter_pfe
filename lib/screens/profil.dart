@@ -210,7 +210,7 @@ class _ProfilState extends State<Profil> {
                   readOnly: true,
                   onTap: _selectBirthDate,
                   decoration: InputDecoration(
-                    labelText: "Date de naissance",
+                    labelText: "JJ/MM/AAAA",
                     suffixIcon: const Icon(Icons.calendar_today),
                     filled: true,
                     fillColor: Colors.white,
