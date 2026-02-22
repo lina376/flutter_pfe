@@ -10,6 +10,7 @@ class Profil extends StatefulWidget {
 }
 
 class _ProfilState extends State<Profil> {
+  final _formKey = GlobalKey<FormState>();
   DateTime? _birthDate;
   final TextEditingController _birthCtrl = TextEditingController();
 
@@ -95,7 +96,7 @@ class _ProfilState extends State<Profil> {
               ),
               Positioned(top: 60, left: 150, child: ProfileAvatarFP()),
               Positioned(
-                top: 170,
+                top: 160,
                 left: 12,
                 child: Text(
                   "Nom",
@@ -103,7 +104,7 @@ class _ProfilState extends State<Profil> {
                 ),
               ),
               Positioned(
-                top: 200,
+                top: 190,
                 left: 10,
                 right: 10,
                 child: TextField(
@@ -120,7 +121,7 @@ class _ProfilState extends State<Profil> {
                 ),
               ),
               Positioned(
-                top: 265,
+                top: 255,
                 left: 12,
                 child: Text(
                   "Prénom",
@@ -128,7 +129,7 @@ class _ProfilState extends State<Profil> {
                 ),
               ),
               Positioned(
-                top: 295,
+                top: 285,
                 left: 10,
                 right: 10,
                 child: TextField(
@@ -145,30 +146,47 @@ class _ProfilState extends State<Profil> {
                 ),
               ),
               Positioned(
-                top: 360,
+                top: 350,
                 left: 12,
                 child: Text(
                   "Email",
                   style: TextStyle(color: Colors.white, fontSize: 14),
                 ),
               ),
+
               Positioned(
-                top: 390,
+                top: 380,
                 left: 10,
                 right: 10,
-                child: TextField(
-                  decoration: InputDecoration(
-                    hintText: "email@gmail.com",
-                    filled: true,
-                    fillColor: Colors.white, //pour arriere blanc
-                    border: OutlineInputBorder(
-                      gapPadding: 3.0,
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(width: 0.5),
+                child: Form(
+                  key: _formKey,
+                  child: TextFormField(
+                    decoration: InputDecoration(
+                      labelText: "Email",
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(width: 0.5),
+                      ),
+                      filled: true,
+                      fillColor: Colors.white,
                     ),
+                    keyboardType: TextInputType.emailAddress,
+
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return "Email obligatoire";
+                      }
+
+                      if (!value.contains("@")) {
+                        return "Email doit contenir @";
+                      }
+
+                      return null;
+                    },
                   ),
                 ),
               ),
+
               Positioned(
                 top: 455,
                 left: 12,
@@ -181,21 +199,44 @@ class _ProfilState extends State<Profil> {
                 top: 485,
                 left: 10,
                 right: 10,
-                child: TextField(
-                  decoration: InputDecoration(
-                    hintText: "********",
-                    filled: true,
-                    fillColor: Colors.white, //pour arriere blanc
-                    border: OutlineInputBorder(
-                      gapPadding: 3.0,
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(width: 0.5),
+                child: Form(
+                  child: TextFormField(
+                    obscureText: true,
+                    decoration: const InputDecoration(
+                      labelText: "Mot de passe",
+                      border: OutlineInputBorder(
+                        borderSide: BorderSide(width: 0.5),
+                      ),
+                      filled: true,
+                      fillColor: Colors.white,
                     ),
+
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return "Mot de passe obligatoire";
+                      }
+
+                      if (value.length < 8) {
+                        return "Minimum 8 caractères";
+                      }
+
+                      if (!RegExp(r'[A-Z]').hasMatch(value)) {
+                        return "Au moins une lettre majuscule";
+                      }
+
+                      if (!RegExp(r'[0-9]').hasMatch(value)) {
+                        return "Au moins un chiffre";
+                      }
+
+                      return null;
+                    },
+
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
                   ),
                 ),
               ),
               Positioned(
-                top: 550,
+                top: 560,
                 left: 12,
                 child: Text(
                   "Date de naissance",
@@ -203,7 +244,7 @@ class _ProfilState extends State<Profil> {
                 ),
               ),
               Positioned(
-                top: 580,
+                top: 590,
                 left: 10,
                 right: 10,
                 child: TextFormField(
