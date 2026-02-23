@@ -50,6 +50,76 @@ class _chatState extends State<chat> {
                   child: Image.asset("images/robot1.png", fit: BoxFit.cover),
                 ),
               ),
+              Positioned(
+                top: 590,
+                left: 156,
+                child: GestureDetector(
+                  onTap: () {
+                    // hne chn7ot code l ta3 tasjil
+                  },
+                  child: Container(
+                    //bech ykoun mdawr
+                    width: 80,
+                    height: 80,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.white.withOpacity(0.18),
+                      border: Border.all(
+                        color: Colors.white.withOpacity(0.2),
+                        width: 2,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          //wrah dhaw
+                          color: Colors.white.withOpacity(0.15),
+                          blurRadius: 25,
+                          spreadRadius: 6,
+                        ),
+                      ],
+                    ),
+                    child: const Center(
+                      child: Icon(Icons.mic, color: Colors.white, size: 32),
+                    ),
+                  ),
+                ),
+              ),
+              Positioned(
+                top: 620,
+                left: 300,
+                child: GestureDetector(
+                  onTap: () {
+                    // hne chn7ot code l ta3 tasjil
+                  },
+                  child: Container(
+                    //bech ykoun mdawr
+                    width: 50,
+                    height: 50,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.white.withOpacity(0.18),
+                      border: Border.all(
+                        color: Colors.white.withOpacity(0.2),
+                        width: 2,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          //wrah dhaw
+                          color: Colors.white.withOpacity(0.15),
+                          blurRadius: 25,
+                          spreadRadius: 6,
+                        ),
+                      ],
+                    ),
+                    child: const Center(
+                      child: Icon(
+                        Icons.draw_outlined,
+                        color: Colors.white,
+                        size: 32,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
             ],
           ),
         ),
