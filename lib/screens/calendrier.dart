@@ -10,33 +10,136 @@ class Calendrier extends StatefulWidget {
 }
 
 class _CalendrierState extends State<Calendrier> {
-  DateTime _mois = DateTime.now();
-  DateTime _jour = DateTime.now();
+  // Date affichée (mois) + date sélectionnée
+  DateTime _moisAffiche = DateTime.now();
+  DateTime _dateSelectionnee = DateTime.now();
 
-  static DateTime _onlyDate(DateTime d) => DateTime(d.year, d.month, d.day);
+  // Normalisation ken jour m a
+  static DateTime _dateSansHeure(DateTime d) =>
+      DateTime(d.year, d.month, d.day);
 
-  final Map<DateTime, List<Todo>> _tasksByDay = {
-    _onlyDate(DateTime.now()): [
-      Todo("Tache 1", "10:00", true),
-      Todo("Tache 2", "11:00", true),
-      Todo("Tache 3", "12:30", false),
+  // Tâches par date
+  final Map<DateTime, List<Tache>> _tachesParDate = {
+    _dateSansHeure(DateTime.now()): [
+      Tache("Tâche 1", "10:00", true),
+      Tache("Tâche 2", "11:00", true),
+      Tache("Tâche 3", "12:30", false),
     ],
-    _onlyDate(DateTime.now().add(const Duration(days: 3))): [
-      Todo("Réunion", "09:00", false),
-      Todo("Rapport", "15:00", false),
+    _dateSansHeure(DateTime.now().add(const Duration(days: 2))): [
+      Tache("Réunion", "09:00", false),
+      Tache("Rapport", "15:00", false),
     ],
   };
 
-  List<Todo> get _tasksOfSelectedDay => _tasksByDay[_onlyDate(_jour)] ?? [];
+  // Liste des tâches du jour sélectionné
+  List<Tache> get _tachesDuJour =>
+      _tachesParDate[_dateSansHeure(_dateSelectionnee)] ?? [];
 
-  void _toggleTask(int index, bool? value) {
-    final key = _onlyDate(_jour);
-    final list = _tasksByDay[key];
-    if (list == null) return;
+  // Changer état (done) d’une tâche
+  void _changerEtatTache(int index, bool? valeur) {
+    final cle = _dateSansHeure(_dateSelectionnee);
+    final liste = _tachesParDate[cle];
+    if (liste == null) return;
 
     setState(() {
-      list[index] = list[index].copyWith(done: value ?? false);
+      liste[index] = liste[index].copyWith(done: valeur ?? false);
     });
+  }
+
+  // Choisir l’heure (TimePicker)
+  Future<String?> _choisirHeure() async {
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+    );
+    if (picked == null) return null;
+
+    final hh = picked.hour.toString().padLeft(2, '0');
+    final mm = picked.minute.toString().padLeft(2, '0');
+    return "$hh:$mm";
+  }
+
+  // Dialog ajout tâche (titre + heure)
+  void _afficherDialogueAjoutTache() {
+    final titreCtrl = TextEditingController();
+    String? heureChoisie;
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setLocalState) {
+            return AlertDialog(
+              title: const Text("Nouvelle tâche"),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: titreCtrl,
+                    decoration: const InputDecoration(
+                      labelText: "Titre",
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  InkWell(
+                    onTap: () async {
+                      final h = await _choisirHeure();
+                      if (h == null) return;
+                      setLocalState(() => heureChoisie = h);
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 14,
+                      ),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            heureChoisie ?? "Choisir l'heure",
+                            style: const TextStyle(fontSize: 14),
+                          ),
+                          const Icon(Icons.access_time),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text("Annuler"),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    final titre = titreCtrl.text.trim();
+                    if (titre.isEmpty) return;
+
+                    final cle = _dateSansHeure(_dateSelectionnee);
+
+                    setState(() {
+                      _tachesParDate.putIfAbsent(cle, () => []);
+                      _tachesParDate[cle]!.add(
+                        Tache(titre, heureChoisie ?? "--:--", false),
+                      );
+                    });
+
+                    Navigator.pop(context);
+                  },
+                  child: const Text("Ajouter"),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
   }
 
   @override
@@ -51,6 +154,20 @@ class _CalendrierState extends State<Calendrier> {
           onPressed: () => Navigator.pop(context),
         ),
       ),
+
+      // buttom+
+      floatingActionButton: FloatingActionButton(
+        onPressed: _afficherDialogueAjoutTache,
+        backgroundColor: const Color.fromARGB(
+          255,
+          217,
+          174,
+          245,
+        ).withOpacity(0.9),
+        child: const Icon(Icons.add, color: Colors.black),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+
       body: Container(
         width: double.infinity,
         height: double.infinity,
@@ -76,7 +193,7 @@ class _CalendrierState extends State<Calendrier> {
                 ),
                 const SizedBox(height: 14),
 
-                // ✅ Card Calendar
+                // Carte Calendrier
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
@@ -86,15 +203,20 @@ class _CalendrierState extends State<Calendrier> {
                   child: TableCalendar(
                     firstDay: DateTime.utc(2016, 1, 1),
                     lastDay: DateTime.utc(2036, 12, 31),
-                    focusedDay: _mois,
-                    selectedDayPredicate: (day) => isSameDay(day, _jour),
-                    onDaySelected: (selectedDay, focusedDay) {
+                    focusedDay: _moisAffiche,
+
+                    startingDayOfWeek: StartingDayOfWeek.sunday,
+
+                    selectedDayPredicate: (jour) =>
+                        isSameDay(jour, _dateSelectionnee),
+
+                    onDaySelected: (jourSelectionne, moisFocalise) {
                       setState(() {
-                        _jour = selectedDay;
-                        _mois = focusedDay;
+                        _dateSelectionnee = jourSelectionne;
+                        _moisAffiche = moisFocalise;
                       });
                     },
-                    startingDayOfWeek: StartingDayOfWeek.sunday,
+
                     headerStyle: HeaderStyle(
                       formatButtonVisible: false,
                       titleCentered: true,
@@ -113,11 +235,39 @@ class _CalendrierState extends State<Calendrier> {
                         color: Colors.black,
                       ),
                     ),
+
+                    daysOfWeekStyle: DaysOfWeekStyle(
+                      weekdayStyle: TextStyle(
+                        color: Colors.black.withOpacity(0.70),
+                      ),
+                      weekendStyle: TextStyle(
+                        color: Colors.black.withOpacity(0.70),
+                      ),
+                    ),
+
+                    calendarStyle: CalendarStyle(
+                      outsideDaysVisible: false,
+                      defaultTextStyle: const TextStyle(color: Colors.black),
+                      weekendTextStyle: const TextStyle(color: Colors.black),
+                      todayDecoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.08),
+                        shape: BoxShape.circle,
+                      ),
+                      selectedDecoration: const BoxDecoration(
+                        color: Color(0xFF2F7BFF),
+                        shape: BoxShape.circle,
+                      ),
+                      selectedTextStyle: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
                   ),
                 ),
 
                 const SizedBox(height: 14),
 
+                // Panel tâches
                 Expanded(
                   child: Container(
                     padding: const EdgeInsets.all(16),
@@ -126,24 +276,29 @@ class _CalendrierState extends State<Calendrier> {
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(color: Colors.white.withOpacity(0.18)),
                     ),
-                    child: _tasksOfSelectedDay.isEmpty
-                        ? const Center(
+                    child: _tachesDuJour.isEmpty
+                        ? Center(
                             child: Text(
                               "Aucune tâche",
-                              style: TextStyle(color: Colors.white),
+                              style: TextStyle(
+                                color: Colors.white.withOpacity(0.85),
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           )
                         : ListView.separated(
-                            itemCount: _tasksOfSelectedDay.length,
+                            itemCount: _tachesDuJour.length,
                             separatorBuilder: (_, __) =>
                                 Divider(color: Colors.white.withOpacity(0.15)),
                             itemBuilder: (context, index) {
-                              final t = _tasksOfSelectedDay[index];
+                              final t = _tachesDuJour[index];
                               return Row(
                                 children: [
                                   Checkbox(
-                                    value: t.done,
-                                    onChanged: (v) => _toggleTask(index, v),
+                                    value: t.terminee,
+                                    onChanged: (v) =>
+                                        _changerEtatTache(index, v),
                                     side: BorderSide(
                                       color: Colors.white.withOpacity(0.8),
                                     ),
@@ -152,18 +307,18 @@ class _CalendrierState extends State<Calendrier> {
                                   ),
                                   Expanded(
                                     child: Text(
-                                      t.title,
+                                      t.titre,
                                       style: TextStyle(
                                         color: Colors.white,
                                         fontSize: 16,
-                                        decoration: t.done
+                                        decoration: t.terminee
                                             ? TextDecoration.lineThrough
                                             : TextDecoration.none,
                                       ),
                                     ),
                                   ),
                                   Text(
-                                    t.time,
+                                    t.heure,
                                     style: TextStyle(
                                       color: Colors.white.withOpacity(0.7),
                                     ),
@@ -183,13 +338,14 @@ class _CalendrierState extends State<Calendrier> {
   }
 }
 
-class Todo {
-  final String title;
-  final String time;
-  final bool done;
+// Modèle tache
+class Tache {
+  final String titre;
+  final String heure;
+  final bool terminee;
 
-  Todo(this.title, this.time, this.done);
+  Tache(this.titre, this.heure, this.terminee);
 
-  Todo copyWith({String? title, String? time, bool? done}) =>
-      Todo(title ?? this.title, time ?? this.time, done ?? this.done);
+  Tache copyWith({String? titre, String? heure, bool? done}) =>
+      Tache(titre ?? this.titre, heure ?? this.heure, done ?? terminee);
 }
