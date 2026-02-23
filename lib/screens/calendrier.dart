@@ -20,6 +20,7 @@ class _CalendrierState extends State<Calendrier> {
 
   // Tâches par date
   final Map<DateTime, List<Tache>> _tachesParDate = {
+    // lblasa eli nkhazen feha map key->valeur
     _dateSansHeure(DateTime.now()): [
       Tache("Tâche 1", "10:00", true),
       Tache("Tâche 2", "11:00", true),
@@ -34,7 +35,6 @@ class _CalendrierState extends State<Calendrier> {
   // Liste des tâches du jour sélectionné
   List<Tache> get _tachesDuJour =>
       _tachesParDate[_dateSansHeure(_dateSelectionnee)] ?? [];
-
   // Changer état (done) d’une tâche
   void _changerEtatTache(int index, bool? valeur) {
     final cle = _dateSansHeure(_dateSelectionnee);
@@ -54,13 +54,16 @@ class _CalendrierState extends State<Calendrier> {
     );
     if (picked == null) return null;
 
-    final hh = picked.hour.toString().padLeft(2, '0');
+    final hh = picked.hour.toString().padLeft(
+      2,
+      '0',
+    ); // mithel 9 yrodha 09 bech tben w9t
     final mm = picked.minute.toString().padLeft(2, '0');
     return "$hh:$mm";
   }
 
   // Dialog ajout tâche (titre + heure)
-  void _afficherDialogueAjoutTache() {
+  void _afficherAjoutTache() {
     final titreCtrl = TextEditingController();
     String? heureChoisie;
 
@@ -68,6 +71,7 @@ class _CalendrierState extends State<Calendrier> {
       context: context,
       builder: (context) {
         return StatefulBuilder(
+          //bech yaaml t7dith
           builder: (context, setLocalState) {
             return AlertDialog(
               title: const Text("Nouvelle tâche"),
@@ -157,7 +161,7 @@ class _CalendrierState extends State<Calendrier> {
 
       // buttom+
       floatingActionButton: FloatingActionButton(
-        onPressed: _afficherDialogueAjoutTache,
+        onPressed: _afficherAjoutTache,
         backgroundColor: const Color.fromARGB(
           255,
           217,
@@ -195,7 +199,7 @@ class _CalendrierState extends State<Calendrier> {
 
                 // Carte Calendrier
                 Container(
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(19),
                   decoration: BoxDecoration(
                     color: Colors.white.withOpacity(0.18),
                     borderRadius: BorderRadius.circular(18),
@@ -207,8 +211,10 @@ class _CalendrierState extends State<Calendrier> {
 
                     startingDayOfWeek: StartingDayOfWeek.sunday,
 
-                    selectedDayPredicate: (jour) =>
-                        isSameDay(jour, _dateSelectionnee),
+                    selectedDayPredicate: (jour) => isSameDay(
+                      jour,
+                      _dateSelectionnee,
+                    ), //ylawn nhar leli khtarto
 
                     onDaySelected: (jourSelectionne, moisFocalise) {
                       setState(() {
