@@ -8,7 +8,7 @@ import 'package:ora/screens/rencontre.dart';
 import 'package:ora/screens/principal.dart';
 import 'package:ora/screens/mesnotes.dart';
 import 'package:ora/screens/notes2.dart';
-import 'package:ora/screens/calendrier.dart';
+import 'package:ora/screens/Calendrier.dart';
 import 'package:ora/screens/paramettre.dart';
 import 'package:ora/screens/Profil.dart';
 import 'package:ora/screens/favorise.dart';
@@ -27,7 +27,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'ora app',
       theme: ThemeData(primaryColor: Colors.blue, fontFamily: 'Jomhuria'),
-      home: const calendrier(),
+      home: const Calendrier(),
       debugShowCheckedModeBanner: false,
     );
   }
