@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
-class chatora extends StatefulWidget {
-  const chatora({super.key});
+class chat extends StatefulWidget {
+  const chat({super.key});
 
   @override
-  State<chatora> createState() => _chatoraState();
+  State<chat> createState() => _chatState();
 }
 
-class _chatoraState extends State<chatora> {
+class _chatState extends State<chat> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -37,6 +37,20 @@ class _chatoraState extends State<chatora> {
           image: DecorationImage(
             image: AssetImage("images/b1.png"),
             fit: BoxFit.cover,
+          ),
+        ),
+        child: SafeArea(
+          child: Stack(
+            children: [
+              Positioned.fill(
+                top: -150,
+                left: -230,
+                child: Opacity(
+                  opacity: 0.4,
+                  child: Image.asset("images/robot1.png", fit: BoxFit.cover),
+                ),
+              ),
+            ],
           ),
         ),
       ),
