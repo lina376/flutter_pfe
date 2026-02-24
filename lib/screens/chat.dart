@@ -8,6 +8,31 @@ class chat extends StatefulWidget {
 }
 
 class _chatState extends State<chat> {
+  bool modeVocal = true; // true = micro / false = écriture
+
+  final TextEditingController controleurMessage = TextEditingController();
+  final FocusNode focusTexte = FocusNode();
+
+  @override
+  void dispose() {
+    controleurMessage.dispose();
+    focusTexte.dispose();
+    super.dispose();
+  }
+
+  void passerEnModeVocal() {
+    FocusScope.of(context).unfocus(); //ykhabi l clavier
+    setState(() => modeVocal = true);
+  }
+
+  void passerEnModeEcriture() {
+    setState(() => modeVocal = false);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      FocusScope.of(context).requestFocus(focusTexte);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -50,76 +75,138 @@ class _chatState extends State<chat> {
                   child: Image.asset("images/robot1.png", fit: BoxFit.cover),
                 ),
               ),
-              Positioned(
-                top: 590,
-                left: 156,
-                child: GestureDetector(
-                  onTap: () {
-                    // hne chn7ot code l ta3 tasjil
-                  },
-                  child: Container(
-                    //bech ykoun mdawr
-                    width: 80,
-                    height: 80,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.white.withOpacity(0.18),
-                      border: Border.all(
-                        color: Colors.white.withOpacity(0.2),
-                        width: 2,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          //wrah dhaw
-                          color: Colors.white.withOpacity(0.15),
-                          blurRadius: 25,
-                          spreadRadius: 6,
+              if (modeVocal)
+                Positioned(
+                  top: 590,
+                  left: 156,
+                  child: GestureDetector(
+                    onTap: passerEnModeVocal,
+                    child: Container(
+                      //bech ykoun mdawr
+                      width: 80,
+                      height: 80,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white.withOpacity(0.18),
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.2),
+                          width: 2,
                         ),
-                      ],
-                    ),
-                    child: const Center(
-                      child: Icon(Icons.mic, color: Colors.white, size: 32),
-                    ),
-                  ),
-                ),
-              ),
-              Positioned(
-                top: 620,
-                left: 300,
-                child: GestureDetector(
-                  onTap: () {
-                    // hne chn7ot code l ta3 tasjil
-                  },
-                  child: Container(
-                    //bech ykoun mdawr
-                    width: 50,
-                    height: 50,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.white.withOpacity(0.18),
-                      border: Border.all(
-                        color: Colors.white.withOpacity(0.2),
-                        width: 2,
+                        boxShadow: [
+                          BoxShadow(
+                            //wrah dhaw
+                            color: Colors.white.withOpacity(0.15),
+                            blurRadius: 25,
+                            spreadRadius: 6,
+                          ),
+                        ],
                       ),
-                      boxShadow: [
-                        BoxShadow(
-                          //wrah dhaw
-                          color: Colors.white.withOpacity(0.15),
-                          blurRadius: 25,
-                          spreadRadius: 6,
-                        ),
-                      ],
-                    ),
-                    child: const Center(
-                      child: Icon(
-                        Icons.draw_outlined,
-                        color: Colors.white,
-                        size: 32,
+                      child: const Center(
+                        child: Icon(Icons.mic, color: Colors.white, size: 32),
                       ),
                     ),
                   ),
                 ),
-              ),
+              if (modeVocal)
+                Positioned(
+                  top: 620,
+                  left: 300,
+                  child: GestureDetector(
+                    onTap: passerEnModeEcriture,
+                    child: Container(
+                      //bech ykoun mdawr
+                      width: 50,
+                      height: 50,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white.withOpacity(0.18),
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.2),
+                          width: 2,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            //wrah dhaw
+                            color: Colors.white.withOpacity(0.15),
+                            blurRadius: 25,
+                            spreadRadius: 6,
+                          ),
+                        ],
+                      ),
+                      child: const Center(
+                        child: Icon(
+                          Icons.draw_outlined,
+                          color: Colors.white,
+                          size: 32,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              if (!modeVocal) ...[
+                Positioned(
+                  left: 16,
+                  right: 16,
+                  bottom: 40,
+                  child: Row(
+                    children: [
+                      GestureDetector(
+                        onTap: passerEnModeVocal,
+                        child: Container(
+                          width: 50,
+                          height: 50,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.white.withOpacity(0.18),
+                            border: Border.all(
+                              color: Colors.white.withOpacity(0.2),
+                              width: 2,
+                            ),
+                          ),
+                          child: const Icon(Icons.mic, color: Colors.white),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+
+                      Expanded(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          height: 52,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.18),
+                            borderRadius: BorderRadius.circular(18),
+                            border: Border.all(
+                              color: Colors.white.withOpacity(0.18),
+                            ),
+                          ),
+                          child: TextField(
+                            focusNode: focusTexte,
+                            controller: controleurMessage,
+                            style: const TextStyle(color: Colors.white),
+                            decoration: const InputDecoration(
+                              hintText: "Écrire...",
+                              hintStyle: TextStyle(color: Colors.white70),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      InkWell(
+                        onTap: () {},
+                        child: Container(
+                          width: 50,
+                          height: 50,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.white.withOpacity(0.25),
+                          ),
+                          child: const Icon(Icons.send, color: Colors.white),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ],
           ),
         ),
