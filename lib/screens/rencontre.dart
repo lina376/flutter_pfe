@@ -39,6 +39,25 @@ class _rencontreState extends State<rencontre> {
             fit: BoxFit.cover,
           ),
         ),
+        child: SafeArea(
+          child: Stack(
+            children: [
+              Positioned.fill(
+                top: 150,
+                left: 40,
+                right: -30,
+                child: Opacity(
+                  opacity: 1,
+                  child: Image.asset(
+                    "images/robot0.png",
+                    fit: BoxFit.contain,
+                    width: 20,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

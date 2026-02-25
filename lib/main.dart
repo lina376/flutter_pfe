@@ -14,7 +14,6 @@ import 'package:ora/screens/Profil.dart';
 import 'package:ora/screens/favorise.dart';
 import 'package:ora/screens/notifications.dart';
 import 'package:ora/screens/notifications2.dart';
-import 'package:ora/screens/chatv.dart';
 
 void main() {
   runApp(const MyApp());
@@ -27,7 +26,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'ora app',
       theme: ThemeData(primaryColor: Colors.blue, fontFamily: 'Jomhuria'),
-      home: const chat(),
+      home: const rencontre(),
       debugShowCheckedModeBanner: false,
     );
   }
