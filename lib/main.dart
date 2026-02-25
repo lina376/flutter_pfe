@@ -11,7 +11,7 @@ import 'package:ora/screens/notes2.dart';
 import 'package:ora/screens/Calendrier.dart';
 import 'package:ora/screens/paramettre.dart';
 import 'package:ora/screens/Profil.dart';
-import 'package:ora/screens/favorise.dart';
+import 'package:ora/screens/Favorise.dart';
 import 'package:ora/screens/notifications.dart';
 import 'package:ora/screens/notifications2.dart';
 
@@ -26,7 +26,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'ora app',
       theme: ThemeData(primaryColor: Colors.blue, fontFamily: 'Jomhuria'),
-      home: const principal(),
+      home: const Favorise(),
       debugShowCheckedModeBanner: false,
     );
   }
