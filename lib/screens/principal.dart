@@ -122,7 +122,7 @@ class _principalState extends State<principal> {
                                   Text(
                                     element.titre,
                                     style: TextStyle(
-                                      color: Colors.white.withOpacity(0.9),
+                                      color: Colors.white,
                                       fontWeight: FontWeight.w700,
                                       fontSize: 13,
                                     ),
