@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:table_calendar/table_calendar.dart';
+import 'package:intl/intl.dart';
 
 class principal extends StatefulWidget {
   const principal({super.key});
@@ -8,6 +10,13 @@ class principal extends StatefulWidget {
 }
 
 class _principalState extends State<principal> {
+  // Date affichée (mois) + date sélectionnée
+  DateTime _moisAffiche = DateTime.now();
+  DateTime _dateSelectionnee = DateTime.now();
+
+  // Normalisation ken jour m a
+  static DateTime _dateSansHeure(DateTime d) =>
+      DateTime(d.year, d.month, d.day);
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -24,7 +33,7 @@ class _principalState extends State<principal> {
             ),
             icon: const Icon(Icons.notifications_active, color: Colors.white),
             onPressed: () {},
-            tooltip: 'home',
+            tooltip: 'notification',
             iconSize: 25,
             constraints: const BoxConstraints(minHeight: 25, minWidth: 25),
           ),
@@ -37,7 +46,7 @@ class _principalState extends State<principal> {
           ),
           icon: const Icon(Icons.menu, color: Colors.white),
           onPressed: () {},
-          tooltip: 'home',
+          tooltip: 'parametre',
           iconSize: 25,
           constraints: const BoxConstraints(minHeight: 25, minWidth: 25),
         ),
@@ -57,15 +66,12 @@ class _principalState extends State<principal> {
               Positioned(
                 top: 10,
                 left: 1,
-                child: SizedBox(
-                  width: 395,
-                  height: 45,
-                  child: SearchBarWidget(),
-                ),
+                child: SizedBox(width: 395, height: 45, child: recherche()),
               ),
               Positioned(
+                //frame de robot
                 top: 80,
-                left: 20,
+                left: 10,
                 child: SizedBox(
                   width: 210,
                   height: 170,
@@ -81,8 +87,9 @@ class _principalState extends State<principal> {
               ),
 
               Positioned(
+                //frame de notes
                 top: 80,
-                left: 250,
+                left: 240,
                 child: SizedBox(
                   width: 130,
                   height: 170,
@@ -199,10 +206,91 @@ class _principalState extends State<principal> {
                   ),
                   Positioned(
                     top: 130,
-                    left: 130,
+                    left: 120,
                     child: Image.asset("images/robot0.png", width: 95),
                   ),
-                  Positioned(left: 230, top: 80, child: MesNotesMiniCard()),
+                  Positioned(left: 220, top: 80, child: MesNotes()),
+                  Positioned(
+                    top: 280,
+                    left: 10,
+                    right: 10,
+                    child: Container(
+                      padding: const EdgeInsets.all(19),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.18),
+                        borderRadius: BorderRadius.circular(18),
+                      ),
+                      child: TableCalendar(
+                        firstDay: DateTime.utc(2016, 1, 1),
+                        lastDay: DateTime.utc(2036, 12, 31),
+                        focusedDay: _moisAffiche,
+
+                        startingDayOfWeek: StartingDayOfWeek.sunday,
+
+                        selectedDayPredicate: (jour) => isSameDay(
+                          jour,
+                          _dateSelectionnee,
+                        ), //ylawn nhar leli khtarto
+
+                        onDaySelected: (jourSelectionne, moisFocalise) {
+                          setState(() {
+                            _dateSelectionnee = jourSelectionne;
+                            _moisAffiche = moisFocalise;
+                          });
+                        },
+
+                        headerStyle: HeaderStyle(
+                          formatButtonVisible: false,
+                          titleCentered: true,
+                          titleTextFormatter: (date, locale) =>
+                              DateFormat('MMM yyyy', 'en_US').format(date),
+                          titleTextStyle: const TextStyle(
+                            color: Colors.black,
+                            fontWeight: FontWeight.w700,
+                          ),
+                          leftChevronIcon: const Icon(
+                            Icons.chevron_left,
+                            color: Colors.black,
+                          ),
+                          rightChevronIcon: const Icon(
+                            Icons.chevron_right,
+                            color: Colors.black,
+                          ),
+                        ),
+
+                        daysOfWeekStyle: DaysOfWeekStyle(
+                          weekdayStyle: TextStyle(
+                            color: Colors.black.withOpacity(0.70),
+                          ),
+                          weekendStyle: TextStyle(
+                            color: Colors.black.withOpacity(0.70),
+                          ),
+                        ),
+
+                        calendarStyle: CalendarStyle(
+                          outsideDaysVisible: false,
+                          defaultTextStyle: const TextStyle(
+                            color: Colors.black,
+                          ),
+                          weekendTextStyle: const TextStyle(
+                            color: Colors.black,
+                          ),
+                          todayDecoration: BoxDecoration(
+                            color: Colors.black.withOpacity(0.08),
+                            shape: BoxShape.circle,
+                          ),
+                          selectedDecoration: const BoxDecoration(
+                            color: Color(0xFF2F7BFF),
+                            shape: BoxShape.circle,
+                          ),
+                          selectedTextStyle: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ],
@@ -213,8 +301,8 @@ class _principalState extends State<principal> {
   }
 }
 
-class SearchBarWidget extends StatelessWidget {
-  const SearchBarWidget({super.key});
+class recherche extends StatelessWidget {
+  const recherche({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -249,8 +337,8 @@ class SearchBarWidget extends StatelessWidget {
   }
 }
 
-class MesNotesMiniCard extends StatelessWidget {
-  const MesNotesMiniCard({super.key});
+class MesNotes extends StatelessWidget {
+  const MesNotes({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -275,7 +363,7 @@ class MesNotesMiniCard extends StatelessWidget {
               ),
               child: const Icon(
                 Icons.note_alt,
-                color: Color.fromARGB(255, 243, 255, 79),
+                color: Color.fromARGB(255, 79, 179, 255),
                 size: 28,
               ),
             ),
