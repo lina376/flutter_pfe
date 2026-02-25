@@ -17,6 +17,150 @@ class _principalState extends State<principal> {
   // Normalisation ken jour m a
   static DateTime _dateSansHeure(DateTime d) =>
       DateTime(d.year, d.month, d.day);
+  final List<ElementHistorique> listeHistorique = [];
+
+  void ajouterHistorique({
+    required String titre,
+    required String sousTitre,
+    required IconData icone,
+  }) {
+    setState(() {
+      listeHistorique.insert(
+        0,
+        ElementHistorique(
+          titre: titre,
+          sousTitre: sousTitre,
+          dateHeure: DateTime.now(),
+          icone: icone,
+        ),
+      );
+    });
+  }
+
+  String formaterHeure(DateTime date) {
+    final heures = date.hour.toString().padLeft(2, '0');
+    final minutes = date.minute.toString().padLeft(2, '0');
+    return "$heures:$minutes";
+  }
+
+  Widget sectionHistorique() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 18),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: Colors.white.withOpacity(0.15)),
+      ),
+      child: Column(
+        crossAxisAlignment:
+            CrossAxisAlignment.start, //bech titktib historique aal lisar
+        children: [
+          Positioned(
+            child: Text(
+              "Historique",
+              style: TextStyle(
+                color: Colors.black87,
+                fontWeight: FontWeight.w800,
+                fontSize: 14,
+              ),
+            ),
+          ),
+
+          Expanded(
+            child: listeHistorique.isEmpty
+                ? Align(
+                    //? ken l condition s7i7a yarja3 min ? w ken ghalta yarja3 :
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      "Aucune activité pour le moment",
+                      style: TextStyle(color: Colors.white.withOpacity(0.75)),
+                    ),
+                  )
+                : ListView.separated(
+                    itemCount: listeHistorique.length,
+                    physics: const ClampingScrollPhysics(),
+                    separatorBuilder: (_, __) => const SizedBox(
+                      height: 10,
+                    ), //yaamal espace baad koul 3onsor
+                    itemBuilder: (context, index) {
+                      final element =
+                          listeHistorique[index]; //koul historique aando index
+
+                      return Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 12,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.10),
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.12),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              height: 34,
+                              width: 34,
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.16),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                element.icone,
+                                color: Colors.white.withOpacity(0.85),
+                                size: 18,
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    element.titre,
+                                    style: TextStyle(
+                                      color: Colors.white.withOpacity(0.9),
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    element.sousTitre,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      color: Colors.white.withOpacity(0.7),
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Text(
+                              formaterHeure(element.dateHeure),
+                              style: TextStyle(
+                                color: Colors.white.withOpacity(0.65),
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -112,7 +256,13 @@ class _principalState extends State<principal> {
                       width: 120,
                       height: 44,
                       child: ElevatedButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          ajouterHistorique(
+                            titre: "Chat avec ORA",
+                            sousTitre: "Discussion commencée",
+                            icone: Icons.chat_bubble_outline,
+                          );
+                        },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color.fromARGB(
                             221,
@@ -127,6 +277,7 @@ class _principalState extends State<principal> {
                         ),
                         child: const Text(
                           "Discuter",
+
                           style: TextStyle(
                             color: Color.fromARGB(255, 50, 43, 43),
                             fontWeight: FontWeight.w700,
@@ -211,7 +362,7 @@ class _principalState extends State<principal> {
                   ),
                   Positioned(left: 220, top: 80, child: MesNotes()),
                   Positioned(
-                    top: 280,
+                    top: 270,
                     left: 10,
                     right: 10,
                     child: Container(
@@ -290,6 +441,13 @@ class _principalState extends State<principal> {
                         ),
                       ),
                     ),
+                  ),
+                  Positioned(
+                    //historique
+                    left: 0,
+                    right: 0,
+                    bottom: 10,
+                    child: SizedBox(height: 110, child: sectionHistorique()),
                   ),
                 ],
               ),
@@ -383,4 +541,18 @@ class MesNotes extends StatelessWidget {
       ),
     );
   }
+}
+
+class ElementHistorique {
+  final String titre;
+  final String sousTitre;
+  final DateTime dateHeure;
+  final IconData icone;
+
+  ElementHistorique({
+    required this.titre,
+    required this.sousTitre,
+    required this.dateHeure,
+    required this.icone,
+  });
 }
