@@ -1,5 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:ora/screens/creecompte.dart';
+import 'package:ora/screens/principal.dart';
 
 class connecter extends StatefulWidget {
   static const String screenRoute = 'pageconnecter';
@@ -107,7 +109,9 @@ class _connecterState extends State<connecter> {
                     right: MediaQuery.of(context).size.height * 0.165,
                     left: MediaQuery.of(context).size.height * 0.165,
                     child: ElevatedButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        Navigator.pushNamed(context, principal.screenRoute);
+                      },
                       child: Text(
                         "connecter",
                         style: TextStyle(
@@ -129,12 +133,16 @@ class _connecterState extends State<connecter> {
                   Positioned(
                     top: MediaQuery.of(context).size.height * 0.8,
                     left: MediaQuery.of(context).size.height * 0.188,
-
-                    child: Text(
-                      "Crée compte",
-                      style: TextStyle(
-                        color: Colors.black,
-                        decoration: TextDecoration.underline,
+                    child: GestureDetector(
+                      onTap: () {
+                        Navigator.pushNamed(context, creecompte.screenRoute);
+                      },
+                      child: Text(
+                        "Crée compte",
+                        style: TextStyle(
+                          color: Colors.black,
+                          decoration: TextDecoration.underline,
+                        ),
                       ),
                     ),
                   ),

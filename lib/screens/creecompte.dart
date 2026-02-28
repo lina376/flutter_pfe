@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ora/screens/principal.dart';
 
 class creecompte extends StatefulWidget {
   static const String screenRoute = 'pagecreecompte';
@@ -180,7 +181,9 @@ class _creecompteState extends State<creecompte> {
                 right: MediaQuery.of(context).size.height * 0.17,
                 left: MediaQuery.of(context).size.height * 0.17,
                 child: ElevatedButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.pushNamed(context, principal.screenRoute);
+                  },
                   child: Text(
                     "S'inscrire",
                     style: TextStyle(
