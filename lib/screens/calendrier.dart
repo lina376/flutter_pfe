@@ -3,6 +3,8 @@ import 'package:table_calendar/table_calendar.dart';
 import 'package:intl/intl.dart';
 
 class Calendrier extends StatefulWidget {
+  static const String screenRoute = 'pagecalendrier';
+
   const Calendrier({super.key});
 
   @override

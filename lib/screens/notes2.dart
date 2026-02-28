@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 class notes2 extends StatefulWidget {
+  static const String screenRoute = 'pagenotes2';
   const notes2({super.key});
 
   @override
@@ -28,20 +29,19 @@ class _notes2State extends State<notes2> {
             iconSize: 40,
             constraints: const BoxConstraints(minHeight: 50, minWidth: 50),
           ),
-         
         ],
-        leading:  IconButton(
-            style: const ButtonStyle(
-              backgroundColor: WidgetStatePropertyAll<Color>(
-                Color.fromARGB(194, 88, 70, 142),
-              ),
+        leading: IconButton(
+          style: const ButtonStyle(
+            backgroundColor: WidgetStatePropertyAll<Color>(
+              Color.fromARGB(194, 88, 70, 142),
             ),
-            icon: const Icon(Icons.chevron_left, color: Colors.white),
-            onPressed: () {},
-            tooltip: 'chevron',
-            iconSize: 40,
-            constraints: const BoxConstraints(minHeight: 50, minWidth: 50),
           ),
+          icon: const Icon(Icons.chevron_left, color: Colors.white),
+          onPressed: () {},
+          tooltip: 'chevron',
+          iconSize: 40,
+          constraints: const BoxConstraints(minHeight: 50, minWidth: 50),
+        ),
       ),
       body: Container(
         width: double.infinity,
@@ -52,13 +52,12 @@ class _notes2State extends State<notes2> {
             fit: BoxFit.cover,
           ),
         ),
-        
-        child: SafeArea(child: Stack(
-          children: [
+
+        child: SafeArea(child: Stack(children: [
           
             
           ],
-        ),),
+        )),
       ),
     );
   }

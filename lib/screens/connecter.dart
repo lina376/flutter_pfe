@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class connecter extends StatefulWidget {
+  static const String screenRoute = 'pageconnecter';
   const connecter({super.key});
 
   @override

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:ora/screens/connecter.dart';
 
 class rencontre extends StatefulWidget {
+  static const String screenRoute = 'pagerencontre';
   const rencontre({super.key});
 
   @override

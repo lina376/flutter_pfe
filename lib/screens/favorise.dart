@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 class Favorise extends StatefulWidget {
+  static const String screenRoute = 'pagefavorise';
   const Favorise({super.key});
 
   @override

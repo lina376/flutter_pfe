@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 class creecompte extends StatefulWidget {
+  static const String screenRoute = 'pagecreecompte';
   const creecompte({super.key});
 
   @override

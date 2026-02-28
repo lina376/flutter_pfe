@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 class chat extends StatefulWidget {
+  static const String screenRoute = 'pagechat';
   const chat({super.key});
 
   @override

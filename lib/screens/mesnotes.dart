@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:math';
 
 class mesnotes extends StatefulWidget {
+  static const String screenRoute = 'pagemesnotes';
   const mesnotes({super.key});
 
   @override

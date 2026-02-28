@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 class notifications extends StatefulWidget {
+  static const String screenRoute = 'pagenotifications';
   const notifications({super.key});
 
   @override

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 
 class Profil extends StatefulWidget {
+  static const String screenRoute = 'pageprofil';
   const Profil({super.key});
 
   @override

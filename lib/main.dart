@@ -8,10 +8,10 @@ import 'package:ora/screens/rencontre.dart';
 import 'package:ora/screens/principal.dart';
 import 'package:ora/screens/mesnotes.dart';
 import 'package:ora/screens/notes2.dart';
-import 'package:ora/screens/Calendrier.dart';
+import 'package:ora/screens/calendrier.dart';
 import 'package:ora/screens/paramettre.dart';
-import 'package:ora/screens/Profil.dart';
-import 'package:ora/screens/Favorise.dart';
+import 'package:ora/screens/profil.dart';
+import 'package:ora/screens/favorise.dart';
 import 'package:ora/screens/notifications.dart';
 import 'package:ora/screens/notifications2.dart';
 
@@ -26,7 +26,22 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'ora app',
       theme: ThemeData(primaryColor: Colors.blue, fontFamily: 'Jomhuria'),
-      home: const rencontre(),
+      initialRoute: rencontre.screenRoute,
+      routes: {
+        rencontre.screenRoute: (ctx) => rencontre(),
+        connecter.screenRoute: (ctx) => connecter(),
+        creecompte.screenRoute: (ctx) => creecompte(),
+        principal.screenRoute: (ctx) => principal(),
+        chat.screenRoute: (ctx) => chat(),
+        Favorise.screenRoute: (ctx) => Favorise(),
+        mesnotes.screenRoute: (ctx) => mesnotes(),
+        notes2.screenRoute: (ctx) => notes2(),
+        notifications.screenRoute: (ctx) => notifications(),
+        Notifications2.screenRoute: (ctx) => Notifications2(),
+        Paramettre.screenRoute: (ctx) => Paramettre(),
+        Profil.screenRoute: (ctx) => Profil(),
+        Calendrier.screenRoute: (ctx) => Calendrier(),
+      },
       debugShowCheckedModeBanner: false,
     );
   }
