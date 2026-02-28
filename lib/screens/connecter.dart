@@ -26,8 +26,8 @@ class _connecterState extends State<connecter> {
           child: Stack(
             children: [
               Positioned(
-                top: 150,
-                left:90,
+                top: MediaQuery.of(context).size.height * 0.2,
+                left: MediaQuery.of(context).size.height * 0.11,
                 child: Text(
                   'Bienvenue',
                   style: TextStyle(
@@ -51,17 +51,17 @@ class _connecterState extends State<connecter> {
               Stack(
                 children: [
                   Positioned(
-                    top: 300,
-                    left: 12,
+                    top: MediaQuery.of(context).size.height * 0.35,
+                    left: MediaQuery.of(context).size.height * 0.01,
                     child: Text(
                       "Email",
                       style: TextStyle(color: Colors.white, fontSize: 14),
                     ),
                   ),
                   Positioned(
-                    top: 320,
-                    left: 10,
-                    right: 10,
+                    top: MediaQuery.of(context).size.height * 0.38,
+                    left: MediaQuery.of(context).size.height * 0.01,
+                    right: MediaQuery.of(context).size.height * 0.01,
                     child: TextField(
                       decoration: InputDecoration(
                         hintText: "email@gmail.com",
@@ -76,17 +76,17 @@ class _connecterState extends State<connecter> {
                     ),
                   ),
                   Positioned(
-                    top: 380,
-                    left: 12,
+                    top: MediaQuery.of(context).size.height * 0.47,
+                    left: MediaQuery.of(context).size.height * 0.01,
                     child: Text(
                       "Mot de passe",
                       style: TextStyle(color: Colors.white, fontSize: 14),
                     ),
                   ),
                   Positioned(
-                    top: 400,
-                    left: 10,
-                    right: 10,
+                    top: MediaQuery.of(context).size.height * 0.5,
+                    left: MediaQuery.of(context).size.height * 0.01,
+                    right: MediaQuery.of(context).size.height * 0.01,
                     child: TextField(
                       decoration: InputDecoration(
                         hintText: "********",
@@ -102,9 +102,9 @@ class _connecterState extends State<connecter> {
                   ),
 
                   Positioned(
-                    top: 510,
-                    right: 135,
-                    left: 135,
+                    top: MediaQuery.of(context).size.height * 0.6,
+                    right: MediaQuery.of(context).size.height * 0.165,
+                    left: MediaQuery.of(context).size.height * 0.165,
                     child: ElevatedButton(
                       onPressed: () {},
                       child: Text(
@@ -126,11 +126,11 @@ class _connecterState extends State<connecter> {
                     ),
                   ),
                   Positioned(
-                    top: 700,
-                    left: 135,
+                    top: MediaQuery.of(context).size.height * 0.8,
+                    left: MediaQuery.of(context).size.height * 0.188,
 
                     child: Text(
-                      "Mot de passe oblier",
+                      "Crée compte",
                       style: TextStyle(
                         color: Colors.black,
                         decoration: TextDecoration.underline,

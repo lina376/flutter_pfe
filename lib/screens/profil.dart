@@ -85,8 +85,8 @@ class _ProfilState extends State<Profil> {
             child: Stack(
               children: [
                 Positioned(
-                  top: -1,
-                  left: 135,
+                  top: MediaQuery.of(context).size.height * 0.0001,
+                  left: MediaQuery.of(context).size.height * 0.165,
                   child: Text(
                     "Profil",
                     style: TextStyle(
@@ -96,19 +96,23 @@ class _ProfilState extends State<Profil> {
                     ),
                   ),
                 ),
-                Positioned(top: 60, left: 150, child: ProfileAvatarFP()),
                 Positioned(
-                  top: 160,
-                  left: 12,
+                  top: MediaQuery.of(context).size.height * 0.065,
+                  left: MediaQuery.of(context).size.height * 0.18,
+                  child: ProfileAvatarFP(),
+                ),
+                Positioned(
+                  top: MediaQuery.of(context).size.height * 0.2,
+                  left: MediaQuery.of(context).size.height * 0.01,
                   child: Text(
                     "Nom",
                     style: TextStyle(color: Colors.white, fontSize: 15),
                   ),
                 ),
                 Positioned(
-                  top: 190,
-                  left: 10,
-                  right: 10,
+                  top: MediaQuery.of(context).size.height * 0.23,
+                  left: MediaQuery.of(context).size.height * 0.01,
+                  right: MediaQuery.of(context).size.height * 0.01,
                   child: TextField(
                     decoration: InputDecoration(
                       hintText: "Nom",
@@ -123,17 +127,17 @@ class _ProfilState extends State<Profil> {
                   ),
                 ),
                 Positioned(
-                  top: 255,
-                  left: 12,
+                  top: MediaQuery.of(context).size.height * 0.3,
+                  left: MediaQuery.of(context).size.height * 0.01,
                   child: Text(
                     "Prénom",
                     style: TextStyle(color: Colors.white, fontSize: 14),
                   ),
                 ),
                 Positioned(
-                  top: 285,
-                  left: 10,
-                  right: 10,
+                  top: MediaQuery.of(context).size.height * 0.33,
+                  left: MediaQuery.of(context).size.height * 0.01,
+                  right: MediaQuery.of(context).size.height * 0.01,
                   child: TextField(
                     decoration: InputDecoration(
                       hintText: "Prénom",
@@ -148,8 +152,8 @@ class _ProfilState extends State<Profil> {
                   ),
                 ),
                 Positioned(
-                  top: 350,
-                  left: 12,
+                  top: MediaQuery.of(context).size.height * 0.4,
+                  left: MediaQuery.of(context).size.height * 0.01,
                   child: Text(
                     "Email",
                     style: TextStyle(color: Colors.white, fontSize: 14),
@@ -157,9 +161,9 @@ class _ProfilState extends State<Profil> {
                 ),
 
                 Positioned(
-                  top: 380,
-                  left: 10,
-                  right: 10,
+                  top: MediaQuery.of(context).size.height * 0.43,
+                  left: MediaQuery.of(context).size.height * 0.01,
+                  right: MediaQuery.of(context).size.height * 0.01,
                   child: TextFormField(
                     autovalidateMode: AutovalidateMode.onUserInteraction,
                     decoration: InputDecoration(
@@ -188,17 +192,17 @@ class _ProfilState extends State<Profil> {
                 ),
 
                 Positioned(
-                  top: 455,
-                  left: 12,
+                  top: MediaQuery.of(context).size.height * 0.52,
+                  left: MediaQuery.of(context).size.height * 0.01,
                   child: Text(
                     "Mot de passe",
                     style: TextStyle(color: Colors.white, fontSize: 14),
                   ),
                 ),
                 Positioned(
-                  top: 485,
-                  left: 10,
-                  right: 10,
+                  top: MediaQuery.of(context).size.height * 0.55,
+                  left: MediaQuery.of(context).size.height * 0.01,
+                  right: MediaQuery.of(context).size.height * 0.01,
                   child: Form(
                     child: TextFormField(
                       obscureText: true,
@@ -206,6 +210,7 @@ class _ProfilState extends State<Profil> {
                         labelText: "Mot de passe",
                         border: OutlineInputBorder(
                           borderSide: BorderSide(width: 0.5),
+                          borderRadius: BorderRadius.all(Radius.circular(8)),
                         ),
                         filled: true,
                         fillColor: Colors.white,
@@ -236,17 +241,17 @@ class _ProfilState extends State<Profil> {
                   ),
                 ),
                 Positioned(
-                  top: 560,
-                  left: 12,
+                  top: MediaQuery.of(context).size.height * 0.635,
+                  left: MediaQuery.of(context).size.height * 0.01,
                   child: Text(
                     "Date de naissance",
                     style: TextStyle(color: Colors.white, fontSize: 14),
                   ),
                 ),
                 Positioned(
-                  top: 590,
-                  left: 10,
-                  right: 10,
+                  top: MediaQuery.of(context).size.height * 0.665,
+                  left: MediaQuery.of(context).size.height * 0.01,
+                  right: MediaQuery.of(context).size.height * 0.01,
                   child: TextFormField(
                     readOnly: true,
                     onTap: _selectBirthDate,
@@ -267,9 +272,9 @@ class _ProfilState extends State<Profil> {
                   ),
                 ),
                 Positioned(
-                  top: 660,
+                  bottom: MediaQuery.of(context).size.height * 0.05,
 
-                  left: 130,
+                  left: MediaQuery.of(context).size.height * 0.16,
                   child: ElevatedButton(
                     onPressed: () {},
                     child: Text(

@@ -25,8 +25,8 @@ class _creecompteState extends State<creecompte> {
           child: Stack(
             children: [
               Positioned(
-                top: 40,
-                right: 10,
+                top: MediaQuery.of(context).size.height * 0.05,
+                right: MediaQuery.of(context).size.height * 0.01,
                 child: Text(
                   "Créer",
                   style: TextStyle(
@@ -37,8 +37,8 @@ class _creecompteState extends State<creecompte> {
                 ),
               ),
               Positioned(
-                top: 80,
-                right: 10,
+                top: MediaQuery.of(context).size.height * 0.1,
+                right: MediaQuery.of(context).size.height * 0.01,
                 child: Text(
                   "un compte",
                   style: TextStyle(
@@ -49,17 +49,17 @@ class _creecompteState extends State<creecompte> {
                 ),
               ),
               Positioned(
-                top: 170,
-                left: 12,
+                top: MediaQuery.of(context).size.height * 0.2,
+                left: MediaQuery.of(context).size.height * 0.01,
                 child: Text(
                   "Nom",
                   style: TextStyle(color: Colors.white, fontSize: 15),
                 ),
               ),
               Positioned(
-                top: 200,
-                left: 10,
-                right: 10,
+                top: MediaQuery.of(context).size.height * 0.24,
+                left: MediaQuery.of(context).size.height * 0.01,
+                right: MediaQuery.of(context).size.height * 0.01,
                 child: TextField(
                   decoration: InputDecoration(
                     hintText: "Nom",
@@ -74,17 +74,17 @@ class _creecompteState extends State<creecompte> {
                 ),
               ),
               Positioned(
-                top: 265,
-                left: 12,
+                top: MediaQuery.of(context).size.height * 0.32,
+                left: MediaQuery.of(context).size.height * 0.01,
                 child: Text(
                   "Prénom",
                   style: TextStyle(color: Colors.white, fontSize: 14),
                 ),
               ),
               Positioned(
-                top: 295,
-                left: 10,
-                right: 10,
+                top: MediaQuery.of(context).size.height * 0.35,
+                left: MediaQuery.of(context).size.height * 0.01,
+                right: MediaQuery.of(context).size.height * 0.01,
                 child: TextField(
                   decoration: InputDecoration(
                     hintText: "Prénom",
@@ -99,17 +99,17 @@ class _creecompteState extends State<creecompte> {
                 ),
               ),
               Positioned(
-                top: 360,
-                left: 12,
+                top: MediaQuery.of(context).size.height * 0.43,
+                left: MediaQuery.of(context).size.height * 0.01,
                 child: Text(
                   "Email",
                   style: TextStyle(color: Colors.white, fontSize: 14),
                 ),
               ),
               Positioned(
-                top: 390,
-                left: 10,
-                right: 10,
+                top: MediaQuery.of(context).size.height * 0.46,
+                left: MediaQuery.of(context).size.height * 0.01,
+                right: MediaQuery.of(context).size.height * 0.01,
                 child: TextField(
                   decoration: InputDecoration(
                     hintText: "email@gmail.com",
@@ -124,17 +124,17 @@ class _creecompteState extends State<creecompte> {
                 ),
               ),
               Positioned(
-                top: 455,
-                left: 12,
+                top: MediaQuery.of(context).size.height * 0.545,
+                left: MediaQuery.of(context).size.height * 0.01,
                 child: Text(
                   "Mot de passe",
                   style: TextStyle(color: Colors.white, fontSize: 14),
                 ),
               ),
               Positioned(
-                top: 485,
-                left: 10,
-                right: 10,
+                top: MediaQuery.of(context).size.height * 0.57,
+                left: MediaQuery.of(context).size.height * 0.01,
+                right: MediaQuery.of(context).size.height * 0.01,
                 child: TextField(
                   decoration: InputDecoration(
                     hintText: "********",
@@ -149,17 +149,17 @@ class _creecompteState extends State<creecompte> {
                 ),
               ),
               Positioned(
-                top: 550,
-                left: 12,
+                top: MediaQuery.of(context).size.height * 0.655,
+                left: MediaQuery.of(context).size.height * 0.01,
                 child: Text(
                   "Confirmer mot de passe",
                   style: TextStyle(color: Colors.white, fontSize: 14),
                 ),
               ),
               Positioned(
-                top: 580,
-                left: 10,
-                right: 10,
+                top: MediaQuery.of(context).size.height * 0.68,
+                left: MediaQuery.of(context).size.height * 0.01,
+                right: MediaQuery.of(context).size.height * 0.01,
                 child: TextField(
                   decoration: InputDecoration(
                     hintText: "********",
@@ -175,9 +175,9 @@ class _creecompteState extends State<creecompte> {
               ),
 
               Positioned(
-                top: 670,
-                right: 10,
-                left: 250,
+                top: MediaQuery.of(context).size.height * 0.78,
+                right: MediaQuery.of(context).size.height * 0.17,
+                left: MediaQuery.of(context).size.height * 0.17,
                 child: ElevatedButton(
                   onPressed: () {},
                   child: Text(

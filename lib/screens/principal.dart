@@ -141,7 +141,9 @@ class _principalState extends State<principal> {
                                 ],
                               ),
                             ),
-                            const SizedBox(width: 10),
+                            SizedBox(
+                              width: MediaQuery.of(context).size.height * 0.01,
+                            ),
                             Text(
                               formaterHeure(element.dateHeure),
                               style: TextStyle(
@@ -208,14 +210,14 @@ class _principalState extends State<principal> {
           child: Stack(
             children: [
               Positioned(
-                top: 10,
-                left: 1,
+                top: MediaQuery.of(context).size.height * 0.001,
+                left: MediaQuery.of(context).size.height * 0.0001,
                 child: SizedBox(width: 395, height: 45, child: recherche()),
               ),
               Positioned(
                 //frame de robot
-                top: 80,
-                left: 10,
+                top: MediaQuery.of(context).size.height * 0.08,
+                left: MediaQuery.of(context).size.height * 0.02,
                 child: SizedBox(
                   width: 210,
                   height: 170,
@@ -232,8 +234,8 @@ class _principalState extends State<principal> {
 
               Positioned(
                 //frame de notes
-                top: 80,
-                left: 240,
+                top: MediaQuery.of(context).size.height * 0.08,
+                right: MediaQuery.of(context).size.height * 0.02,
                 child: SizedBox(
                   width: 130,
                   height: 170,
@@ -250,8 +252,8 @@ class _principalState extends State<principal> {
               Stack(
                 children: [
                   Positioned(
-                    top: 100,
-                    left: 30,
+                    top: MediaQuery.of(context).size.height * 0.095,
+                    left: MediaQuery.of(context).size.height * 0.035,
                     child: SizedBox(
                       width: 120,
                       height: 44,
@@ -287,8 +289,8 @@ class _principalState extends State<principal> {
                     ),
                   ),
                   Positioned(
-                    top: 150,
-                    left: 50,
+                    top: MediaQuery.of(context).size.height * 0.155,
+                    left: MediaQuery.of(context).size.height * 0.05,
                     child: SizedBox(
                       width: 35,
                       height: 15,
@@ -310,8 +312,8 @@ class _principalState extends State<principal> {
                     ),
                   ),
                   Positioned(
-                    top: 168,
-                    left: 70,
+                    top: MediaQuery.of(context).size.height * 0.174,
+                    left: MediaQuery.of(context).size.height * 0.07,
                     child: SizedBox(
                       width: 25,
                       height: 12,
@@ -333,8 +335,8 @@ class _principalState extends State<principal> {
                     ),
                   ),
                   Positioned(
-                    top: 183,
-                    left: 90,
+                    top: MediaQuery.of(context).size.height * 0.19,
+                    left: MediaQuery.of(context).size.height * 0.09,
                     child: SizedBox(
                       width: 20,
                       height: 8,
@@ -356,15 +358,19 @@ class _principalState extends State<principal> {
                     ),
                   ),
                   Positioned(
-                    top: 130,
-                    left: 120,
+                    top: MediaQuery.of(context).size.height * 0.13,
+                    left: MediaQuery.of(context).size.height * 0.12,
                     child: Image.asset("images/robot0.png", width: 95),
                   ),
-                  Positioned(left: 220, top: 80, child: MesNotes()),
                   Positioned(
-                    top: 270,
-                    left: 10,
-                    right: 10,
+                    right: MediaQuery.of(context).size.height * 0.001,
+                    top: MediaQuery.of(context).size.height * 0.08,
+                    child: MesNotes(),
+                  ),
+                  Positioned(
+                    top: MediaQuery.of(context).size.height * 0.3,
+                    left: MediaQuery.of(context).size.height * 0.02,
+                    right: MediaQuery.of(context).size.height * 0.02,
                     child: Container(
                       padding: const EdgeInsets.all(19),
                       decoration: BoxDecoration(
@@ -444,9 +450,9 @@ class _principalState extends State<principal> {
                   ),
                   Positioned(
                     //historique
-                    left: 0,
-                    right: 0,
-                    bottom: 10,
+                    left: MediaQuery.of(context).size.height * 0.01,
+                    right: MediaQuery.of(context).size.height * 0.01,
+                    bottom: MediaQuery.of(context).size.height * 0.025,
                     child: SizedBox(height: 110, child: sectionHistorique()),
                   ),
                 ],

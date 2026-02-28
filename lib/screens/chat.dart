@@ -68,8 +68,8 @@ class _chatState extends State<chat> {
           child: Stack(
             children: [
               Positioned.fill(
-                top: -150,
-                left: -230,
+                top: MediaQuery.of(context).size.height * -0.2,
+                left: MediaQuery.of(context).size.height * -0.4,
                 child: Opacity(
                   opacity: 0.4,
                   child: Image.asset("images/robot1.png", fit: BoxFit.cover),
@@ -77,8 +77,8 @@ class _chatState extends State<chat> {
               ),
               if (modeVocal)
                 Positioned(
-                  top: 590,
-                  left: 156,
+                  top: MediaQuery.of(context).size.height * 0.7,
+                  left: MediaQuery.of(context).size.height * 0.2,
                   child: GestureDetector(
                     onTap: passerEnModeVocal,
                     child: Container(
@@ -109,8 +109,8 @@ class _chatState extends State<chat> {
                 ),
               if (modeVocal)
                 Positioned(
-                  top: 620,
-                  left: 300,
+                  top: MediaQuery.of(context).size.height * 0.77,
+                  left: MediaQuery.of(context).size.height * 0.35,
                   child: GestureDetector(
                     onTap: passerEnModeEcriture,
                     child: Container(
@@ -145,9 +145,9 @@ class _chatState extends State<chat> {
                 ),
               if (!modeVocal) ...[
                 Positioned(
-                  left: 16,
-                  right: 16,
-                  bottom: 40,
+                  left: MediaQuery.of(context).size.height * 0,
+                  right: MediaQuery.of(context).size.height * 0,
+                  bottom: MediaQuery.of(context).size.height * 0.01,
                   child: Row(
                     children: [
                       GestureDetector(

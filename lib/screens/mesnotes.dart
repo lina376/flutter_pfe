@@ -56,8 +56,8 @@ class _mesnotesState extends State<mesnotes> {
           child: Stack(
             children: [
               Positioned(
-                top: 40,
-                right: 290,
+                top: MediaQuery.of(context).size.height * 0.04,
+                left: MediaQuery.of(context).size.height * 0.01,
                 child: Text(
                   "Mes",
                   style: TextStyle(
@@ -68,8 +68,8 @@ class _mesnotesState extends State<mesnotes> {
                 ),
               ),
               Positioned(
-                top: 85,
-                right: 257,
+                top: MediaQuery.of(context).size.height * 0.09,
+                left: MediaQuery.of(context).size.height * 0.01,
                 child: Text(
                   "Notes",
                   style: TextStyle(
@@ -80,34 +80,29 @@ class _mesnotesState extends State<mesnotes> {
                 ),
               ),
               Positioned(
-                top: -28,
-                right: -4,
+                top: MediaQuery.of(context).size.height * -0.01,
+                right: MediaQuery.of(context).size.height * 0.001,
 
                 child: Transform.rotate(
                   angle: -pi / 3.8,
                   child: Image.asset('images/robot2.png', width: 180),
                 ),
               ),
-              Positioned(
-                top: 200,
-                left: 10,
-                right: 10,
-                child: NoteCard(dateText: "02 Jan 12:08", title: "Note 1"),
-              ),
+
               Stack(
                 children: [
                   Positioned(
-                    top: 658,
-                    left: 1,
+                    bottom: MediaQuery.of(context).size.height * 0.01,
+                    left: MediaQuery.of(context).size.height * 0.001,
                     child: SizedBox(
                       width: 340,
                       height: 50,
-                      child: SearchBarWidget(),
+                      child: barederecherche(),
                     ),
                   ),
                   Positioned(
-                    bottom: 15,
-                    right: 8,
+                    bottom: MediaQuery.of(context).size.height * 0.01,
+                    right: MediaQuery.of(context).size.height * 0.01,
                     child: Container(
                       width: 52,
                       height: 52,
@@ -131,11 +126,11 @@ class _mesnotesState extends State<mesnotes> {
   }
 }
 
-class NoteCard extends StatelessWidget {
+class note extends StatelessWidget {
   final String dateText;
   final String title;
 
-  const NoteCard({super.key, required this.dateText, required this.title});
+  const note({super.key, required this.dateText, required this.title});
 
   @override
   Widget build(BuildContext context) {
@@ -180,8 +175,8 @@ class NoteCard extends StatelessWidget {
   }
 }
 
-class SearchBarWidget extends StatelessWidget {
-  const SearchBarWidget({super.key});
+class barederecherche extends StatelessWidget {
+  const barederecherche({super.key});
 
   @override
   Widget build(BuildContext context) {

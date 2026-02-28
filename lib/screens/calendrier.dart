@@ -85,7 +85,7 @@ class _CalendrierState extends State<Calendrier> {
                       border: OutlineInputBorder(),
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: MediaQuery.of(context).size.height * 0.2),
                   InkWell(
                     onTap: () async {
                       final h = await _choisirHeure();
@@ -217,7 +217,7 @@ class _CalendrierState extends State<Calendrier> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                const SizedBox(height: 14),
+                SizedBox(height: MediaQuery.of(context).size.height * 0.02),
 
                 // Carte Calendrier
                 Container(

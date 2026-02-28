@@ -26,9 +26,9 @@ class _rencontreState extends State<rencontre> {
           child: Stack(
             children: [
               Positioned.fill(
-                top: 150,
-                left: 40,
-                right: -30,
+                top: MediaQuery.of(context).size.height * 0.1,
+
+                bottom: MediaQuery.of(context).size.height * -0.1,
                 child: Opacity(
                   opacity: 1,
                   child: Image.asset(
@@ -39,8 +39,8 @@ class _rencontreState extends State<rencontre> {
                 ),
               ),
               Positioned(
-                top: 20,
-                left: 58,
+                top: MediaQuery.of(context).size.height * 0.025,
+                left: MediaQuery.of(context).size.height * 0.065,
                 child: Text(
                   "Rencontrez",
                   style: TextStyle(
@@ -51,8 +51,8 @@ class _rencontreState extends State<rencontre> {
                 ),
               ),
               Positioned(
-                top: 80,
-                left: 129,
+                top: MediaQuery.of(context).size.height * 0.08,
+                left: MediaQuery.of(context).size.height * 0.15,
                 child: Text(
                   "ORA",
                   style: TextStyle(
@@ -63,8 +63,8 @@ class _rencontreState extends State<rencontre> {
                 ),
               ),
               Positioned(
-                top: 200,
-                left: 20,
+                top: MediaQuery.of(context).size.height * 0.2,
+                left: MediaQuery.of(context).size.height * 0.02,
                 child: Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 18,
@@ -96,8 +96,8 @@ class _rencontreState extends State<rencontre> {
               Stack(
                 children: [
                   Positioned(
-                    top: 265,
-                    left: 140,
+                    top: MediaQuery.of(context).size.height * 0.28,
+                    left: MediaQuery.of(context).size.height * 0.18,
                     child: Container(
                       width: 20,
                       height: 20,
@@ -111,8 +111,8 @@ class _rencontreState extends State<rencontre> {
                     ),
                   ),
                   Positioned(
-                    top: 279,
-                    left: 160,
+                    top: MediaQuery.of(context).size.height * 0.3,
+                    left: MediaQuery.of(context).size.height * 0.2,
                     child: Container(
                       width: 15,
                       height: 15,
@@ -126,8 +126,8 @@ class _rencontreState extends State<rencontre> {
                     ),
                   ),
                   Positioned(
-                    top: 290,
-                    left: 180,
+                    top: MediaQuery.of(context).size.height * 0.31,
+                    left: MediaQuery.of(context).size.height * 0.22,
                     child: Container(
                       width: 10,
                       height: 10,
@@ -157,9 +157,9 @@ class _buttomcommencer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Positioned(
-      bottom: 20,
-      right: 20,
-      left: 20,
+      bottom: MediaQuery.of(context).size.height * 0.02,
+      right: MediaQuery.of(context).size.height * 0.02,
+      left: MediaQuery.of(context).size.height * 0.02,
       child: GestureDetector(
         onTap: () {},
 
