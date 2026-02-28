@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ora/screens/connecter.dart';
+import 'package:ora/screens/creecompte.dart';
 
 class rencontre extends StatefulWidget {
   static const String screenRoute = 'pagerencontre';
@@ -88,10 +89,7 @@ class _rencontreState extends State<rencontre> {
               ),
               _buttomcommencer(
                 onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const connecter()),
-                  );
+                  Navigator.pushNamed(context, connecter.screenRoute);
                 },
               ),
               Stack(
@@ -151,9 +149,26 @@ class _rencontreState extends State<rencontre> {
   }
 }
 
-class _buttomcommencer extends StatelessWidget {
+class _buttomcommencer extends StatefulWidget {
   final VoidCallback onTap;
   const _buttomcommencer({required this.onTap});
+
+  @override
+  State<_buttomcommencer> createState() => _buttomcommencerState();
+}
+
+class _buttomcommencerState extends State<_buttomcommencer> {
+  bool move = false;
+
+  void handleTap() {
+    setState(() {
+      move = true; //tit7arak a droite
+    });
+
+    Future.delayed(const Duration(milliseconds: 400), () {
+      widget.onTap();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -162,8 +177,7 @@ class _buttomcommencer extends StatelessWidget {
       right: MediaQuery.of(context).size.height * 0.02,
       left: MediaQuery.of(context).size.height * 0.02,
       child: GestureDetector(
-        onTap: () {},
-
+        onTap: handleTap,
         child: Container(
           height: 70,
           decoration: BoxDecoration(
@@ -171,36 +185,37 @@ class _buttomcommencer extends StatelessWidget {
             borderRadius: BorderRadius.circular(30),
             border: Border.all(color: Colors.white.withOpacity(0.15)),
           ),
-
-          child: Row(
+          child: Stack(
+            alignment: Alignment.center,
             children: [
-              const SizedBox(width: 10),
-
-              Container(
-                height: 44,
-                width: 44,
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.18),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.arrow_forward, color: Colors.white),
-              ),
-              const SizedBox(width: 14),
-
-              Expanded(
-                child: Center(
-                  child: Text(
-                    "Commencer",
-                    style: TextStyle(
-                      color: Colors.white.withOpacity(0.75),
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
+              const Center(
+                child: Text(
+                  "Commencer",
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
 
-              const SizedBox(width: 44), //position de commencer
+              AnimatedAlign(
+                duration: const Duration(milliseconds: 400),
+                curve: Curves.easeInOut,
+                alignment: move ? Alignment.centerRight : Alignment.centerLeft,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  child: Container(
+                    height: 44,
+                    width: 44,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.18),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.arrow_forward, color: Colors.white),
+                  ),
+                ),
+              ),
             ],
           ),
         ),
