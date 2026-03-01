@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ora/screens/principal.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:intl/intl.dart';
 
@@ -155,20 +156,7 @@ class _CalendrierState extends State<Calendrier> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        actions: [
-          IconButton(
-            style: const ButtonStyle(
-              backgroundColor: WidgetStatePropertyAll<Color>(
-                Color.fromARGB(194, 88, 70, 142),
-              ),
-            ),
-            icon: const Icon(Icons.home, color: Colors.white),
-            onPressed: () {},
-            tooltip: 'home',
-            iconSize: 40,
-            constraints: const BoxConstraints(minHeight: 50, minWidth: 50),
-          ),
-        ],
+
         leading: IconButton(
           style: const ButtonStyle(
             backgroundColor: WidgetStatePropertyAll<Color>(
@@ -176,7 +164,9 @@ class _CalendrierState extends State<Calendrier> {
             ),
           ),
           icon: const Icon(Icons.chevron_left, color: Colors.white),
-          onPressed: () {},
+          onPressed: () {
+            Navigator.pushNamed(context, principal.screenRoute);
+          },
           tooltip: 'chevron',
           iconSize: 40,
           constraints: const BoxConstraints(minHeight: 50, minWidth: 50),

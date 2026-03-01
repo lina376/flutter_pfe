@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:ora/screens/mesnotes.dart';
+import 'package:ora/screens/principal.dart';
 
 class notes2 extends StatefulWidget {
   static const String screenRoute = 'pagenotes2';
@@ -9,11 +11,14 @@ class notes2 extends StatefulWidget {
 }
 
 class _notes2State extends State<notes2> {
+  final TextEditingController ctrl = TextEditingController();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
+        title: const Text("Nouvelle note"),
+
         backgroundColor: Colors.transparent,
         elevation: 0,
         actions: [
@@ -24,7 +29,9 @@ class _notes2State extends State<notes2> {
               ),
             ),
             icon: const Icon(Icons.home, color: Colors.white),
-            onPressed: () {},
+            onPressed: () {
+              Navigator.pushNamed(context, principal.screenRoute);
+            },
             tooltip: 'home',
             iconSize: 40,
             constraints: const BoxConstraints(minHeight: 50, minWidth: 50),
@@ -37,7 +44,9 @@ class _notes2State extends State<notes2> {
             ),
           ),
           icon: const Icon(Icons.chevron_left, color: Colors.white),
-          onPressed: () {},
+          onPressed: () {
+            Navigator.pushNamed(context, mesnotes.screenRoute);
+          },
           tooltip: 'chevron',
           iconSize: 40,
           constraints: const BoxConstraints(minHeight: 50, minWidth: 50),
@@ -57,11 +66,31 @@ class _notes2State extends State<notes2> {
           child: SingleChildScrollView(
             child: SizedBox(
               height: MediaQuery.of(context).size.height,
-              child: Stack(children: [
-          
-            
-          ],
-        ),
+              child: Stack(
+                children: [
+                  Positioned(
+                    child: TextField(
+                      controller: ctrl,
+                      maxLines: 8,
+                      decoration: const InputDecoration(
+                        hintText: "Écrire votre note...",
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                  ),
+
+                  Positioned(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        final text = ctrl.text.trim();
+                        if (text.isEmpty) return;
+                        Navigator.pop(context, text); //traj3ek l mesnotes
+                      },
+                      child: const Text("Enregistrer"),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

@@ -487,7 +487,7 @@ class _principalState extends State<principal> {
                         //historique
                         left: MediaQuery.of(context).size.height * 0.01,
                         right: MediaQuery.of(context).size.height * 0.01,
-                        bottom: MediaQuery.of(context).size.height * 0.0001,
+                        bottom: MediaQuery.of(context).size.height * 0.12,
                         child: SizedBox(
                           height: 165,
                           child: sectionHistorique(),
