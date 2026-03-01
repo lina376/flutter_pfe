@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-
-import 'package:google_fonts/google_fonts.dart';
 import 'package:ora/screens/chat.dart';
 import 'package:ora/screens/connecter.dart';
 import 'package:ora/screens/creecompte.dart';
