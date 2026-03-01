@@ -21,8 +21,7 @@ class _principalState extends State<principal> {
   DateTime _dateSelectionnee = DateTime.now();
 
   // Normalisation ken jour m a
-  static DateTime _dateSansHeure(DateTime d) =>
-      DateTime(d.year, d.month, d.day);
+
   final List<ElementHistorique> listeHistorique = [];
 
   void ajouterHistorique({
