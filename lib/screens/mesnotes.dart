@@ -14,12 +14,9 @@ class mesnotes extends StatefulWidget {
 
 class _mesnotesState extends State<mesnotes> {
   final TextEditingController searchCtrl = TextEditingController();
-
-  // ✅ بيانات تجريبية (تنجم تفسخهم)
+  //exemple
   final List<Notee> notes = [
     Notee(id: '1', title: 'Note 1', date: DateTime(2026, 1, 2, 12, 8)),
-    Notee(id: '2', title: 'Note 2', date: DateTime(2026, 1, 7, 19, 28)),
-    Notee(id: '3', title: 'Note 3', date: DateTime(2026, 2, 4, 15, 15)),
   ];
 
   @override
@@ -151,12 +148,11 @@ class _mesnotesState extends State<mesnotes> {
                 ),
               ),
 
-              // ✅ LIST NOTES (بين العنوان و search bar)
               Positioned(
                 top: h * 0.20,
                 left: 16,
                 right: 16,
-                bottom: 90, // نخلي مكان للـ search bar
+                bottom: 90,
                 child: ListView.separated(
                   padding: const EdgeInsets.only(bottom: 10),
                   itemCount: _filteredNotes.length,
@@ -215,7 +211,6 @@ class _mesnotesState extends State<mesnotes> {
                 ),
               ),
 
-              // ✅ SEARCH + DRAW BTN (louta)
               Positioned(
                 bottom: h * 0.01,
                 left: h * 0.001,

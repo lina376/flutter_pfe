@@ -88,7 +88,7 @@ class _CalendrierState extends State<Calendrier> {
                       border: OutlineInputBorder(),
                     ),
                   ),
-                  SizedBox(height: MediaQuery.of(context).size.height * 0.2),
+                  SizedBox(height: MediaQuery.of(context).size.height * 0.01),
                   InkWell(
                     onTap: () async {
                       final h = await _choisirHeure();
