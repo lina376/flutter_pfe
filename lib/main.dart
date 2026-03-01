@@ -26,7 +26,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'ora app',
       theme: ThemeData(primaryColor: Colors.blue, fontFamily: 'Jomhuria'),
-      initialRoute: principal.screenRoute,
+      initialRoute: creecompte.screenRoute,
       routes: {
         rencontre.screenRoute: (ctx) => rencontre(),
         connecter.screenRoute: (ctx) => connecter(),

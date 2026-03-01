@@ -10,9 +10,11 @@ class creecompte extends StatefulWidget {
 }
 
 class _creecompteState extends State<creecompte> {
+  final _formkey = GlobalKey<FormState>();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       extendBodyBehindAppBar: true,
       body: Container(
         width: double.infinity,
@@ -24,180 +26,239 @@ class _creecompteState extends State<creecompte> {
           ),
         ),
         child: SafeArea(
-          child: Stack(
-            children: [
-              Positioned(
-                top: MediaQuery.of(context).size.height * 0.05,
-                right: MediaQuery.of(context).size.height * 0.01,
-                child: Text(
-                  "Créer",
-                  style: TextStyle(
-                    fontSize: 46,
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              Positioned(
-                top: MediaQuery.of(context).size.height * 0.1,
-                right: MediaQuery.of(context).size.height * 0.01,
-                child: Text(
-                  "un compte",
-                  style: TextStyle(
-                    fontSize: 46,
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              Positioned(
-                top: MediaQuery.of(context).size.height * 0.2,
-                left: MediaQuery.of(context).size.height * 0.01,
-                child: Text(
-                  "Nom",
-                  style: TextStyle(color: Colors.white, fontSize: 15),
-                ),
-              ),
-              Positioned(
-                top: MediaQuery.of(context).size.height * 0.24,
-                left: MediaQuery.of(context).size.height * 0.01,
-                right: MediaQuery.of(context).size.height * 0.01,
-                child: TextField(
-                  decoration: InputDecoration(
-                    hintText: "Nom",
-                    filled: true,
-                    fillColor: Colors.white, //pour arriere blanc
-                    border: OutlineInputBorder(
-                      gapPadding: 3.0,
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(width: 0.5),
+          child: Form(
+            key: _formkey,
+            child: SingleChildScrollView(
+              child: SizedBox(
+                height: MediaQuery.of(context).size.height,
+                child: Stack(
+                  children: [
+                    Positioned(
+                      top: MediaQuery.of(context).size.height * 0.05,
+                      right: MediaQuery.of(context).size.height * 0.01,
+                      child: Text(
+                        "Créer",
+                        style: TextStyle(
+                          fontSize: 46,
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
-                  ),
-                ),
-              ),
-              Positioned(
-                top: MediaQuery.of(context).size.height * 0.32,
-                left: MediaQuery.of(context).size.height * 0.01,
-                child: Text(
-                  "Prénom",
-                  style: TextStyle(color: Colors.white, fontSize: 14),
-                ),
-              ),
-              Positioned(
-                top: MediaQuery.of(context).size.height * 0.35,
-                left: MediaQuery.of(context).size.height * 0.01,
-                right: MediaQuery.of(context).size.height * 0.01,
-                child: TextField(
-                  decoration: InputDecoration(
-                    hintText: "Prénom",
-                    filled: true,
-                    fillColor: Colors.white, //pour arriere blanc
-                    border: OutlineInputBorder(
-                      gapPadding: 3.0,
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(width: 0.5),
+                    Positioned(
+                      top: MediaQuery.of(context).size.height * 0.1,
+                      right: MediaQuery.of(context).size.height * 0.01,
+                      child: Text(
+                        "un compte",
+                        style: TextStyle(
+                          fontSize: 46,
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
-                  ),
-                ),
-              ),
-              Positioned(
-                top: MediaQuery.of(context).size.height * 0.43,
-                left: MediaQuery.of(context).size.height * 0.01,
-                child: Text(
-                  "Email",
-                  style: TextStyle(color: Colors.white, fontSize: 14),
-                ),
-              ),
-              Positioned(
-                top: MediaQuery.of(context).size.height * 0.46,
-                left: MediaQuery.of(context).size.height * 0.01,
-                right: MediaQuery.of(context).size.height * 0.01,
-                child: TextField(
-                  decoration: InputDecoration(
-                    hintText: "email@gmail.com",
-                    filled: true,
-                    fillColor: Colors.white, //pour arriere blanc
-                    border: OutlineInputBorder(
-                      gapPadding: 3.0,
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(width: 0.5),
+                    Positioned(
+                      top: MediaQuery.of(context).size.height * 0.2,
+                      left: MediaQuery.of(context).size.height * 0.01,
+                      child: Text(
+                        "Nom",
+                        style: TextStyle(color: Colors.white, fontSize: 15),
+                      ),
                     ),
-                  ),
-                ),
-              ),
-              Positioned(
-                top: MediaQuery.of(context).size.height * 0.545,
-                left: MediaQuery.of(context).size.height * 0.01,
-                child: Text(
-                  "Mot de passe",
-                  style: TextStyle(color: Colors.white, fontSize: 14),
-                ),
-              ),
-              Positioned(
-                top: MediaQuery.of(context).size.height * 0.57,
-                left: MediaQuery.of(context).size.height * 0.01,
-                right: MediaQuery.of(context).size.height * 0.01,
-                child: TextField(
-                  decoration: InputDecoration(
-                    hintText: "********",
-                    filled: true,
-                    fillColor: Colors.white, //pour arriere blanc
-                    border: OutlineInputBorder(
-                      gapPadding: 3.0,
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(width: 0.5),
+                    Positioned(
+                      top: MediaQuery.of(context).size.height * 0.24,
+                      left: MediaQuery.of(context).size.height * 0.01,
+                      right: MediaQuery.of(context).size.height * 0.01,
+                      child: TextField(
+                        decoration: InputDecoration(
+                          hintText: "Nom",
+                          filled: true,
+                          fillColor: Colors.white, //pour arriere blanc
+                          border: OutlineInputBorder(
+                            gapPadding: 3.0,
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(width: 0.5),
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
-                ),
-              ),
-              Positioned(
-                top: MediaQuery.of(context).size.height * 0.655,
-                left: MediaQuery.of(context).size.height * 0.01,
-                child: Text(
-                  "Confirmer mot de passe",
-                  style: TextStyle(color: Colors.white, fontSize: 14),
-                ),
-              ),
-              Positioned(
-                top: MediaQuery.of(context).size.height * 0.68,
-                left: MediaQuery.of(context).size.height * 0.01,
-                right: MediaQuery.of(context).size.height * 0.01,
-                child: TextField(
-                  decoration: InputDecoration(
-                    hintText: "********",
-                    filled: true,
-                    fillColor: Colors.white, //pour arriere blanc
-                    border: OutlineInputBorder(
-                      gapPadding: 3.0,
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(width: 0.5),
+                    Positioned(
+                      top: MediaQuery.of(context).size.height * 0.32,
+                      left: MediaQuery.of(context).size.height * 0.01,
+                      child: Text(
+                        "Prénom",
+                        style: TextStyle(color: Colors.white, fontSize: 14),
+                      ),
                     ),
-                  ),
-                ),
-              ),
+                    Positioned(
+                      top: MediaQuery.of(context).size.height * 0.35,
+                      left: MediaQuery.of(context).size.height * 0.01,
+                      right: MediaQuery.of(context).size.height * 0.01,
+                      child: TextField(
+                        decoration: InputDecoration(
+                          hintText: "Prénom",
+                          filled: true,
+                          fillColor: Colors.white, //pour arriere blanc
+                          border: OutlineInputBorder(
+                            gapPadding: 3.0,
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(width: 0.5),
+                          ),
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      top: MediaQuery.of(context).size.height * 0.43,
+                      left: MediaQuery.of(context).size.height * 0.01,
+                      child: Text(
+                        "Email",
+                        style: TextStyle(color: Colors.white, fontSize: 14),
+                      ),
+                    ),
+                    Positioned(
+                      top: MediaQuery.of(context).size.height * 0.46,
+                      left: MediaQuery.of(context).size.height * 0.01,
+                      right: MediaQuery.of(context).size.height * 0.01,
+                      child: TextFormField(
+                        decoration: InputDecoration(
+                          hintText: "email@gmail.com",
+                          filled: true,
+                          fillColor: Colors.white, //pour arriere blanc
+                          border: OutlineInputBorder(
+                            gapPadding: 3.0,
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(width: 0.5),
+                          ),
+                        ),
+                        validator: (value) {
+                          //validator tkhdem ken ma3 TextFormField
+                          if (value == null || value.isEmpty) {
+                            return "Email obligatoire";
+                          }
 
-              Positioned(
-                top: MediaQuery.of(context).size.height * 0.78,
-                right: MediaQuery.of(context).size.height * 0.17,
-                left: MediaQuery.of(context).size.height * 0.17,
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.pushNamed(context, principal.screenRoute);
-                  },
-                  child: Text(
-                    "S'inscrire",
-                    style: TextStyle(
-                      color: const Color.fromARGB(136, 10, 11, 22),
+                          final emailRegex = RegExp(
+                            r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
+                          );
+
+                          if (!emailRegex.hasMatch(value)) {
+                            return "Format email incorrect";
+                          }
+
+                          return null;
+                        },
+                      ),
                     ),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    shape: StadiumBorder(),
-                    backgroundColor: const Color.fromARGB(172, 153, 129, 180),
-                    elevation: 1,
-                  ),
+                    Positioned(
+                      top: MediaQuery.of(context).size.height * 0.545,
+                      left: MediaQuery.of(context).size.height * 0.01,
+                      child: Text(
+                        "Mot de passe",
+                        style: TextStyle(color: Colors.white, fontSize: 14),
+                      ),
+                    ),
+                    Positioned(
+                      top: MediaQuery.of(context).size.height * 0.57,
+                      left: MediaQuery.of(context).size.height * 0.01,
+                      right: MediaQuery.of(context).size.height * 0.01,
+                      child: TextFormField(
+                        obscureText: true,
+                        decoration: InputDecoration(
+                          hintText: "Mot de passe",
+                          filled: true,
+                          fillColor: Colors.white,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return "Mot de passe obligatoire";
+                          }
+
+                          final passwordRegex = RegExp(
+                            r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{8,}$',
+                          );
+
+                          if (!passwordRegex.hasMatch(value)) {
+                            return "Min 8 caractères, 1 majuscule, 1 chiffre";
+                          }
+
+                          return null;
+                        },
+                      ),
+                    ),
+                    Positioned(
+                      top: MediaQuery.of(context).size.height * 0.655,
+                      left: MediaQuery.of(context).size.height * 0.01,
+                      child: Text(
+                        "Confirmer mot de passe",
+                        style: TextStyle(color: Colors.white, fontSize: 14),
+                      ),
+                    ),
+                    Positioned(
+                      top: MediaQuery.of(context).size.height * 0.68,
+                      left: MediaQuery.of(context).size.height * 0.01,
+                      right: MediaQuery.of(context).size.height * 0.01,
+                      child: TextFormField(
+                        obscureText: true,
+                        decoration: InputDecoration(
+                          hintText: "Mot de passe",
+                          filled: true,
+                          fillColor: Colors.white,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return "Mot de passe obligatoire";
+                          }
+
+                          final passwordRegex = RegExp(
+                            r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{8,}$',
+                          );
+
+                          if (!passwordRegex.hasMatch(value)) {
+                            return "Min 8 caractères, 1 majuscule, 1 chiffre";
+                          }
+
+                          return null;
+                        },
+                      ),
+                    ),
+
+                    Positioned(
+                      top: MediaQuery.of(context).size.height * 0.78,
+                      right: MediaQuery.of(context).size.height * 0.17,
+                      left: MediaQuery.of(context).size.height * 0.17,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          if (_formkey.currentState!.validate()) {
+                            Navigator.pushNamed(context, principal.screenRoute);
+                          }
+                        },
+                        child: Text(
+                          "S'inscrire",
+                          style: TextStyle(
+                            color: const Color.fromARGB(136, 10, 11, 22),
+                          ),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          shape: StadiumBorder(),
+                          backgroundColor: const Color.fromARGB(
+                            172,
+                            153,
+                            129,
+                            180,
+                          ),
+                          elevation: 1,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ],
+            ),
           ),
         ),
       ),
