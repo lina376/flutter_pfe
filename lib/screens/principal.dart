@@ -3,7 +3,7 @@ import 'package:ora/screens/calendrier.dart';
 import 'package:ora/screens/chat.dart';
 import 'package:ora/screens/mesnotes.dart';
 import 'package:ora/screens/notifications.dart';
-import 'package:ora/screens/paramettre.dart';
+
 import 'package:table_calendar/table_calendar.dart';
 import 'package:intl/intl.dart';
 
@@ -46,6 +46,126 @@ class _principalState extends State<principal> {
     final heures = date.hour.toString().padLeft(2, '0');
     final minutes = date.minute.toString().padLeft(2, '0');
     return "$heures:$minutes";
+  }
+
+  bool _notif = true;
+
+  void _Parametre() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      barrierColor: Colors.black.withOpacity(0.25),
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setLocal) {
+            return SafeArea(
+              child: Align(
+                alignment: Alignment.topLeft,
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 10, top: 50, bottom: 50),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(20),
+                    child: Container(
+                      width: MediaQuery.of(context).size.width * 0.7,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 12,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color.fromARGB(
+                          255,
+                          20,
+                          6,
+                          31,
+                        ).withOpacity(0.5),
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.22),
+                        ),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          _item(
+                            icon: Icons.person_outline,
+                            title: "Profil",
+                            onTap: () {
+                              Navigator.pop(context);
+                              Navigator.pushNamed(context, 'pageprofil');
+                            },
+                          ),
+                          _item(
+                            icon: Icons.favorite_border,
+                            title: "Favoriser",
+                            onTap: () {
+                              Navigator.pop(context);
+                              Navigator.pushNamed(context, 'pagefavorise');
+                            },
+                          ),
+
+                          const Divider(
+                            color: Colors.white24,
+                            height: 18,
+                          ), //khat
+                          //Notifications switch
+                          ListTile(
+                            contentPadding: EdgeInsets.zero,
+                            leading: const Icon(
+                              Icons.notifications_none,
+                              color: Colors.white,
+                            ),
+                            title: const Text(
+                              "Notifications",
+                              style: TextStyle(color: Colors.white),
+                            ),
+                            trailing: Switch(
+                              value: _notif,
+                              onChanged: (v) {
+                                setLocal(() => _notif = v);
+                                setState(() => _notif = v);
+                              },
+                            ),
+                          ),
+
+                          TextButton(
+                            onPressed: () {
+                              Navigator.pop(context);
+                              Navigator.pushNamed(context, 'pageconnecter');
+                            },
+                            child: const Text(
+                              "Déconnecter",
+                              style: TextStyle(
+                                color: Colors.white,
+                                decoration: TextDecoration.underline,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _item({
+    required IconData icon,
+    required String title,
+    required VoidCallback onTap,
+  }) {
+    return ListTile(
+      contentPadding: EdgeInsets.zero,
+      leading: Icon(icon, color: Colors.white),
+      title: Text(title, style: const TextStyle(color: Colors.white)),
+      trailing: const Icon(Icons.chevron_right, color: Colors.white70),
+      onTap: onTap,
+    );
   }
 
   Widget sectionHistorique() {
@@ -198,9 +318,9 @@ class _principalState extends State<principal> {
             ),
           ),
           icon: const Icon(Icons.menu, color: Colors.white),
-          onPressed: () {
-            Navigator.pushNamed(context, Paramettre.screenRoute);
-          },
+
+          onPressed: () => _Parametre(),
+
           tooltip: 'parametre',
           iconSize: 25,
           constraints: const BoxConstraints(minHeight: 25, minWidth: 25),

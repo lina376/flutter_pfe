@@ -7,7 +7,6 @@ import 'package:ora/screens/principal.dart';
 import 'package:ora/screens/mesnotes.dart';
 import 'package:ora/screens/notes2.dart';
 import 'package:ora/screens/calendrier.dart';
-import 'package:ora/screens/paramettre.dart';
 import 'package:ora/screens/profil.dart';
 import 'package:ora/screens/favorise.dart';
 import 'package:ora/screens/notifications.dart';
@@ -24,7 +23,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'ora app',
       theme: ThemeData(primaryColor: Colors.blue, fontFamily: 'Jomhuria'),
-      initialRoute: Profil.screenRoute,
+      initialRoute: principal.screenRoute,
       routes: {
         rencontre.screenRoute: (ctx) => rencontre(),
         connecter.screenRoute: (ctx) => connecter(),
@@ -36,7 +35,6 @@ class MyApp extends StatelessWidget {
         notes2.screenRoute: (ctx) => notes2(),
         notifications.screenRoute: (ctx) => notifications(),
         Notifications2.screenRoute: (ctx) => Notifications2(),
-        Paramettre.screenRoute: (ctx) => Paramettre(),
         Profil.screenRoute: (ctx) => Profil(),
         Calendrier.screenRoute: (ctx) => Calendrier(),
       },
