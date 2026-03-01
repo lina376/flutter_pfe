@@ -140,7 +140,7 @@ class _creecompteState extends State<creecompte> {
                       right: MediaQuery.of(context).size.height * 0.01,
                       child: TextFormField(
                         decoration: InputDecoration(
-                          hintText: "email@gmail.com",
+                          hintText: "Email",
                           filled: true,
                           fillColor: Colors.white, //pour arriere blanc
                           border: OutlineInputBorder(

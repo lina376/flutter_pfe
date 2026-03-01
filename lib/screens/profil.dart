@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
+import 'package:ora/screens/principal.dart';
 
 class Profil extends StatefulWidget {
   static const String screenRoute = 'pageprofil';
@@ -37,6 +38,8 @@ class _ProfilState extends State<Profil> {
     });
   }
 
+  final _formkey = GlobalKey<FormState>();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -44,20 +47,7 @@ class _ProfilState extends State<Profil> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        actions: [
-          IconButton(
-            style: const ButtonStyle(
-              backgroundColor: WidgetStatePropertyAll<Color>(
-                Color.fromARGB(194, 88, 70, 142),
-              ),
-            ),
-            icon: const Icon(Icons.home, color: Colors.white),
-            onPressed: () {},
-            tooltip: 'home',
-            iconSize: 40,
-            constraints: const BoxConstraints(minHeight: 50, minWidth: 50),
-          ),
-        ],
+
         leading: IconButton(
           style: const ButtonStyle(
             backgroundColor: WidgetStatePropertyAll<Color>(
@@ -65,7 +55,9 @@ class _ProfilState extends State<Profil> {
             ),
           ),
           icon: const Icon(Icons.chevron_left, color: Colors.white),
-          onPressed: () {},
+          onPressed: () {
+            Navigator.pushNamed(context, principal.screenRoute);
+          },
           tooltip: 'chevron',
           iconSize: 40,
           constraints: const BoxConstraints(minHeight: 50, minWidth: 50),
@@ -103,7 +95,7 @@ class _ProfilState extends State<Profil> {
                     Positioned(
                       top: MediaQuery.of(context).size.height * 0.065,
                       left: MediaQuery.of(context).size.height * 0.18,
-                      child: ProfileAvatarFP(),
+                      child: ProfileAvatar(),
                     ),
                     Positioned(
                       top: MediaQuery.of(context).size.height * 0.2,
@@ -169,25 +161,28 @@ class _ProfilState extends State<Profil> {
                       left: MediaQuery.of(context).size.height * 0.01,
                       right: MediaQuery.of(context).size.height * 0.01,
                       child: TextFormField(
-                        autovalidateMode: AutovalidateMode.onUserInteraction,
                         decoration: InputDecoration(
-                          labelText: "Email",
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                            borderSide: const BorderSide(width: 0.5),
-                          ),
+                          hintText: "Email",
                           filled: true,
-                          fillColor: Colors.white,
+                          fillColor: Colors.white, //pour arriere blanc
+                          border: OutlineInputBorder(
+                            gapPadding: 3.0,
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(width: 0.5),
+                          ),
                         ),
-                        keyboardType: TextInputType.emailAddress,
-
                         validator: (value) {
+                          //validator tkhdem ken ma3 TextFormField
                           if (value == null || value.isEmpty) {
                             return "Email obligatoire";
                           }
 
-                          if (!value.contains("@")) {
-                            return "Email doit contenir @";
+                          final emailRegex = RegExp(
+                            r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
+                          );
+
+                          if (!emailRegex.hasMatch(value)) {
+                            return "Format email incorrect";
                           }
 
                           return null;
@@ -210,39 +205,29 @@ class _ProfilState extends State<Profil> {
                       child: Form(
                         child: TextFormField(
                           obscureText: true,
-                          decoration: const InputDecoration(
-                            labelText: "Mot de passe",
-                            border: OutlineInputBorder(
-                              borderSide: BorderSide(width: 0.5),
-                              borderRadius: BorderRadius.all(
-                                Radius.circular(8),
-                              ),
-                            ),
+                          decoration: InputDecoration(
+                            hintText: "Mot de passe",
                             filled: true,
                             fillColor: Colors.white,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
                           ),
-
                           validator: (value) {
                             if (value == null || value.isEmpty) {
                               return "Mot de passe obligatoire";
                             }
 
-                            if (value.length < 8) {
-                              return "Minimum 8 caractères";
-                            }
+                            final passwordRegex = RegExp(
+                              r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{8,}$',
+                            );
 
-                            if (!RegExp(r'[A-Z]').hasMatch(value)) {
-                              return "Au moins une lettre majuscule";
-                            }
-
-                            if (!RegExp(r'[0-9]').hasMatch(value)) {
-                              return "Au moins un chiffre";
+                            if (!passwordRegex.hasMatch(value)) {
+                              return "Min 8 caractères, 1 majuscule, 1 chiffre";
                             }
 
                             return null;
                           },
-
-                          autovalidateMode: AutovalidateMode.onUserInteraction,
                         ),
                       ),
                     ),
@@ -278,11 +263,15 @@ class _ProfilState extends State<Profil> {
                       ),
                     ),
                     Positioned(
-                      bottom: MediaQuery.of(context).size.height * 0.05,
+                      top: MediaQuery.of(context).size.height * 0.8,
 
                       left: MediaQuery.of(context).size.height * 0.16,
                       child: ElevatedButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          if (_formkey.currentState!.validate()) {
+                            Navigator.pushNamed(context, principal.screenRoute);
+                          }
+                        },
                         child: Text(
                           "Sauvegarder",
                           style: TextStyle(
@@ -312,14 +301,14 @@ class _ProfilState extends State<Profil> {
   }
 }
 
-class ProfileAvatarFP extends StatefulWidget {
-  const ProfileAvatarFP({super.key});
+class ProfileAvatar extends StatefulWidget {
+  const ProfileAvatar({super.key});
 
   @override
-  State<ProfileAvatarFP> createState() => _ProfileAvatarFPState();
+  State<ProfileAvatar> createState() => _ProfileAvatarState();
 }
 
-class _ProfileAvatarFPState extends State<ProfileAvatarFP> {
+class _ProfileAvatarState extends State<ProfileAvatar> {
   File? _imageFile;
 
   Future<void> _pick() async {

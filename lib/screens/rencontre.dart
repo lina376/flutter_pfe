@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:ora/screens/connecter.dart';
-import 'package:ora/screens/creecompte.dart';
 
 class rencontre extends StatefulWidget {
   static const String screenRoute = 'pagerencontre';

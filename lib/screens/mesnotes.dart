@@ -112,7 +112,6 @@ class _mesnotesState extends State<mesnotes> {
         child: SafeArea(
           child: Stack(
             children: [
-              // ✅ Title
               Positioned(
                 top: h * 0.04,
                 left: h * 0.01,
@@ -138,7 +137,6 @@ class _mesnotesState extends State<mesnotes> {
                 ),
               ),
 
-              // ✅ Robot
               Positioned(
                 top: h * -0.01,
                 right: h * 0.001,
