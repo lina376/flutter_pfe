@@ -1,4 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:ora/screens/calendrier.dart';
+import 'package:ora/screens/chat.dart';
+import 'package:ora/screens/mesnotes.dart';
+import 'package:ora/screens/notifications.dart';
+import 'package:ora/screens/paramettre.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:intl/intl.dart';
 
@@ -46,8 +51,8 @@ class _principalState extends State<principal> {
 
   Widget sectionHistorique() {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 18),
-      padding: const EdgeInsets.all(14),
+      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 20),
+      padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.12),
         borderRadius: BorderRadius.circular(18),
@@ -179,7 +184,9 @@ class _principalState extends State<principal> {
               ),
             ),
             icon: const Icon(Icons.notifications_active, color: Colors.white),
-            onPressed: () {},
+            onPressed: () {
+              Navigator.pushNamed(context, notifications.screenRoute);
+            },
             tooltip: 'notification',
             iconSize: 25,
             constraints: const BoxConstraints(minHeight: 25, minWidth: 25),
@@ -192,7 +199,9 @@ class _principalState extends State<principal> {
             ),
           ),
           icon: const Icon(Icons.menu, color: Colors.white),
-          onPressed: () {},
+          onPressed: () {
+            Navigator.pushNamed(context, Paramettre.screenRoute);
+          },
           tooltip: 'parametre',
           iconSize: 25,
           constraints: const BoxConstraints(minHeight: 25, minWidth: 25),
@@ -237,15 +246,22 @@ class _principalState extends State<principal> {
                 //frame de notes
                 top: MediaQuery.of(context).size.height * 0.08,
                 right: MediaQuery.of(context).size.height * 0.02,
-                child: SizedBox(
-                  width: 130,
-                  height: 170,
-                  child: Container(
-                    padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.12),
-                      borderRadius: BorderRadius.circular(24),
-                      border: Border.all(color: Colors.white.withOpacity(0.18)),
+                child: GestureDetector(
+                  onTap: () {
+                    Navigator.pushNamed(context, mesnotes.screenRoute);
+                  },
+                  child: SizedBox(
+                    width: 130,
+                    height: 170,
+                    child: Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.18),
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -260,6 +276,8 @@ class _principalState extends State<principal> {
                       height: 44,
                       child: ElevatedButton(
                         onPressed: () {
+                          Navigator.pushNamed(context, chat.screenRoute);
+
                           ajouterHistorique(
                             titre: "Chat avec ORA",
                             sousTitre: "Discussion commencée",
@@ -372,78 +390,84 @@ class _principalState extends State<principal> {
                     top: MediaQuery.of(context).size.height * 0.3,
                     left: MediaQuery.of(context).size.height * 0.02,
                     right: MediaQuery.of(context).size.height * 0.02,
-                    child: Container(
-                      padding: const EdgeInsets.all(19),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.18),
-                        borderRadius: BorderRadius.circular(18),
-                      ),
-                      child: TableCalendar(
-                        firstDay: DateTime.utc(2016, 1, 1),
-                        lastDay: DateTime.utc(2036, 12, 31),
-                        focusedDay: _moisAffiche,
-
-                        startingDayOfWeek: StartingDayOfWeek.sunday,
-
-                        selectedDayPredicate: (jour) => isSameDay(
-                          jour,
-                          _dateSelectionnee,
-                        ), //ylawn nhar leli khtarto
-
-                        onDaySelected: (jourSelectionne, moisFocalise) {
-                          setState(() {
-                            _dateSelectionnee = jourSelectionne;
-                            _moisAffiche = moisFocalise;
-                          });
-                        },
-
-                        headerStyle: HeaderStyle(
-                          formatButtonVisible: false,
-                          titleCentered: true,
-                          titleTextFormatter: (date, locale) =>
-                              DateFormat('MMM yyyy', 'en_US').format(date),
-                          titleTextStyle: const TextStyle(
-                            color: Colors.black,
-                            fontWeight: FontWeight.w700,
-                          ),
-                          leftChevronIcon: const Icon(
-                            Icons.chevron_left,
-                            color: Colors.black,
-                          ),
-                          rightChevronIcon: const Icon(
-                            Icons.chevron_right,
-                            color: Colors.black,
-                          ),
+                    child: GestureDetector(
+                      onTap: () {
+                        Navigator.pushNamed(context, Calendrier.screenRoute);
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(19),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.18),
+                          borderRadius: BorderRadius.circular(18),
                         ),
+                        child: TableCalendar(
+                          rowHeight: 35,
+                          firstDay: DateTime.utc(2016, 1, 1),
+                          lastDay: DateTime.utc(2036, 12, 31),
+                          focusedDay: _moisAffiche,
 
-                        daysOfWeekStyle: DaysOfWeekStyle(
-                          weekdayStyle: TextStyle(
-                            color: Colors.black.withOpacity(0.70),
-                          ),
-                          weekendStyle: TextStyle(
-                            color: Colors.black.withOpacity(0.70),
-                          ),
-                        ),
+                          startingDayOfWeek: StartingDayOfWeek.sunday,
 
-                        calendarStyle: CalendarStyle(
-                          outsideDaysVisible: false,
-                          defaultTextStyle: const TextStyle(
-                            color: Colors.black,
+                          selectedDayPredicate: (jour) => isSameDay(
+                            jour,
+                            _dateSelectionnee,
+                          ), //ylawn nhar leli khtarto
+
+                          onDaySelected: (jourSelectionne, moisFocalise) {
+                            setState(() {
+                              _dateSelectionnee = jourSelectionne;
+                              _moisAffiche = moisFocalise;
+                            });
+                          },
+
+                          headerStyle: HeaderStyle(
+                            formatButtonVisible: false,
+                            titleCentered: true,
+                            titleTextFormatter: (date, locale) =>
+                                DateFormat('MMM yyyy', 'en_US').format(date),
+                            titleTextStyle: const TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.w700,
+                            ),
+                            leftChevronIcon: const Icon(
+                              Icons.chevron_left,
+                              color: Colors.black,
+                            ),
+                            rightChevronIcon: const Icon(
+                              Icons.chevron_right,
+                              color: Colors.black,
+                            ),
                           ),
-                          weekendTextStyle: const TextStyle(
-                            color: Colors.black,
+
+                          daysOfWeekStyle: DaysOfWeekStyle(
+                            weekdayStyle: TextStyle(
+                              color: Colors.black.withOpacity(0.70),
+                            ),
+                            weekendStyle: TextStyle(
+                              color: Colors.black.withOpacity(0.70),
+                            ),
                           ),
-                          todayDecoration: BoxDecoration(
-                            color: Colors.black.withOpacity(0.08),
-                            shape: BoxShape.circle,
-                          ),
-                          selectedDecoration: const BoxDecoration(
-                            color: Color(0xFF2F7BFF),
-                            shape: BoxShape.circle,
-                          ),
-                          selectedTextStyle: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w800,
+
+                          calendarStyle: CalendarStyle(
+                            outsideDaysVisible: false,
+                            defaultTextStyle: const TextStyle(
+                              color: Colors.black,
+                            ),
+                            weekendTextStyle: const TextStyle(
+                              color: Colors.black,
+                            ),
+                            todayDecoration: BoxDecoration(
+                              color: Colors.black.withOpacity(0.08),
+                              shape: BoxShape.circle,
+                            ),
+                            selectedDecoration: const BoxDecoration(
+                              color: Color(0xFF2F7BFF),
+                              shape: BoxShape.circle,
+                            ),
+                            selectedTextStyle: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w800,
+                            ),
                           ),
                         ),
                       ),
@@ -453,8 +477,8 @@ class _principalState extends State<principal> {
                     //historique
                     left: MediaQuery.of(context).size.height * 0.01,
                     right: MediaQuery.of(context).size.height * 0.01,
-                    bottom: MediaQuery.of(context).size.height * 0.025,
-                    child: SizedBox(height: 110, child: sectionHistorique()),
+                    bottom: MediaQuery.of(context).size.height * 0.0001,
+                    child: SizedBox(height: 165, child: sectionHistorique()),
                   ),
                 ],
               ),
@@ -473,7 +497,7 @@ class recherche extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.15),
         borderRadius: BorderRadius.circular(30),
@@ -507,43 +531,47 @@ class MesNotes extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: 170,
-      height: 170,
-      child: Container(
-        padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          color: Colors.transparent,
-          borderRadius: BorderRadius.circular(24),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(14),
+    return GestureDetector(
+      onTap: () {
+        Navigator.pushNamed(context, mesnotes.screenRoute);
+      },
+      child: SizedBox(
+        width: 170,
+        height: 170,
+        child: Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: Colors.transparent,
+            borderRadius: BorderRadius.circular(24),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: const Icon(
+                  Icons.note_alt,
+                  color: Color.fromARGB(255, 79, 179, 255),
+                  size: 28,
+                ),
               ),
-              child: const Icon(
-                Icons.note_alt,
-                color: Color.fromARGB(255, 79, 179, 255),
-                size: 28,
+              const SizedBox(height: 14),
+              const Text(
+                "Mes \nNotes",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
-            ),
-
-            const SizedBox(height: 14),
-            const Text(
-              "Mes \nNotes",
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
