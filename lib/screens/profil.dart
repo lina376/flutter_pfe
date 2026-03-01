@@ -81,217 +81,229 @@ class _ProfilState extends State<Profil> {
           ),
         ),
         child: SafeArea(
-          child: Form(
-            key: _formKey,
-            child: Stack(
-              children: [
-                Positioned(
-                  top: MediaQuery.of(context).size.height * 0.0001,
-                  left: MediaQuery.of(context).size.height * 0.165,
-                  child: Text(
-                    "Profil",
-                    style: TextStyle(
-                      fontSize: 46,
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                Positioned(
-                  top: MediaQuery.of(context).size.height * 0.065,
-                  left: MediaQuery.of(context).size.height * 0.18,
-                  child: ProfileAvatarFP(),
-                ),
-                Positioned(
-                  top: MediaQuery.of(context).size.height * 0.2,
-                  left: MediaQuery.of(context).size.height * 0.01,
-                  child: Text(
-                    "Nom",
-                    style: TextStyle(color: Colors.white, fontSize: 15),
-                  ),
-                ),
-                Positioned(
-                  top: MediaQuery.of(context).size.height * 0.23,
-                  left: MediaQuery.of(context).size.height * 0.01,
-                  right: MediaQuery.of(context).size.height * 0.01,
-                  child: TextField(
-                    decoration: InputDecoration(
-                      hintText: "Nom",
-                      filled: true,
-                      fillColor: Colors.white, //pour arriere blanc
-                      border: OutlineInputBorder(
-                        gapPadding: 3.0,
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(width: 0.5),
-                      ),
-                    ),
-                  ),
-                ),
-                Positioned(
-                  top: MediaQuery.of(context).size.height * 0.3,
-                  left: MediaQuery.of(context).size.height * 0.01,
-                  child: Text(
-                    "Prénom",
-                    style: TextStyle(color: Colors.white, fontSize: 14),
-                  ),
-                ),
-                Positioned(
-                  top: MediaQuery.of(context).size.height * 0.33,
-                  left: MediaQuery.of(context).size.height * 0.01,
-                  right: MediaQuery.of(context).size.height * 0.01,
-                  child: TextField(
-                    decoration: InputDecoration(
-                      hintText: "Prénom",
-                      filled: true,
-                      fillColor: Colors.white, //pour arriere blanc
-                      border: OutlineInputBorder(
-                        gapPadding: 3.0,
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(width: 0.5),
-                      ),
-                    ),
-                  ),
-                ),
-                Positioned(
-                  top: MediaQuery.of(context).size.height * 0.4,
-                  left: MediaQuery.of(context).size.height * 0.01,
-                  child: Text(
-                    "Email",
-                    style: TextStyle(color: Colors.white, fontSize: 14),
-                  ),
-                ),
-
-                Positioned(
-                  top: MediaQuery.of(context).size.height * 0.43,
-                  left: MediaQuery.of(context).size.height * 0.01,
-                  right: MediaQuery.of(context).size.height * 0.01,
-                  child: TextFormField(
-                    autovalidateMode: AutovalidateMode.onUserInteraction,
-                    decoration: InputDecoration(
-                      labelText: "Email",
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: const BorderSide(width: 0.5),
-                      ),
-                      filled: true,
-                      fillColor: Colors.white,
-                    ),
-                    keyboardType: TextInputType.emailAddress,
-
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return "Email obligatoire";
-                      }
-
-                      if (!value.contains("@")) {
-                        return "Email doit contenir @";
-                      }
-
-                      return null;
-                    },
-                  ),
-                ),
-
-                Positioned(
-                  top: MediaQuery.of(context).size.height * 0.52,
-                  left: MediaQuery.of(context).size.height * 0.01,
-                  child: Text(
-                    "Mot de passe",
-                    style: TextStyle(color: Colors.white, fontSize: 14),
-                  ),
-                ),
-                Positioned(
-                  top: MediaQuery.of(context).size.height * 0.55,
-                  left: MediaQuery.of(context).size.height * 0.01,
-                  right: MediaQuery.of(context).size.height * 0.01,
-                  child: Form(
-                    child: TextFormField(
-                      obscureText: true,
-                      decoration: const InputDecoration(
-                        labelText: "Mot de passe",
-                        border: OutlineInputBorder(
-                          borderSide: BorderSide(width: 0.5),
-                          borderRadius: BorderRadius.all(Radius.circular(8)),
+          child: SingleChildScrollView(
+            child: SizedBox(
+              height: MediaQuery.of(context).size.height,
+              child: Form(
+                key: _formKey,
+                child: Stack(
+                  children: [
+                    Positioned(
+                      top: MediaQuery.of(context).size.height * 0.0001,
+                      left: MediaQuery.of(context).size.height * 0.165,
+                      child: Text(
+                        "Profil",
+                        style: TextStyle(
+                          fontSize: 46,
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
                         ),
-                        filled: true,
-                        fillColor: Colors.white,
-                      ),
-
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return "Mot de passe obligatoire";
-                        }
-
-                        if (value.length < 8) {
-                          return "Minimum 8 caractères";
-                        }
-
-                        if (!RegExp(r'[A-Z]').hasMatch(value)) {
-                          return "Au moins une lettre majuscule";
-                        }
-
-                        if (!RegExp(r'[0-9]').hasMatch(value)) {
-                          return "Au moins un chiffre";
-                        }
-
-                        return null;
-                      },
-
-                      autovalidateMode: AutovalidateMode.onUserInteraction,
-                    ),
-                  ),
-                ),
-                Positioned(
-                  top: MediaQuery.of(context).size.height * 0.635,
-                  left: MediaQuery.of(context).size.height * 0.01,
-                  child: Text(
-                    "Date de naissance",
-                    style: TextStyle(color: Colors.white, fontSize: 14),
-                  ),
-                ),
-                Positioned(
-                  top: MediaQuery.of(context).size.height * 0.665,
-                  left: MediaQuery.of(context).size.height * 0.01,
-                  right: MediaQuery.of(context).size.height * 0.01,
-                  child: TextFormField(
-                    readOnly: true,
-                    onTap: _selectBirthDate,
-                    decoration: InputDecoration(
-                      labelText: "JJ/MM/AAAA",
-                      suffixIcon: const Icon(Icons.calendar_today),
-                      filled: true,
-                      fillColor: Colors.white,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
                       ),
                     ),
-                    controller: TextEditingController(
-                      text: _birthDate == null
-                          ? ""
-                          : "${_birthDate!.day}/${_birthDate!.month}/${_birthDate!.year}",
+                    Positioned(
+                      top: MediaQuery.of(context).size.height * 0.065,
+                      left: MediaQuery.of(context).size.height * 0.18,
+                      child: ProfileAvatarFP(),
                     ),
-                  ),
-                ),
-                Positioned(
-                  bottom: MediaQuery.of(context).size.height * 0.05,
-
-                  left: MediaQuery.of(context).size.height * 0.16,
-                  child: ElevatedButton(
-                    onPressed: () {},
-                    child: Text(
-                      "Sauvegarder",
-                      style: TextStyle(
-                        color: const Color.fromARGB(136, 10, 11, 22),
+                    Positioned(
+                      top: MediaQuery.of(context).size.height * 0.2,
+                      left: MediaQuery.of(context).size.height * 0.01,
+                      child: Text(
+                        "Nom",
+                        style: TextStyle(color: Colors.white, fontSize: 15),
                       ),
                     ),
-                    style: ElevatedButton.styleFrom(
-                      shape: StadiumBorder(),
-                      backgroundColor: const Color.fromARGB(172, 153, 129, 180),
-                      elevation: 1,
+                    Positioned(
+                      top: MediaQuery.of(context).size.height * 0.23,
+                      left: MediaQuery.of(context).size.height * 0.01,
+                      right: MediaQuery.of(context).size.height * 0.01,
+                      child: TextField(
+                        decoration: InputDecoration(
+                          hintText: "Nom",
+                          filled: true,
+                          fillColor: Colors.white, //pour arriere blanc
+                          border: OutlineInputBorder(
+                            gapPadding: 3.0,
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(width: 0.5),
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
+                    Positioned(
+                      top: MediaQuery.of(context).size.height * 0.3,
+                      left: MediaQuery.of(context).size.height * 0.01,
+                      child: Text(
+                        "Prénom",
+                        style: TextStyle(color: Colors.white, fontSize: 14),
+                      ),
+                    ),
+                    Positioned(
+                      top: MediaQuery.of(context).size.height * 0.33,
+                      left: MediaQuery.of(context).size.height * 0.01,
+                      right: MediaQuery.of(context).size.height * 0.01,
+                      child: TextField(
+                        decoration: InputDecoration(
+                          hintText: "Prénom",
+                          filled: true,
+                          fillColor: Colors.white, //pour arriere blanc
+                          border: OutlineInputBorder(
+                            gapPadding: 3.0,
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(width: 0.5),
+                          ),
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      top: MediaQuery.of(context).size.height * 0.4,
+                      left: MediaQuery.of(context).size.height * 0.01,
+                      child: Text(
+                        "Email",
+                        style: TextStyle(color: Colors.white, fontSize: 14),
+                      ),
+                    ),
+
+                    Positioned(
+                      top: MediaQuery.of(context).size.height * 0.43,
+                      left: MediaQuery.of(context).size.height * 0.01,
+                      right: MediaQuery.of(context).size.height * 0.01,
+                      child: TextFormField(
+                        autovalidateMode: AutovalidateMode.onUserInteraction,
+                        decoration: InputDecoration(
+                          labelText: "Email",
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: const BorderSide(width: 0.5),
+                          ),
+                          filled: true,
+                          fillColor: Colors.white,
+                        ),
+                        keyboardType: TextInputType.emailAddress,
+
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return "Email obligatoire";
+                          }
+
+                          if (!value.contains("@")) {
+                            return "Email doit contenir @";
+                          }
+
+                          return null;
+                        },
+                      ),
+                    ),
+
+                    Positioned(
+                      top: MediaQuery.of(context).size.height * 0.52,
+                      left: MediaQuery.of(context).size.height * 0.01,
+                      child: Text(
+                        "Mot de passe",
+                        style: TextStyle(color: Colors.white, fontSize: 14),
+                      ),
+                    ),
+                    Positioned(
+                      top: MediaQuery.of(context).size.height * 0.55,
+                      left: MediaQuery.of(context).size.height * 0.01,
+                      right: MediaQuery.of(context).size.height * 0.01,
+                      child: Form(
+                        child: TextFormField(
+                          obscureText: true,
+                          decoration: const InputDecoration(
+                            labelText: "Mot de passe",
+                            border: OutlineInputBorder(
+                              borderSide: BorderSide(width: 0.5),
+                              borderRadius: BorderRadius.all(
+                                Radius.circular(8),
+                              ),
+                            ),
+                            filled: true,
+                            fillColor: Colors.white,
+                          ),
+
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return "Mot de passe obligatoire";
+                            }
+
+                            if (value.length < 8) {
+                              return "Minimum 8 caractères";
+                            }
+
+                            if (!RegExp(r'[A-Z]').hasMatch(value)) {
+                              return "Au moins une lettre majuscule";
+                            }
+
+                            if (!RegExp(r'[0-9]').hasMatch(value)) {
+                              return "Au moins un chiffre";
+                            }
+
+                            return null;
+                          },
+
+                          autovalidateMode: AutovalidateMode.onUserInteraction,
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      top: MediaQuery.of(context).size.height * 0.635,
+                      left: MediaQuery.of(context).size.height * 0.01,
+                      child: Text(
+                        "Date de naissance",
+                        style: TextStyle(color: Colors.white, fontSize: 14),
+                      ),
+                    ),
+                    Positioned(
+                      top: MediaQuery.of(context).size.height * 0.665,
+                      left: MediaQuery.of(context).size.height * 0.01,
+                      right: MediaQuery.of(context).size.height * 0.01,
+                      child: TextFormField(
+                        readOnly: true,
+                        onTap: _selectBirthDate,
+                        decoration: InputDecoration(
+                          labelText: "JJ/MM/AAAA",
+                          suffixIcon: const Icon(Icons.calendar_today),
+                          filled: true,
+                          fillColor: Colors.white,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        controller: TextEditingController(
+                          text: _birthDate == null
+                              ? ""
+                              : "${_birthDate!.day}/${_birthDate!.month}/${_birthDate!.year}",
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      bottom: MediaQuery.of(context).size.height * 0.05,
+
+                      left: MediaQuery.of(context).size.height * 0.16,
+                      child: ElevatedButton(
+                        onPressed: () {},
+                        child: Text(
+                          "Sauvegarder",
+                          style: TextStyle(
+                            color: const Color.fromARGB(136, 10, 11, 22),
+                          ),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          shape: StadiumBorder(),
+                          backgroundColor: const Color.fromARGB(
+                            172,
+                            153,
+                            129,
+                            180,
+                          ),
+                          elevation: 1,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
         ),

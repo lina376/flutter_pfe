@@ -54,72 +54,77 @@ class _mesnotesState extends State<mesnotes> {
           ),
         ),
         child: SafeArea(
-          child: Stack(
-            children: [
-              Positioned(
-                top: MediaQuery.of(context).size.height * 0.04,
-                left: MediaQuery.of(context).size.height * 0.01,
-                child: Text(
-                  "Mes",
-                  style: TextStyle(
-                    fontSize: 46,
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              Positioned(
-                top: MediaQuery.of(context).size.height * 0.09,
-                left: MediaQuery.of(context).size.height * 0.01,
-                child: Text(
-                  "Notes",
-                  style: TextStyle(
-                    fontSize: 46,
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              Positioned(
-                top: MediaQuery.of(context).size.height * -0.01,
-                right: MediaQuery.of(context).size.height * 0.001,
-
-                child: Transform.rotate(
-                  angle: -pi / 3.8,
-                  child: Image.asset('images/robot2.png', width: 180),
-                ),
-              ),
-
-              Stack(
+          child: SingleChildScrollView(
+            child: SizedBox(
+              height: MediaQuery.of(context).size.height,
+              child: Stack(
                 children: [
                   Positioned(
-                    bottom: MediaQuery.of(context).size.height * 0.01,
-                    left: MediaQuery.of(context).size.height * 0.001,
-                    child: SizedBox(
-                      width: 340,
-                      height: 50,
-                      child: barederecherche(),
+                    top: MediaQuery.of(context).size.height * 0.04,
+                    left: MediaQuery.of(context).size.height * 0.01,
+                    child: Text(
+                      "Mes",
+                      style: TextStyle(
+                        fontSize: 46,
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                   Positioned(
-                    bottom: MediaQuery.of(context).size.height * 0.01,
-                    right: MediaQuery.of(context).size.height * 0.01,
-                    child: Container(
-                      width: 52,
-                      height: 52,
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.25),
-                        shape: BoxShape.circle,
-                      ),
-                      child: IconButton(
-                        icon: const Icon(Icons.draw, color: Colors.white),
-                        onPressed: () {},
+                    top: MediaQuery.of(context).size.height * 0.09,
+                    left: MediaQuery.of(context).size.height * 0.01,
+                    child: Text(
+                      "Notes",
+                      style: TextStyle(
+                        fontSize: 46,
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
+                  ),
+                  Positioned(
+                    top: MediaQuery.of(context).size.height * -0.01,
+                    right: MediaQuery.of(context).size.height * 0.001,
+
+                    child: Transform.rotate(
+                      angle: -pi / 3.8,
+                      child: Image.asset('images/robot2.png', width: 180),
+                    ),
+                  ),
+
+                  Stack(
+                    children: [
+                      Positioned(
+                        bottom: MediaQuery.of(context).size.height * 0.01,
+                        left: MediaQuery.of(context).size.height * 0.001,
+                        child: SizedBox(
+                          width: 340,
+                          height: 50,
+                          child: barederecherche(),
+                        ),
+                      ),
+                      Positioned(
+                        bottom: MediaQuery.of(context).size.height * 0.01,
+                        right: MediaQuery.of(context).size.height * 0.01,
+                        child: Container(
+                          width: 52,
+                          height: 52,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.25),
+                            shape: BoxShape.circle,
+                          ),
+                          child: IconButton(
+                            icon: const Icon(Icons.draw, color: Colors.white),
+                            onPressed: () {},
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
-            ],
+            ),
           ),
         ),
       ),

@@ -206,160 +206,172 @@ class _CalendrierState extends State<Calendrier> {
           ),
         ),
         child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  "Calendrier",
-                  style: TextStyle(
-                    fontSize: 42,
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                SizedBox(height: MediaQuery.of(context).size.height * 0.02),
-
-                // Carte Calendrier
-                Container(
-                  padding: const EdgeInsets.all(19),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.18),
-                    borderRadius: BorderRadius.circular(18),
-                  ),
-                  child: TableCalendar(
-                    firstDay: DateTime.utc(2016, 1, 1),
-                    lastDay: DateTime.utc(2036, 12, 31),
-                    focusedDay: _moisAffiche,
-
-                    startingDayOfWeek: StartingDayOfWeek.sunday,
-
-                    selectedDayPredicate: (jour) => isSameDay(
-                      jour,
-                      _dateSelectionnee,
-                    ), //ylawn nhar leli khtarto
-
-                    onDaySelected: (jourSelectionne, moisFocalise) {
-                      setState(() {
-                        _dateSelectionnee = jourSelectionne;
-                        _moisAffiche = moisFocalise;
-                      });
-                    },
-
-                    headerStyle: HeaderStyle(
-                      formatButtonVisible: false,
-                      titleCentered: true,
-                      titleTextFormatter: (date, locale) =>
-                          DateFormat('MMM yyyy', 'en_US').format(date),
-                      titleTextStyle: const TextStyle(
-                        color: Colors.black,
-                        fontWeight: FontWeight.w700,
-                      ),
-                      leftChevronIcon: const Icon(
-                        Icons.chevron_left,
-                        color: Colors.black,
-                      ),
-                      rightChevronIcon: const Icon(
-                        Icons.chevron_right,
-                        color: Colors.black,
-                      ),
-                    ),
-
-                    daysOfWeekStyle: DaysOfWeekStyle(
-                      weekdayStyle: TextStyle(
-                        color: Colors.black.withOpacity(0.70),
-                      ),
-                      weekendStyle: TextStyle(
-                        color: Colors.black.withOpacity(0.70),
-                      ),
-                    ),
-
-                    calendarStyle: CalendarStyle(
-                      outsideDaysVisible: false,
-                      defaultTextStyle: const TextStyle(color: Colors.black),
-                      weekendTextStyle: const TextStyle(color: Colors.black),
-                      todayDecoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.08),
-                        shape: BoxShape.circle,
-                      ),
-                      selectedDecoration: const BoxDecoration(
-                        color: Color(0xFF2F7BFF),
-                        shape: BoxShape.circle,
-                      ),
-                      selectedTextStyle: const TextStyle(
+          child: SingleChildScrollView(
+            child: SizedBox(
+              height: MediaQuery.of(context).size.height,
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      "Calendrier",
+                      style: TextStyle(
+                        fontSize: 42,
                         color: Colors.white,
-                        fontWeight: FontWeight.w800,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
-                  ),
-                ),
+                    SizedBox(height: MediaQuery.of(context).size.height * 0.02),
 
-                const SizedBox(height: 14),
+                    // Carte Calendrier
+                    Container(
+                      padding: const EdgeInsets.all(19),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.18),
+                        borderRadius: BorderRadius.circular(18),
+                      ),
+                      child: TableCalendar(
+                        firstDay: DateTime.utc(2016, 1, 1),
+                        lastDay: DateTime.utc(2036, 12, 31),
+                        focusedDay: _moisAffiche,
 
-                // Panel tâches
-                Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.12),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: Colors.white.withOpacity(0.18)),
-                    ),
-                    child: _tachesDuJour.isEmpty
-                        ? Center(
-                            child: Text(
-                              "Aucune tâche",
-                              style: TextStyle(
-                                color: Colors.white.withOpacity(0.85),
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          )
-                        : ListView.separated(
-                            itemCount: _tachesDuJour.length,
-                            separatorBuilder: (_, __) =>
-                                Divider(color: Colors.white.withOpacity(0.15)),
-                            itemBuilder: (context, index) {
-                              final t = _tachesDuJour[index];
-                              return Row(
-                                children: [
-                                  Checkbox(
-                                    value: t.terminee,
-                                    onChanged: (v) =>
-                                        _changerEtatTache(index, v),
-                                    side: BorderSide(
-                                      color: Colors.white.withOpacity(0.8),
-                                    ),
-                                    checkColor: Colors.white,
-                                    activeColor: const Color(0xFF2F7BFF),
-                                  ),
-                                  Expanded(
-                                    child: Text(
-                                      t.titre,
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 16,
-                                        decoration: t.terminee
-                                            ? TextDecoration.lineThrough
-                                            : TextDecoration.none,
-                                      ),
-                                    ),
-                                  ),
-                                  Text(
-                                    t.heure,
-                                    style: TextStyle(
-                                      color: Colors.white.withOpacity(0.7),
-                                    ),
-                                  ),
-                                ],
-                              );
-                            },
+                        startingDayOfWeek: StartingDayOfWeek.sunday,
+
+                        selectedDayPredicate: (jour) => isSameDay(
+                          jour,
+                          _dateSelectionnee,
+                        ), //ylawn nhar leli khtarto
+
+                        onDaySelected: (jourSelectionne, moisFocalise) {
+                          setState(() {
+                            _dateSelectionnee = jourSelectionne;
+                            _moisAffiche = moisFocalise;
+                          });
+                        },
+
+                        headerStyle: HeaderStyle(
+                          formatButtonVisible: false,
+                          titleCentered: true,
+                          titleTextFormatter: (date, locale) =>
+                              DateFormat('MMM yyyy', 'en_US').format(date),
+                          titleTextStyle: const TextStyle(
+                            color: Colors.black,
+                            fontWeight: FontWeight.w700,
                           ),
-                  ),
+                          leftChevronIcon: const Icon(
+                            Icons.chevron_left,
+                            color: Colors.black,
+                          ),
+                          rightChevronIcon: const Icon(
+                            Icons.chevron_right,
+                            color: Colors.black,
+                          ),
+                        ),
+
+                        daysOfWeekStyle: DaysOfWeekStyle(
+                          weekdayStyle: TextStyle(
+                            color: Colors.black.withOpacity(0.70),
+                          ),
+                          weekendStyle: TextStyle(
+                            color: Colors.black.withOpacity(0.70),
+                          ),
+                        ),
+
+                        calendarStyle: CalendarStyle(
+                          outsideDaysVisible: false,
+                          defaultTextStyle: const TextStyle(
+                            color: Colors.black,
+                          ),
+                          weekendTextStyle: const TextStyle(
+                            color: Colors.black,
+                          ),
+                          todayDecoration: BoxDecoration(
+                            color: Colors.black.withOpacity(0.08),
+                            shape: BoxShape.circle,
+                          ),
+                          selectedDecoration: const BoxDecoration(
+                            color: Color(0xFF2F7BFF),
+                            shape: BoxShape.circle,
+                          ),
+                          selectedTextStyle: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 14),
+
+                    // Panel tâches
+                    Expanded(
+                      child: Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.12),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.18),
+                          ),
+                        ),
+                        child: _tachesDuJour.isEmpty
+                            ? Center(
+                                child: Text(
+                                  "Aucune tâche",
+                                  style: TextStyle(
+                                    color: Colors.white.withOpacity(0.85),
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              )
+                            : ListView.separated(
+                                itemCount: _tachesDuJour.length,
+                                separatorBuilder: (_, __) => Divider(
+                                  color: Colors.white.withOpacity(0.15),
+                                ),
+                                itemBuilder: (context, index) {
+                                  final t = _tachesDuJour[index];
+                                  return Row(
+                                    children: [
+                                      Checkbox(
+                                        value: t.terminee,
+                                        onChanged: (v) =>
+                                            _changerEtatTache(index, v),
+                                        side: BorderSide(
+                                          color: Colors.white.withOpacity(0.8),
+                                        ),
+                                        checkColor: Colors.white,
+                                        activeColor: const Color(0xFF2F7BFF),
+                                      ),
+                                      Expanded(
+                                        child: Text(
+                                          t.titre,
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 16,
+                                            decoration: t.terminee
+                                                ? TextDecoration.lineThrough
+                                                : TextDecoration.none,
+                                          ),
+                                        ),
+                                      ),
+                                      Text(
+                                        t.heure,
+                                        style: TextStyle(
+                                          color: Colors.white.withOpacity(0.7),
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                },
+                              ),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
         ),

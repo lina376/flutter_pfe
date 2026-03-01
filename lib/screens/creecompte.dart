@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ora/screens/connecter.dart';
 import 'package:ora/screens/principal.dart';
 
 class creecompte extends StatefulWidget {
@@ -14,6 +15,24 @@ class _creecompteState extends State<creecompte> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          style: const ButtonStyle(
+            backgroundColor: WidgetStatePropertyAll<Color>(
+              Color.fromARGB(194, 88, 70, 142),
+            ),
+          ),
+          icon: const Icon(Icons.chevron_left, color: Colors.white),
+          onPressed: () {
+            Navigator.pushNamed(context, connecter.screenRoute);
+          },
+          tooltip: 'chevron',
+          iconSize: 40,
+          constraints: const BoxConstraints(minHeight: 50, minWidth: 50),
+        ),
+      ),
       resizeToAvoidBottomInset: true,
       extendBodyBehindAppBar: true,
       body: Container(

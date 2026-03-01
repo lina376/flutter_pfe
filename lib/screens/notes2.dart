@@ -53,11 +53,18 @@ class _notes2State extends State<notes2> {
           ),
         ),
 
-        child: SafeArea(child: Stack(children: [
+        child: SafeArea(
+          child: SingleChildScrollView(
+            child: SizedBox(
+              height: MediaQuery.of(context).size.height,
+              child: Stack(children: [
           
             
           ],
-        )),
+        ),
+            ),
+          ),
+        ),
       ),
     );
   }

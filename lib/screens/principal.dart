@@ -216,272 +216,288 @@ class _principalState extends State<principal> {
           ),
         ),
         child: SafeArea(
-          child: Stack(
-            children: [
-              Positioned(
-                top: MediaQuery.of(context).size.height * 0.001,
-                left: MediaQuery.of(context).size.height * 0.0001,
-                child: SizedBox(width: 395, height: 45, child: recherche()),
-              ),
-              Positioned(
-                //frame de robot
-                top: MediaQuery.of(context).size.height * 0.08,
-                left: MediaQuery.of(context).size.height * 0.02,
-                child: SizedBox(
-                  width: 210,
-                  height: 170,
-                  child: Container(
-                    padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.12),
-                      borderRadius: BorderRadius.circular(24),
-                      border: Border.all(color: Colors.white.withOpacity(0.18)),
-                    ),
-                  ),
-                ),
-              ),
-
-              Positioned(
-                //frame de notes
-                top: MediaQuery.of(context).size.height * 0.08,
-                right: MediaQuery.of(context).size.height * 0.02,
-                child: GestureDetector(
-                  onTap: () {
-                    Navigator.pushNamed(context, mesnotes.screenRoute);
-                  },
-                  child: SizedBox(
-                    width: 130,
-                    height: 170,
-                    child: Container(
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.12),
-                        borderRadius: BorderRadius.circular(24),
-                        border: Border.all(
-                          color: Colors.white.withOpacity(0.18),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              Stack(
+          child: SingleChildScrollView(
+            child: SizedBox(
+              height: MediaQuery.of(context).size.height,
+              child: Stack(
                 children: [
                   Positioned(
-                    top: MediaQuery.of(context).size.height * 0.095,
-                    left: MediaQuery.of(context).size.height * 0.035,
-                    child: SizedBox(
-                      width: 120,
-                      height: 44,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          Navigator.pushNamed(context, chat.screenRoute);
-
-                          ajouterHistorique(
-                            titre: "Chat avec ORA",
-                            sousTitre: "Discussion commencée",
-                            icone: Icons.chat_bubble_outline,
-                          );
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color.fromARGB(
-                            221,
-                            80,
-                            7,
-                            137,
-                          ).withOpacity(0.20),
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(22),
-                          ),
-                        ),
-                        child: const Text(
-                          "Discuter",
-
-                          style: TextStyle(
-                            color: Color.fromARGB(255, 50, 43, 43),
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
-                    ),
+                    top: MediaQuery.of(context).size.height * 0.001,
+                    left: MediaQuery.of(context).size.height * 0.0001,
+                    child: SizedBox(width: 395, height: 45, child: recherche()),
                   ),
                   Positioned(
-                    top: MediaQuery.of(context).size.height * 0.155,
-                    left: MediaQuery.of(context).size.height * 0.05,
-                    child: SizedBox(
-                      width: 35,
-                      height: 15,
-                      child: Container(
-                        padding: const EdgeInsets.all(14),
-                        decoration: BoxDecoration(
-                          color: const Color.fromARGB(
-                            221,
-                            80,
-                            7,
-                            137,
-                          ).withOpacity(0.20),
-                          borderRadius: BorderRadius.circular(24),
-                          border: Border.all(
-                            color: Colors.white.withOpacity(0.18),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    top: MediaQuery.of(context).size.height * 0.174,
-                    left: MediaQuery.of(context).size.height * 0.07,
-                    child: SizedBox(
-                      width: 25,
-                      height: 12,
-                      child: Container(
-                        padding: const EdgeInsets.all(14),
-                        decoration: BoxDecoration(
-                          color: const Color.fromARGB(
-                            221,
-                            80,
-                            7,
-                            137,
-                          ).withOpacity(0.20),
-                          borderRadius: BorderRadius.circular(24),
-                          border: Border.all(
-                            color: Colors.white.withOpacity(0.18),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    top: MediaQuery.of(context).size.height * 0.19,
-                    left: MediaQuery.of(context).size.height * 0.09,
-                    child: SizedBox(
-                      width: 20,
-                      height: 8,
-                      child: Container(
-                        padding: const EdgeInsets.all(14),
-                        decoration: BoxDecoration(
-                          color: const Color.fromARGB(
-                            221,
-                            80,
-                            7,
-                            137,
-                          ).withOpacity(0.20),
-                          borderRadius: BorderRadius.circular(24),
-                          border: Border.all(
-                            color: Colors.white.withOpacity(0.18),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    top: MediaQuery.of(context).size.height * 0.13,
-                    left: MediaQuery.of(context).size.height * 0.12,
-                    child: Image.asset("images/robot0.png", width: 95),
-                  ),
-                  Positioned(
-                    right: MediaQuery.of(context).size.height * 0.001,
+                    //frame de robot
                     top: MediaQuery.of(context).size.height * 0.08,
-                    child: MesNotes(),
-                  ),
-                  Positioned(
-                    top: MediaQuery.of(context).size.height * 0.3,
                     left: MediaQuery.of(context).size.height * 0.02,
+                    child: SizedBox(
+                      width: 210,
+                      height: 170,
+                      child: Container(
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.12),
+                          borderRadius: BorderRadius.circular(24),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.18),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  Positioned(
+                    //frame de notes
+                    top: MediaQuery.of(context).size.height * 0.08,
                     right: MediaQuery.of(context).size.height * 0.02,
                     child: GestureDetector(
                       onTap: () {
-                        Navigator.pushNamed(context, Calendrier.screenRoute);
+                        Navigator.pushNamed(context, mesnotes.screenRoute);
                       },
-                      child: Container(
-                        padding: const EdgeInsets.all(19),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.18),
-                          borderRadius: BorderRadius.circular(18),
-                        ),
-                        child: TableCalendar(
-                          rowHeight: 35,
-                          firstDay: DateTime.utc(2016, 1, 1),
-                          lastDay: DateTime.utc(2036, 12, 31),
-                          focusedDay: _moisAffiche,
-
-                          startingDayOfWeek: StartingDayOfWeek.sunday,
-
-                          selectedDayPredicate: (jour) => isSameDay(
-                            jour,
-                            _dateSelectionnee,
-                          ), //ylawn nhar leli khtarto
-
-                          onDaySelected: (jourSelectionne, moisFocalise) {
-                            setState(() {
-                              _dateSelectionnee = jourSelectionne;
-                              _moisAffiche = moisFocalise;
-                            });
-                          },
-
-                          headerStyle: HeaderStyle(
-                            formatButtonVisible: false,
-                            titleCentered: true,
-                            titleTextFormatter: (date, locale) =>
-                                DateFormat('MMM yyyy', 'en_US').format(date),
-                            titleTextStyle: const TextStyle(
-                              color: Colors.black,
-                              fontWeight: FontWeight.w700,
-                            ),
-                            leftChevronIcon: const Icon(
-                              Icons.chevron_left,
-                              color: Colors.black,
-                            ),
-                            rightChevronIcon: const Icon(
-                              Icons.chevron_right,
-                              color: Colors.black,
-                            ),
-                          ),
-
-                          daysOfWeekStyle: DaysOfWeekStyle(
-                            weekdayStyle: TextStyle(
-                              color: Colors.black.withOpacity(0.70),
-                            ),
-                            weekendStyle: TextStyle(
-                              color: Colors.black.withOpacity(0.70),
-                            ),
-                          ),
-
-                          calendarStyle: CalendarStyle(
-                            outsideDaysVisible: false,
-                            defaultTextStyle: const TextStyle(
-                              color: Colors.black,
-                            ),
-                            weekendTextStyle: const TextStyle(
-                              color: Colors.black,
-                            ),
-                            todayDecoration: BoxDecoration(
-                              color: Colors.black.withOpacity(0.08),
-                              shape: BoxShape.circle,
-                            ),
-                            selectedDecoration: const BoxDecoration(
-                              color: Color(0xFF2F7BFF),
-                              shape: BoxShape.circle,
-                            ),
-                            selectedTextStyle: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w800,
+                      child: SizedBox(
+                        width: 130,
+                        height: 170,
+                        child: Container(
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.12),
+                            borderRadius: BorderRadius.circular(24),
+                            border: Border.all(
+                              color: Colors.white.withOpacity(0.18),
                             ),
                           ),
                         ),
                       ),
                     ),
                   ),
-                  Positioned(
-                    //historique
-                    left: MediaQuery.of(context).size.height * 0.01,
-                    right: MediaQuery.of(context).size.height * 0.01,
-                    bottom: MediaQuery.of(context).size.height * 0.0001,
-                    child: SizedBox(height: 165, child: sectionHistorique()),
+                  Stack(
+                    children: [
+                      Positioned(
+                        top: MediaQuery.of(context).size.height * 0.095,
+                        left: MediaQuery.of(context).size.height * 0.035,
+                        child: SizedBox(
+                          width: 120,
+                          height: 44,
+                          child: ElevatedButton(
+                            onPressed: () {
+                              Navigator.pushNamed(context, chat.screenRoute);
+
+                              ajouterHistorique(
+                                titre: "Chat avec ORA",
+                                sousTitre: "Discussion commencée",
+                                icone: Icons.chat_bubble_outline,
+                              );
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color.fromARGB(
+                                221,
+                                80,
+                                7,
+                                137,
+                              ).withOpacity(0.20),
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(22),
+                              ),
+                            ),
+                            child: const Text(
+                              "Discuter",
+
+                              style: TextStyle(
+                                color: Color.fromARGB(255, 50, 43, 43),
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        top: MediaQuery.of(context).size.height * 0.155,
+                        left: MediaQuery.of(context).size.height * 0.05,
+                        child: SizedBox(
+                          width: 35,
+                          height: 15,
+                          child: Container(
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(
+                              color: const Color.fromARGB(
+                                221,
+                                80,
+                                7,
+                                137,
+                              ).withOpacity(0.20),
+                              borderRadius: BorderRadius.circular(24),
+                              border: Border.all(
+                                color: Colors.white.withOpacity(0.18),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        top: MediaQuery.of(context).size.height * 0.174,
+                        left: MediaQuery.of(context).size.height * 0.07,
+                        child: SizedBox(
+                          width: 25,
+                          height: 12,
+                          child: Container(
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(
+                              color: const Color.fromARGB(
+                                221,
+                                80,
+                                7,
+                                137,
+                              ).withOpacity(0.20),
+                              borderRadius: BorderRadius.circular(24),
+                              border: Border.all(
+                                color: Colors.white.withOpacity(0.18),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        top: MediaQuery.of(context).size.height * 0.19,
+                        left: MediaQuery.of(context).size.height * 0.09,
+                        child: SizedBox(
+                          width: 20,
+                          height: 8,
+                          child: Container(
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(
+                              color: const Color.fromARGB(
+                                221,
+                                80,
+                                7,
+                                137,
+                              ).withOpacity(0.20),
+                              borderRadius: BorderRadius.circular(24),
+                              border: Border.all(
+                                color: Colors.white.withOpacity(0.18),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        top: MediaQuery.of(context).size.height * 0.13,
+                        left: MediaQuery.of(context).size.height * 0.12,
+                        child: Image.asset("images/robot0.png", width: 95),
+                      ),
+                      Positioned(
+                        right: MediaQuery.of(context).size.height * 0.001,
+                        top: MediaQuery.of(context).size.height * 0.08,
+                        child: MesNotes(),
+                      ),
+                      Positioned(
+                        top: MediaQuery.of(context).size.height * 0.3,
+                        left: MediaQuery.of(context).size.height * 0.02,
+                        right: MediaQuery.of(context).size.height * 0.02,
+                        child: GestureDetector(
+                          onTap: () {
+                            Navigator.pushNamed(
+                              context,
+                              Calendrier.screenRoute,
+                            );
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.all(19),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.18),
+                              borderRadius: BorderRadius.circular(18),
+                            ),
+                            child: TableCalendar(
+                              rowHeight: 35,
+                              firstDay: DateTime.utc(2016, 1, 1),
+                              lastDay: DateTime.utc(2036, 12, 31),
+                              focusedDay: _moisAffiche,
+
+                              startingDayOfWeek: StartingDayOfWeek.sunday,
+
+                              selectedDayPredicate: (jour) => isSameDay(
+                                jour,
+                                _dateSelectionnee,
+                              ), //ylawn nhar leli khtarto
+
+                              onDaySelected: (jourSelectionne, moisFocalise) {
+                                setState(() {
+                                  _dateSelectionnee = jourSelectionne;
+                                  _moisAffiche = moisFocalise;
+                                });
+                              },
+
+                              headerStyle: HeaderStyle(
+                                formatButtonVisible: false,
+                                titleCentered: true,
+                                titleTextFormatter: (date, locale) =>
+                                    DateFormat(
+                                      'MMM yyyy',
+                                      'en_US',
+                                    ).format(date),
+                                titleTextStyle: const TextStyle(
+                                  color: Colors.black,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                                leftChevronIcon: const Icon(
+                                  Icons.chevron_left,
+                                  color: Colors.black,
+                                ),
+                                rightChevronIcon: const Icon(
+                                  Icons.chevron_right,
+                                  color: Colors.black,
+                                ),
+                              ),
+
+                              daysOfWeekStyle: DaysOfWeekStyle(
+                                weekdayStyle: TextStyle(
+                                  color: Colors.black.withOpacity(0.70),
+                                ),
+                                weekendStyle: TextStyle(
+                                  color: Colors.black.withOpacity(0.70),
+                                ),
+                              ),
+
+                              calendarStyle: CalendarStyle(
+                                outsideDaysVisible: false,
+                                defaultTextStyle: const TextStyle(
+                                  color: Colors.black,
+                                ),
+                                weekendTextStyle: const TextStyle(
+                                  color: Colors.black,
+                                ),
+                                todayDecoration: BoxDecoration(
+                                  color: Colors.black.withOpacity(0.08),
+                                  shape: BoxShape.circle,
+                                ),
+                                selectedDecoration: const BoxDecoration(
+                                  color: Color(0xFF2F7BFF),
+                                  shape: BoxShape.circle,
+                                ),
+                                selectedTextStyle: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        //historique
+                        left: MediaQuery.of(context).size.height * 0.01,
+                        right: MediaQuery.of(context).size.height * 0.01,
+                        bottom: MediaQuery.of(context).size.height * 0.0001,
+                        child: SizedBox(
+                          height: 165,
+                          child: sectionHistorique(),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
-            ],
+            ),
           ),
         ),
       ),
