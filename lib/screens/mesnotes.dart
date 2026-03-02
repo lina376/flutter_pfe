@@ -231,7 +231,7 @@ class _mesnotesState extends State<mesnotes> {
 
                             IconButton(
                               icon: Icon(
-                                isFavGlobal("note_${n.id}")
+                                FavGlobal("note_${n.id}")
                                     ? Icons.favorite
                                     : Icons.favorite_border,
                                 color: Colors.white,

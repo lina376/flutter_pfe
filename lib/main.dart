@@ -10,7 +10,6 @@ import 'package:ora/screens/calendrier.dart';
 import 'package:ora/screens/profil.dart';
 import 'package:ora/screens/favorise.dart';
 import 'package:ora/screens/notifications.dart';
-import 'package:ora/screens/notifications2.dart';
 
 void main() {
   runApp(const MyApp());
@@ -34,7 +33,7 @@ class MyApp extends StatelessWidget {
         mesnotes.screenRoute: (ctx) => mesnotes(),
         notes2.screenRoute: (ctx) => notes2(),
         notifications.screenRoute: (ctx) => notifications(),
-        Notifications2.screenRoute: (ctx) => Notifications2(),
+
         Profil.screenRoute: (ctx) => Profil(),
         Calendrier.screenRoute: (ctx) => Calendrier(),
       },
