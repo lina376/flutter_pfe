@@ -40,7 +40,7 @@ class _chatState extends State<chat> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
+        backgroundColor: const Color.fromARGB(87, 27, 2, 48),
         elevation: 0,
 
         leading: IconButton(

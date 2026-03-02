@@ -133,7 +133,7 @@ class _connecterState extends State<connecter> {
                               );
 
                               if (!passwordRegex.hasMatch(value)) {
-                                return "Min 8 caractères, 1 majuscule, 1 chiffre";
+                                return "Verifier votre mot de passe";
                               }
 
                               return null;
