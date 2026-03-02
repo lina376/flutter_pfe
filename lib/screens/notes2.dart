@@ -5,7 +5,8 @@ import 'package:ora/screens/principal.dart';
 
 class notes2 extends StatefulWidget {
   static const String screenRoute = 'pagenotes2';
-  const notes2({super.key});
+  final Map<String, dynamic>? initial;
+  const notes2({super.key, this.initial});
 
   @override
   State<notes2> createState() => _notes2State();
@@ -33,11 +34,24 @@ class _notes2State extends State<notes2> {
     if (titre.isEmpty && contenu.isEmpty) return;
 
     Navigator.pop(context, {
+      "id": widget.initial?["id"],
       "titre": titre.isEmpty ? "Sans titre" : titre,
       "contenu": contenu,
       "liked": liked,
       "date": DateTime.now(),
     });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    final init = widget.initial;
+    if (init != null) {
+      titreCtrl.text = (init["titre"] ?? "") as String;
+      contenuCtrl.text = (init["contenu"] ?? "") as String;
+      liked = (init["liked"] ?? false) as bool;
+    }
   }
 
   @override

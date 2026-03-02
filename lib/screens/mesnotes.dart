@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ora/screens/notes2.dart';
 import 'dart:math';
-
+import 'fav.dart';
 import 'package:ora/screens/principal.dart';
 
 class mesnotes extends StatefulWidget {
@@ -16,7 +16,12 @@ class _mesnotesState extends State<mesnotes> {
   final TextEditingController searchCtrl = TextEditingController();
   //exemple
   final List<Notee> notes = [
-    Notee(id: '1', title: 'Note 1', date: DateTime(2026, 1, 2, 12, 8)),
+    Notee(
+      id: '1',
+      title: 'Note 1',
+      contenu: 'noteee',
+      date: DateTime(2026, 1, 2, 12, 8),
+    ),
   ];
 
   @override
@@ -59,17 +64,21 @@ class _mesnotesState extends State<mesnotes> {
       MaterialPageRoute(builder: (_) => const notes2()),
     );
 
-    if (result != null && result is String) {
-      final text = result.trim();
-      if (text.isEmpty) return;
+    if (result != null && result is Map) {
+      final titre = (result["titre"] ?? "").toString();
+      final contenu = (result["contenu"] ?? "").toString();
+
+      if (titre.trim().isEmpty && contenu.trim().isEmpty) return;
 
       setState(() {
         notes.insert(
           0,
           Notee(
             id: DateTime.now().millisecondsSinceEpoch.toString(),
-            title: text,
-            date: DateTime.now(),
+            title: titre,
+            contenu: contenu,
+            date: result["date"] ?? DateTime.now(),
+            liked: result["liked"] ?? false,
           ),
         );
       });
@@ -158,51 +167,87 @@ class _mesnotesState extends State<mesnotes> {
                   itemBuilder: (context, index) {
                     final n = _filteredNotes[index];
 
-                    return Container(
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.18),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: Colors.white.withOpacity(0.15),
+                    return GestureDetector(
+                      onTap: () async {
+                        final result = await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => notes2(
+                              initial: {
+                                "id": n.id,
+                                "titre": n.title,
+                                "contenu": n.contenu,
+                                "liked": n.liked,
+                                "date": n.date,
+                              },
+                            ),
+                          ),
+                        );
+
+                        if (result != null && result is Map) {
+                          setState(() {
+                            n.title = result["titre"] ?? n.title;
+                            n.contenu = result["contenu"] ?? n.contenu;
+                            n.liked = result["liked"] ?? n.liked;
+                            n.date = result["date"] ?? n.date;
+                          });
+                        }
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.18),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.15),
+                          ),
                         ),
-                      ),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  _formatDate(n.date),
-                                  style: TextStyle(
-                                    color: Colors.white.withOpacity(0.75),
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    _formatDate(n.date),
+                                    style: TextStyle(
+                                      color: Colors.white.withOpacity(0.75),
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                    ),
                                   ),
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  n.title,
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w800,
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    n.title,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w800,
+                                    ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
-                          ),
-                          IconButton(
-                            onPressed: () {
-                              setState(() => n.liked = !n.liked);
-                            },
-                            icon: Icon(
-                              n.liked ? Icons.favorite : Icons.favorite_border,
-                              color: Colors.white,
+
+                            IconButton(
+                              icon: Icon(
+                                isFavGlobal("note_${n.id}")
+                                    ? Icons.favorite
+                                    : Icons.favorite_border,
+                                color: Colors.white,
+                              ),
+                              onPressed: () {
+                                toggleFavGlobal({
+                                  "id": "note_${n.id}",
+                                  "title": n.title,
+                                  "desc": "Note",
+                                  "date": DateTime.now(),
+                                });
+                                setState(() => n.liked = !n.liked);
+                              },
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     );
                   },
@@ -286,13 +331,15 @@ class barederecherche extends StatelessWidget {
 
 class Notee {
   final String id;
-  final String title;
-  final DateTime date;
+  String title;
+  String contenu;
+  DateTime date;
   bool liked;
 
   Notee({
     required this.id,
     required this.title,
+    required this.contenu,
     required this.date,
     this.liked = false,
   });

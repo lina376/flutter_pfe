@@ -87,7 +87,7 @@ class _principalState extends State<principal> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          _item(
+                          _list(
                             icon: Icons.person_outline,
                             title: "Profil",
                             onTap: () {
@@ -95,7 +95,7 @@ class _principalState extends State<principal> {
                               Navigator.pushNamed(context, 'pageprofil');
                             },
                           ),
-                          _item(
+                          _list(
                             icon: Icons.favorite_border,
                             title: "Favoriser",
                             onTap: () {
@@ -154,7 +154,7 @@ class _principalState extends State<principal> {
     );
   }
 
-  Widget _item({
+  Widget _list({
     required IconData icon,
     required String title,
     required VoidCallback onTap,
