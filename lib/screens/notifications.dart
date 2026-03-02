@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'dart:math';
 
 class notifications extends StatefulWidget {
   static const String screenRoute = 'pagenotifications';
@@ -22,6 +23,7 @@ class _notificationsState extends State<notifications> {
 
   @override
   Widget build(BuildContext context) {
+    final h = MediaQuery.of(context).size.height;
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
@@ -63,16 +65,21 @@ class _notificationsState extends State<notifications> {
                         "Notifications",
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 28,
+                          fontSize: 33,
                           fontWeight: FontWeight.w900,
                         ),
                       ),
                     ),
-                    Image.asset("images/robot0.png", width: 55),
+                    Positioned(
+                      top: h * -0.01,
+                      right: h * 0.01,
+                      child: Transform.rotate(
+                        angle: -pi / 3.8,
+                        child: Image.asset('images/robot2.png', width: 100),
+                      ),
+                    ),
                   ],
                 ),
-
-                const SizedBox(height: 16),
 
                 Expanded(
                   child: ListView.separated(
