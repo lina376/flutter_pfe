@@ -503,6 +503,14 @@ class _principalState extends State<principal> {
                                   arguments: conversationId,
                                 );
                               }
+
+                              if (conversationId.isNotEmpty) {
+                                Navigator.pushNamed(
+                                  context,
+                                  chat.screenRoute,
+                                  arguments: conversationId,
+                                );
+                              }
                             },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color.fromARGB(

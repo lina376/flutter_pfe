@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:ora/screens/principal.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart';
 
 class chat extends StatefulWidget {
   static const String screenRoute = 'pagechat';
@@ -13,16 +13,46 @@ class chat extends StatefulWidget {
 
 class _chatState extends State<chat> {
   bool modeVocal = true; // true = micro / false = écriture
-  String? conversationId;
-
+  String? conversationId; // id de la conversation courante
+  final ScrollController scrollController = ScrollController();
   final TextEditingController controleurMessage = TextEditingController();
   final FocusNode focusTexte = FocusNode();
+  String formaterHeure(Timestamp? timestamp) {
+    if (timestamp == null) return "";
+    final date = timestamp.toDate();
+    return DateFormat('HH:mm').format(date);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    final args = ModalRoute.of(context)?.settings.arguments;
+
+    if (args is String) {
+      conversationId ??= args;
+    }
+  }
+
+  void scrollVersBas() {
+    //bech l myra3lich mloul n7eb l msg lekher dhaher
+    if (!scrollController.hasClients) return;
+
+    final position = scrollController.position.maxScrollExtent;
+
+    scrollController.animateTo(
+      position,
+      duration: const Duration(milliseconds: 2500),
+      curve: Curves.easeOut,
+    );
+  }
 
   @override
   void dispose() {
     controleurMessage.dispose();
     focusTexte.dispose();
     super.dispose();
+    scrollController.dispose();
   }
 
   Future<void> ajouterMessage({
@@ -30,7 +60,6 @@ class _chatState extends State<chat> {
     required String texte,
   }) async {
     final user = FirebaseAuth.instance.currentUser;
-
     if (user == null) return;
 
     final conversationRef = FirebaseFirestore.instance
@@ -45,14 +74,37 @@ class _chatState extends State<chat> {
       'date': Timestamp.now(),
     });
 
+    String reponseOra = "Bonjour, je suis ORA. J'ai bien reçu votre message.";
+
+    await conversationRef.collection('messages').add({
+      'texte': reponseOra,
+      'sender': 'ora',
+      'date': Timestamp.now(),
+    });
+
     await conversationRef.update({
-      'dernierMessage': texte,
+      'dernierMessage': reponseOra,
       'dateMaj': Timestamp.now(),
+      'titre': texte.length > 20 ? "${texte.substring(0, 20)}..." : texte,
+    });
+  }
+
+  Future<void> envoyerMessage() async {
+    final texte = controleurMessage.text.trim();
+
+    if (texte.isEmpty || conversationId == null) return;
+
+    await ajouterMessage(conversationId: conversationId!, texte: texte);
+
+    controleurMessage.clear();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      FocusScope.of(context).requestFocus(focusTexte);
     });
   }
 
   void passerEnModeVocal() {
-    FocusScope.of(context).unfocus(); //ykhabi l clavier
+    FocusScope.of(context).unfocus();
     setState(() => modeVocal = true);
   }
 
@@ -66,12 +118,13 @@ class _chatState extends State<chat> {
 
   @override
   Widget build(BuildContext context) {
+    final user = FirebaseAuth.instance.currentUser;
+
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         backgroundColor: const Color.fromARGB(87, 27, 2, 48),
         elevation: 0,
-
         leading: IconButton(
           style: const ButtonStyle(
             backgroundColor: WidgetStatePropertyAll<Color>(
@@ -80,7 +133,7 @@ class _chatState extends State<chat> {
           ),
           icon: const Icon(Icons.chevron_left, color: Colors.white),
           onPressed: () {
-            Navigator.pushNamed(context, principal.screenRoute);
+            Navigator.pop(context);
           },
           tooltip: 'chevron',
           iconSize: 40,
@@ -90,172 +143,287 @@ class _chatState extends State<chat> {
       body: Container(
         width: double.infinity,
         height: double.infinity,
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           image: DecorationImage(
             image: AssetImage("images/b1.png"),
             fit: BoxFit.cover,
           ),
         ),
         child: SafeArea(
-          child: SingleChildScrollView(
-            child: SizedBox(
-              height: MediaQuery.of(context).size.height,
-              child: Stack(
-                children: [
-                  Positioned.fill(
-                    top: MediaQuery.of(context).size.height * -0.2,
-                    left: MediaQuery.of(context).size.height * -0.4,
-                    child: Opacity(
-                      opacity: 0.4,
-                      child: Image.asset(
-                        "images/robot1.png",
-                        fit: BoxFit.cover,
+          child: SizedBox(
+            height: MediaQuery.of(context).size.height,
+            child: Stack(
+              children: [
+                Positioned.fill(
+                  top: MediaQuery.of(context).size.height * -0.2,
+                  left: MediaQuery.of(context).size.height * -0.4,
+                  child: Opacity(
+                    opacity: 0.4,
+                    child: Image.asset("images/robot1.png", fit: BoxFit.cover),
+                  ),
+                ),
+
+                Positioned(
+                  top: MediaQuery.of(context).size.height * 0.12,
+                  left: 12,
+                  right: 12,
+                  bottom: modeVocal
+                      ? MediaQuery.of(context).size.height * 0.22
+                      : MediaQuery.of(context).size.height * 0.11,
+                  child: conversationId == null || user == null
+                      ? const Center(
+                          child: Text(
+                            "Chargement...",
+                            style: TextStyle(
+                              color: Color.fromARGB(152, 65, 24, 106),
+                            ),
+                          ),
+                        )
+                      : StreamBuilder<QuerySnapshot>(
+                          stream: FirebaseFirestore.instance
+                              .collection('users')
+                              .doc(user.uid)
+                              .collection('conversations')
+                              .doc(conversationId)
+                              .collection('messages')
+                              .orderBy('date', descending: false)
+                              .snapshots(),
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return const Center(
+                                child: Text(
+                                  "Chargement...",
+                                  style: TextStyle(
+                                    color: Color.fromARGB(179, 65, 24, 106),
+                                  ),
+                                ),
+                              );
+                            }
+
+                            if (!snapshot.hasData ||
+                                snapshot.data!.docs.isEmpty) {
+                              return const Center(
+                                child: Text(
+                                  "Aucun message",
+                                  style: TextStyle(
+                                    color: Color.fromARGB(179, 65, 24, 106),
+                                  ),
+                                ),
+                              );
+                            }
+
+                            final messages = snapshot.data!.docs;
+                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              //ba3d koul update taaml scroll
+                              scrollVersBas();
+                            });
+                            return ListView.builder(
+                              padding: const EdgeInsets.only(bottom: 12),
+                              itemCount: messages.length,
+                              controller: scrollController,
+                              keyboardDismissBehavior:
+                                  ScrollViewKeyboardDismissBehavior.manual,
+                              itemBuilder: (context, index) {
+                                final data =
+                                    messages[index].data()
+                                        as Map<String, dynamic>;
+
+                                final texte = data['texte'] ?? '';
+                                final sender = data['sender'] ?? 'user';
+                                final isUser = sender == 'user';
+                                final Timestamp? dateMessage =
+                                    data['date'] as Timestamp?;
+                                final heure = formaterHeure(dateMessage);
+
+                                return Align(
+                                  alignment: isUser
+                                      ? Alignment.centerRight
+                                      : Alignment.centerLeft,
+                                  child: Container(
+                                    margin: const EdgeInsets.symmetric(
+                                      vertical: 6,
+                                    ),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 14,
+                                      vertical: 10,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: const Color.fromARGB(
+                                        232,
+                                        24,
+                                        2,
+                                        48,
+                                      ).withOpacity(0.5),
+                                      borderRadius: BorderRadius.circular(16),
+                                      border: Border.all(
+                                        color: Colors.white.withOpacity(0.15),
+                                      ),
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment: isUser
+                                          ? CrossAxisAlignment.end
+                                          : CrossAxisAlignment.start,
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text(
+                                          texte,
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          heure,
+                                          style: TextStyle(
+                                            color: Colors.white.withOpacity(
+                                              0.7,
+                                            ),
+                                            fontSize: 10,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              },
+                            );
+                          },
+                        ),
+                ),
+
+                if (modeVocal)
+                  Positioned(
+                    top: MediaQuery.of(context).size.height * 0.7,
+                    left: MediaQuery.of(context).size.height * 0.2,
+                    child: GestureDetector(
+                      onTap: passerEnModeVocal,
+                      child: Container(
+                        width: 80,
+                        height: 80,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.white.withOpacity(0.18),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.2),
+                            width: 2,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.white.withOpacity(0.15),
+                              blurRadius: 25,
+                              spreadRadius: 6,
+                            ),
+                          ],
+                        ),
+                        child: const Center(
+                          child: Icon(Icons.mic, color: Colors.white, size: 32),
+                        ),
                       ),
                     ),
                   ),
-                  if (modeVocal)
-                    Positioned(
-                      top: MediaQuery.of(context).size.height * 0.7,
-                      left: MediaQuery.of(context).size.height * 0.2,
-                      child: GestureDetector(
-                        onTap: passerEnModeVocal,
-                        child: Container(
-                          //bech ykoun mdawr
-                          width: 80,
-                          height: 80,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Colors.white.withOpacity(0.18),
-                            border: Border.all(
-                              color: Colors.white.withOpacity(0.2),
-                              width: 2,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                //wrah dhaw
-                                color: Colors.white.withOpacity(0.15),
-                                blurRadius: 25,
-                                spreadRadius: 6,
-                              ),
-                            ],
-                          ),
-                          child: const Center(
-                            child: Icon(
-                              Icons.mic,
-                              color: Colors.white,
-                              size: 32,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  if (modeVocal)
-                    Positioned(
-                      top: MediaQuery.of(context).size.height * 0.77,
-                      left: MediaQuery.of(context).size.height * 0.35,
-                      child: GestureDetector(
-                        onTap: passerEnModeEcriture,
-                        child: Container(
-                          //bech ykoun mdawr
-                          width: 50,
-                          height: 50,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Colors.white.withOpacity(0.18),
-                            border: Border.all(
-                              color: Colors.white.withOpacity(0.2),
-                              width: 2,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                //wrah dhaw
-                                color: Colors.white.withOpacity(0.15),
-                                blurRadius: 25,
-                                spreadRadius: 6,
-                              ),
-                            ],
-                          ),
-                          child: const Center(
-                            child: Icon(
-                              Icons.draw_outlined,
-                              color: Colors.white,
-                              size: 32,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  if (!modeVocal) ...[
-                    Positioned(
-                      left: MediaQuery.of(context).size.height * 0,
-                      right: MediaQuery.of(context).size.height * 0,
-                      bottom: MediaQuery.of(context).size.height * 0.01,
-                      child: Row(
-                        children: [
-                          GestureDetector(
-                            onTap: passerEnModeVocal,
-                            child: Container(
-                              width: 50,
-                              height: 50,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: Colors.white.withOpacity(0.18),
-                                border: Border.all(
-                                  color: Colors.white.withOpacity(0.2),
-                                  width: 2,
-                                ),
-                              ),
-                              child: const Icon(Icons.mic, color: Colors.white),
-                            ),
-                          ),
-                          const SizedBox(width: 10),
 
-                          Expanded(
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                              ),
-                              height: 52,
-                              decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.18),
-                                borderRadius: BorderRadius.circular(18),
-                                border: Border.all(
-                                  color: Colors.white.withOpacity(0.18),
-                                ),
-                              ),
-                              child: TextField(
-                                focusNode: focusTexte,
-                                controller: controleurMessage,
-                                style: const TextStyle(color: Colors.white),
-                                decoration: const InputDecoration(
-                                  hintText: "Écrire...",
-                                  hintStyle: TextStyle(color: Colors.white70),
-                                ),
-                              ),
-                            ),
+                if (modeVocal)
+                  Positioned(
+                    top: MediaQuery.of(context).size.height * 0.77,
+                    left: MediaQuery.of(context).size.height * 0.35,
+                    child: GestureDetector(
+                      onTap: passerEnModeEcriture,
+                      child: Container(
+                        width: 50,
+                        height: 50,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.white.withOpacity(0.18),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.2),
+                            width: 2,
                           ),
-                          const SizedBox(width: 10),
-                          InkWell(
-                            onTap: () {},
-                            child: Container(
-                              width: 50,
-                              height: 50,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: Colors.white.withOpacity(0.25),
-                              ),
-                              child: const Icon(
-                                Icons.send,
-                                color: Colors.white,
-                              ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.white.withOpacity(0.15),
+                              blurRadius: 25,
+                              spreadRadius: 6,
                             ),
+                          ],
+                        ),
+                        child: const Center(
+                          child: Icon(
+                            Icons.draw_outlined,
+                            color: Colors.white,
+                            size: 32,
                           ),
-                        ],
+                        ),
                       ),
                     ),
-                  ],
-                ],
-              ),
+                  ),
+
+                if (!modeVocal)
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    bottom: MediaQuery.of(context).size.height * 0.01,
+                    child: Row(
+                      children: [
+                        GestureDetector(
+                          onTap: passerEnModeVocal,
+                          child: Container(
+                            width: 50,
+                            height: 50,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.white.withOpacity(0.18),
+                              border: Border.all(
+                                color: Colors.white.withOpacity(0.2),
+                                width: 2,
+                              ),
+                            ),
+                            child: const Icon(Icons.mic, color: Colors.white),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            height: 52,
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.18),
+                              borderRadius: BorderRadius.circular(18),
+                              border: Border.all(
+                                color: Colors.white.withOpacity(0.18),
+                              ),
+                            ),
+                            child: TextField(
+                              focusNode: focusTexte,
+                              controller: controleurMessage,
+                              textInputAction: TextInputAction.send,
+                              style: const TextStyle(color: Colors.white),
+                              decoration: const InputDecoration(
+                                hintText: "Écrire...",
+                                hintStyle: TextStyle(color: Colors.white70),
+                                border: InputBorder.none,
+                              ),
+                              onSubmitted: (_) => envoyerMessage(),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        InkWell(
+                          onTap: envoyerMessage,
+                          child: Container(
+                            width: 50,
+                            height: 50,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.white.withOpacity(0.25),
+                            ),
+                            child: const Icon(Icons.send, color: Colors.white),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
             ),
           ),
         ),
