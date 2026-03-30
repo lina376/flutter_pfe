@@ -309,7 +309,7 @@ class _principalState extends State<principal> {
                                 shape: BoxShape.circle,
                               ),
                               child: Icon(
-                                Icons.chat_bubble_outline,
+                                Icons.history,
                                 color: Colors.white.withOpacity(0.85),
                                 size: 18,
                               ),
@@ -491,7 +491,7 @@ class _principalState extends State<principal> {
                           height: 44,
                           child: ElevatedButton(
                             onPressed: () async {
-                              final texte = "vide";
+                              final texte = "Nouvelle discussion";
                               final conversationId = await creerConversation(
                                 texte,
                               );
