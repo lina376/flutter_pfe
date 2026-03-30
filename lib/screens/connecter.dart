@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:ora/screens/creecompte.dart';
 import 'package:ora/screens/principal.dart';
@@ -15,8 +14,9 @@ class connecter extends StatefulWidget {
 class _connecterState extends State<connecter> {
   final _formkey = GlobalKey<FormState>();
   final _auth = FirebaseAuth.instance;
+  bool isLoading = false;
   late String email;
-  late String motdepasse; //late matist7a9ch valeur
+  late String motdepasse;
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +25,7 @@ class _connecterState extends State<connecter> {
       body: Container(
         width: double.infinity,
         height: double.infinity,
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           image: DecorationImage(
             image: AssetImage("images/b2.png"),
             fit: BoxFit.cover,
@@ -40,7 +40,7 @@ class _connecterState extends State<connecter> {
                   Positioned(
                     top: MediaQuery.of(context).size.height * 0.2,
                     left: MediaQuery.of(context).size.height * 0.11,
-                    child: Text(
+                    child: const Text(
                       'Bienvenue',
                       style: TextStyle(
                         fontSize: 46,
@@ -49,17 +49,16 @@ class _connecterState extends State<connecter> {
                       ),
                     ),
                   ),
-                  Align(
+                  const Align(
                     alignment: Alignment(0, -0.35),
                     child: Text(
                       "Se connecter",
                       style: TextStyle(
-                        color: const Color.fromARGB(255, 114, 118, 120),
+                        color: Color.fromARGB(255, 114, 118, 120),
                         fontSize: 14,
                       ),
                     ),
                   ),
-
                   Form(
                     key: _formkey,
                     child: Stack(
@@ -67,7 +66,7 @@ class _connecterState extends State<connecter> {
                         Positioned(
                           top: MediaQuery.of(context).size.height * 0.35,
                           left: MediaQuery.of(context).size.height * 0.01,
-                          child: Text(
+                          child: const Text(
                             "Email",
                             style: TextStyle(color: Colors.white, fontSize: 14),
                           ),
@@ -81,22 +80,37 @@ class _connecterState extends State<connecter> {
                             decoration: InputDecoration(
                               hintText: "Email",
                               filled: true,
-                              fillColor: Colors.white, //pour arriere blanc
+                              fillColor: Colors.white,
                               border: OutlineInputBorder(
                                 gapPadding: 3.0,
                                 borderRadius: BorderRadius.circular(8),
-                                borderSide: BorderSide(width: 0.5),
+                                borderSide: const BorderSide(width: 0.5),
                               ),
                             ),
                             onChanged: (value) {
                               email = value;
+                            },
+                            validator: (value) {
+                              if (value == null || value.trim().isEmpty) {
+                                return "Email obligatoire";
+                              }
+
+                              final emailRegex = RegExp(
+                                r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
+                              );
+
+                              if (!emailRegex.hasMatch(value.trim())) {
+                                return "Format email incorrect";
+                              }
+
+                              return null;
                             },
                           ),
                         ),
                         Positioned(
                           top: MediaQuery.of(context).size.height * 0.47,
                           left: MediaQuery.of(context).size.height * 0.01,
-                          child: Text(
+                          child: const Text(
                             "Mot de passe",
                             style: TextStyle(color: Colors.white, fontSize: 14),
                           ),
@@ -118,43 +132,79 @@ class _connecterState extends State<connecter> {
                             onChanged: (value) {
                               motdepasse = value;
                             },
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return "Mot de passe obligatoire";
+                              }
+                              return null;
+                            },
                           ),
                         ),
-
                         Positioned(
                           top: MediaQuery.of(context).size.height * 0.6,
                           right: MediaQuery.of(context).size.height * 0.165,
                           left: MediaQuery.of(context).size.height * 0.165,
                           child: ElevatedButton(
                             onPressed: () async {
-                              final newUser = await _auth
-                                  .signInWithEmailAndPassword(
-                                    email: email,
-                                    password: motdepasse,
-                                  );
-                              try {
-                                final newUser = await _auth
-                                    .signInWithEmailAndPassword(
-                                      email: email,
-                                      password: motdepasse,
-                                    );
+                              if (isLoading) return;
 
-                                Navigator.pushNamed(
-                                  context,
-                                  principal.screenRoute,
-                                );
-                              } catch (e) {
-                                print(e);
+                              if (_formkey.currentState!.validate()) {
+                                setState(() {
+                                  isLoading = true;
+                                });
+
+                                try {
+                                  final userCredential = await _auth
+                                      .signInWithEmailAndPassword(
+                                        email: email.trim(),
+                                        password: motdepasse.trim(),
+                                      );
+
+                                  if (userCredential.user != null) {
+                                    Navigator.pushReplacementNamed(
+                                      context,
+                                      principal.screenRoute,
+                                    );
+                                  }
+                                } on FirebaseAuthException catch (e) {
+                                  String message = "Une erreur s'est produite";
+
+                                  if (e.code == 'user-not-found') {
+                                    message =
+                                        "Aucun compte trouvé avec cet email";
+                                  } else if (e.code == 'wrong-password') {
+                                    message = "Mot de passe incorrect";
+                                  } else if (e.code == 'invalid-email') {
+                                    message = "Email invalide";
+                                  } else if (e.code == 'invalid-credential') {
+                                    message = "Email ou mot de passe incorrect";
+                                  }
+
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text(message)),
+                                  );
+                                } catch (e) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text("Erreur : $e")),
+                                  );
+                                } finally {
+                                  setState(() {
+                                    isLoading = false;
+                                  });
+                                }
                               }
                             },
-                            child: Text(
-                              "connecter",
-                              style: TextStyle(
-                                color: const Color.fromARGB(136, 10, 11, 22),
+                            child: Center(
+                              child: Text(
+                                isLoading ? "Connexion..." : "connecter",
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  color: Color.fromARGB(136, 10, 11, 22),
+                                ),
                               ),
                             ),
                             style: ElevatedButton.styleFrom(
-                              shape: StadiumBorder(),
+                              shape: const StadiumBorder(),
                               backgroundColor: const Color.fromARGB(
                                 172,
                                 153,
@@ -175,7 +225,7 @@ class _connecterState extends State<connecter> {
                                 creecompte.screenRoute,
                               );
                             },
-                            child: Text(
+                            child: const Text(
                               "Crée compte",
                               style: TextStyle(
                                 color: Colors.black,
