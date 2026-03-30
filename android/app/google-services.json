@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "240476544820",
+    "project_id": "oraapp-1c14b",
+    "storage_bucket": "oraapp-1c14b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:240476544820:android:070ca016711bc59371cf61",
+        "android_client_info": {
+          "package_name": "com.example.ora"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDHPWPhCCaxdiDcHF4icx4FQ-9WcptYsoA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
