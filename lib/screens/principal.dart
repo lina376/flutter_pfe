@@ -6,6 +6,7 @@ import 'package:ora/screens/notifications.dart';
 
 import 'package:table_calendar/table_calendar.dart';
 import 'package:intl/intl.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class principal extends StatefulWidget {
   static const String screenRoute = 'pageprincipal';
@@ -16,6 +17,31 @@ class principal extends StatefulWidget {
 }
 
 class _principalState extends State<principal> {
+  final _auth = FirebaseAuth.instance;
+  late User signedInUser;
+  //bech nfa3lou l methode getCurrenUser
+  @override
+  void initState() {
+    super.initState();
+    getCurrenUser();
+  }
+
+  void getCurrenUser() {
+    //tchof ken fama user dkhal wele
+    final user = _auth.currentUser; //0 ken mdkhal 7ad
+    if (user != null) {
+      signedInUser = user;
+      print(signedInUser.email);
+    }
+    try {
+      if (user != null) {
+        signedInUser = user;
+      }
+    } catch (e) {
+      print(e);
+    }
+  }
+
   // Date affichée (mois) + date sélectionnée
   DateTime _moisAffiche = DateTime.now();
   DateTime _dateSelectionnee = DateTime.now();

@@ -10,8 +10,12 @@ import 'package:ora/screens/calendrier.dart';
 import 'package:ora/screens/profil.dart';
 import 'package:ora/screens/favorise.dart';
 import 'package:ora/screens/notifications.dart';
+import 'package:firebase_core/firebase_core.dart';
 
-void main() {
+void main() async {
+  //async w9tili l tghayorat ysiro koul w7da f w9t w sync w9tili ybdew fard w9t
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(); //les deux bech nsjmou nsta3mlou firebase
   runApp(const MyApp());
 }
 
@@ -22,7 +26,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'ora app',
       theme: ThemeData(primaryColor: Colors.blue, fontFamily: 'Jomhuria'),
-      initialRoute: rencontre.screenRoute,
+      initialRoute: connecter.screenRoute,
       routes: {
         rencontre.screenRoute: (ctx) => rencontre(),
         connecter.screenRoute: (ctx) => connecter(),

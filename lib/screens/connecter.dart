@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:ora/screens/creecompte.dart';
 import 'package:ora/screens/principal.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class connecter extends StatefulWidget {
   static const String screenRoute = 'pageconnecter';
@@ -13,6 +14,9 @@ class connecter extends StatefulWidget {
 
 class _connecterState extends State<connecter> {
   final _formkey = GlobalKey<FormState>();
+  final _auth = FirebaseAuth.instance;
+  late String email;
+  late String motdepasse; //late matist7a9ch valeur
 
   @override
   Widget build(BuildContext context) {
@@ -73,6 +77,7 @@ class _connecterState extends State<connecter> {
                           left: MediaQuery.of(context).size.height * 0.01,
                           right: MediaQuery.of(context).size.height * 0.01,
                           child: TextFormField(
+                            keyboardType: TextInputType.emailAddress,
                             decoration: InputDecoration(
                               hintText: "Email",
                               filled: true,
@@ -83,21 +88,8 @@ class _connecterState extends State<connecter> {
                                 borderSide: BorderSide(width: 0.5),
                               ),
                             ),
-                            validator: (value) {
-                              //validator tkhdem ken ma3 TextFormField
-                              if (value == null || value.isEmpty) {
-                                return "Email obligatoire";
-                              }
-
-                              final emailRegex = RegExp(
-                                r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
-                              );
-
-                              if (!emailRegex.hasMatch(value)) {
-                                return "Format email incorrect";
-                              }
-
-                              return null;
+                            onChanged: (value) {
+                              email = value;
                             },
                           ),
                         ),
@@ -123,20 +115,8 @@ class _connecterState extends State<connecter> {
                                 borderRadius: BorderRadius.circular(8),
                               ),
                             ),
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return "Mot de passe obligatoire";
-                              }
-
-                              final passwordRegex = RegExp(
-                                r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{8,}$',
-                              );
-
-                              if (!passwordRegex.hasMatch(value)) {
-                                return "Verifier votre mot de passe";
-                              }
-
-                              return null;
+                            onChanged: (value) {
+                              motdepasse = value;
                             },
                           ),
                         ),
@@ -146,12 +126,25 @@ class _connecterState extends State<connecter> {
                           right: MediaQuery.of(context).size.height * 0.165,
                           left: MediaQuery.of(context).size.height * 0.165,
                           child: ElevatedButton(
-                            onPressed: () {
-                              if (_formkey.currentState!.validate()) {
+                            onPressed: () async {
+                              final newUser = await _auth
+                                  .signInWithEmailAndPassword(
+                                    email: email,
+                                    password: motdepasse,
+                                  );
+                              try {
+                                final newUser = await _auth
+                                    .signInWithEmailAndPassword(
+                                      email: email,
+                                      password: motdepasse,
+                                    );
+
                                 Navigator.pushNamed(
                                   context,
                                   principal.screenRoute,
                                 );
+                              } catch (e) {
+                                print(e);
                               }
                             },
                             child: Text(

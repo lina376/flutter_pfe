@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:ora/screens/connecter.dart';
 import 'package:ora/screens/principal.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class creecompte extends StatefulWidget {
   static const String screenRoute = 'pagecreecompte';
@@ -12,6 +14,12 @@ class creecompte extends StatefulWidget {
 
 class _creecompteState extends State<creecompte> {
   final _formkey = GlobalKey<FormState>();
+  final _auth = FirebaseAuth.instance;
+  late String nom;
+  late String prenom;
+  late String email;
+  late String motdepasse;
+  late String confirmerMotdepasse; //late matist7a9ch valeur
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -99,6 +107,9 @@ class _creecompteState extends State<creecompte> {
                             borderSide: BorderSide(width: 0.5),
                           ),
                         ),
+                        onChanged: (value) {
+                          nom = value;
+                        },
                       ),
                     ),
                     Positioned(
@@ -124,6 +135,9 @@ class _creecompteState extends State<creecompte> {
                             borderSide: BorderSide(width: 0.5),
                           ),
                         ),
+                        onChanged: (value) {
+                          prenom = value;
+                        },
                       ),
                     ),
                     Positioned(
@@ -139,6 +153,7 @@ class _creecompteState extends State<creecompte> {
                       left: MediaQuery.of(context).size.height * 0.01,
                       right: MediaQuery.of(context).size.height * 0.01,
                       child: TextFormField(
+                        keyboardType: TextInputType.emailAddress,
                         decoration: InputDecoration(
                           hintText: "Email",
                           filled: true,
@@ -149,6 +164,9 @@ class _creecompteState extends State<creecompte> {
                             borderSide: BorderSide(width: 0.5),
                           ),
                         ),
+                        onChanged: (value) {
+                          email = value;
+                        },
                         validator: (value) {
                           //validator tkhdem ken ma3 TextFormField
                           if (value == null || value.isEmpty) {
@@ -189,6 +207,9 @@ class _creecompteState extends State<creecompte> {
                             borderRadius: BorderRadius.circular(8),
                           ),
                         ),
+                        onChanged: (value) {
+                          motdepasse = value;
+                        },
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return "Mot de passe obligatoire";
@@ -228,6 +249,9 @@ class _creecompteState extends State<creecompte> {
                             borderRadius: BorderRadius.circular(8),
                           ),
                         ),
+                        onChanged: (value) {
+                          confirmerMotdepasse = value;
+                        },
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return "Mot de passe obligatoire";
@@ -251,9 +275,39 @@ class _creecompteState extends State<creecompte> {
                       right: MediaQuery.of(context).size.height * 0.17,
                       left: MediaQuery.of(context).size.height * 0.17,
                       child: ElevatedButton(
-                        onPressed: () {
+                        onPressed: () async {
                           if (_formkey.currentState!.validate()) {
-                            Navigator.pushNamed(context, principal.screenRoute);
+                            try {
+                              final newUser = await _auth
+                                  .createUserWithEmailAndPassword(
+                                    email: email.trim(),
+                                    password: motdepasse.trim(),
+                                  );
+
+                              if (newUser.user != null) {
+                                await FirebaseFirestore.instance
+                                    .collection('users')
+                                    .doc(newUser.user!.uid)
+                                    .set({
+                                      'nom': nom,
+                                      'prenom': prenom,
+                                      'email': email,
+                                    });
+                                Navigator.pushReplacementNamed(
+                                  context,
+                                  principal.screenRoute,
+                                );
+                              }
+                            } catch (e) {
+                              print(e);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    "Erreur lors de la création du compte",
+                                  ),
+                                ),
+                              );
+                            }
                           }
                         },
                         child: Text(
