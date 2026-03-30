@@ -15,6 +15,7 @@ class creecompte extends StatefulWidget {
 class _creecompteState extends State<creecompte> {
   final _formkey = GlobalKey<FormState>();
   final _auth = FirebaseAuth.instance;
+  bool isLoading = false;
   late String nom;
   late String prenom;
   late String email;
@@ -96,7 +97,7 @@ class _creecompteState extends State<creecompte> {
                       top: MediaQuery.of(context).size.height * 0.24,
                       left: MediaQuery.of(context).size.height * 0.01,
                       right: MediaQuery.of(context).size.height * 0.01,
-                      child: TextField(
+                      child: TextFormField(
                         decoration: InputDecoration(
                           hintText: "Nom",
                           filled: true,
@@ -109,6 +110,16 @@ class _creecompteState extends State<creecompte> {
                         ),
                         onChanged: (value) {
                           nom = value;
+                        },
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return "Nom obligatoire";
+                          }
+                          final nomRegex = RegExp(r'^[a-zA-ZÀ-ÿ\s-]+$');
+                          if (!nomRegex.hasMatch(value.trim())) {
+                            return "Nom invalide";
+                          }
+                          return null;
                         },
                       ),
                     ),
@@ -124,7 +135,7 @@ class _creecompteState extends State<creecompte> {
                       top: MediaQuery.of(context).size.height * 0.35,
                       left: MediaQuery.of(context).size.height * 0.01,
                       right: MediaQuery.of(context).size.height * 0.01,
-                      child: TextField(
+                      child: TextFormField(
                         decoration: InputDecoration(
                           hintText: "Prénom",
                           filled: true,
@@ -137,6 +148,16 @@ class _creecompteState extends State<creecompte> {
                         ),
                         onChanged: (value) {
                           prenom = value;
+                        },
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return "Prénom obligatoire";
+                          }
+                          final nomRegex = RegExp(r'^[a-zA-ZÀ-ÿ\s-]+$');
+                          if (!nomRegex.hasMatch(value.trim())) {
+                            return "Prenom invalide";
+                          }
+                          return null;
                         },
                       ),
                     ),
@@ -242,7 +263,7 @@ class _creecompteState extends State<creecompte> {
                       child: TextFormField(
                         obscureText: true,
                         decoration: InputDecoration(
-                          hintText: "Mot de passe",
+                          hintText: "Confirmer mot de passe",
                           filled: true,
                           fillColor: Colors.white,
                           border: OutlineInputBorder(
@@ -264,6 +285,9 @@ class _creecompteState extends State<creecompte> {
                           if (!passwordRegex.hasMatch(value)) {
                             return "Min 8 caractères, 1 majuscule, 1 chiffre";
                           }
+                          if (value != motdepasse) {
+                            return "Les mots de passe ne sont pas identiques";
+                          }
 
                           return null;
                         },
@@ -276,7 +300,12 @@ class _creecompteState extends State<creecompte> {
                       left: MediaQuery.of(context).size.height * 0.17,
                       child: ElevatedButton(
                         onPressed: () async {
+                          if (isLoading) return;
                           if (_formkey.currentState!.validate()) {
+                            setState(() {
+                              isLoading = true;
+                            });
+
                             try {
                               final newUser = await _auth
                                   .createUserWithEmailAndPassword(
@@ -289,31 +318,32 @@ class _creecompteState extends State<creecompte> {
                                     .collection('users')
                                     .doc(newUser.user!.uid)
                                     .set({
-                                      'nom': nom,
-                                      'prenom': prenom,
-                                      'email': email,
+                                      'nom': nom.trim(),
+                                      'prenom': prenom.trim(),
+                                      'email': email.trim(),
                                     });
+
                                 Navigator.pushReplacementNamed(
                                   context,
                                   principal.screenRoute,
                                 );
                               }
                             } catch (e) {
-                              print(e);
                               ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    "Erreur lors de la création du compte",
-                                  ),
-                                ),
+                                SnackBar(content: Text("Erreur : $e")),
                               );
+                            } finally {
+                              setState(() {
+                                isLoading = false;
+                              });
                             }
                           }
                         },
                         child: Text(
-                          "S'inscrire",
-                          style: TextStyle(
-                            color: const Color.fromARGB(136, 10, 11, 22),
+                          isLoading ? "Création..." : "S'inscrire",
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            color: Color.fromARGB(136, 10, 11, 22),
                           ),
                         ),
                         style: ElevatedButton.styleFrom(
