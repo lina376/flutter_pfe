@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ora/screens/principal.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class chat extends StatefulWidget {
   static const String screenRoute = 'pagechat';
@@ -11,6 +13,7 @@ class chat extends StatefulWidget {
 
 class _chatState extends State<chat> {
   bool modeVocal = true; // true = micro / false = écriture
+  String? conversationId;
 
   final TextEditingController controleurMessage = TextEditingController();
   final FocusNode focusTexte = FocusNode();
@@ -20,6 +23,32 @@ class _chatState extends State<chat> {
     controleurMessage.dispose();
     focusTexte.dispose();
     super.dispose();
+  }
+
+  Future<void> ajouterMessage({
+    required String conversationId,
+    required String texte,
+  }) async {
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user == null) return;
+
+    final conversationRef = FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .collection('conversations')
+        .doc(conversationId);
+
+    await conversationRef.collection('messages').add({
+      'texte': texte,
+      'sender': 'user',
+      'date': Timestamp.now(),
+    });
+
+    await conversationRef.update({
+      'dernierMessage': texte,
+      'dateMaj': Timestamp.now(),
+    });
   }
 
   void passerEnModeVocal() {

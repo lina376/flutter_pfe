@@ -7,6 +7,7 @@ import 'package:ora/screens/notifications.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:intl/intl.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class principal extends StatefulWidget {
   static const String screenRoute = 'pageprincipal';
@@ -19,11 +20,30 @@ class principal extends StatefulWidget {
 class _principalState extends State<principal> {
   final _auth = FirebaseAuth.instance;
   late User signedInUser;
+  String nom = "";
+  String prenom = "";
+  Future<void> getUserData() async {
+    final user = _auth.currentUser;
+
+    if (user != null) {
+      final doc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+
+      setState(() {
+        nom = doc['nom'];
+        prenom = doc['prenom'];
+      });
+    }
+  }
+
   //bech nfa3lou l methode getCurrenUser
   @override
   void initState() {
     super.initState();
     getCurrenUser();
+    getUserData();
   }
 
   void getCurrenUser() {
@@ -47,31 +67,23 @@ class _principalState extends State<principal> {
   DateTime _dateSelectionnee = DateTime.now();
 
   // Normalisation ken jour m a
+  Future<String> creerConversation(String premierMessage) async {
+    final user = FirebaseAuth.instance.currentUser;
 
-  final List<ElementHistorique> listeHistorique = [];
+    if (user == null) return "";
 
-  void ajouterHistorique({
-    required String titre,
-    required String sousTitre,
-    required IconData icone,
-  }) {
-    setState(() {
-      listeHistorique.insert(
-        0,
-        ElementHistorique(
-          titre: titre,
-          sousTitre: sousTitre,
-          dateHeure: DateTime.now(),
-          icone: icone,
-        ),
-      );
-    });
-  }
+    final doc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .collection('conversations')
+        .add({
+          'titre': premierMessage,
+          'dernierMessage': premierMessage,
+          'dateCreation': Timestamp.now(),
+          'dateMaj': Timestamp.now(),
+        });
 
-  String formaterHeure(DateTime date) {
-    final heures = date.hour.toString().padLeft(2, '0');
-    final minutes = date.minute.toString().padLeft(2, '0');
-    return "$heures:$minutes";
+    return doc.id;
   }
 
   bool _notif = true;
@@ -195,6 +207,14 @@ class _principalState extends State<principal> {
   }
 
   Widget sectionHistorique() {
+    final user = _auth.currentUser;
+
+    if (user == null) {
+      return const Center(
+        child: Text("Aucun utilisateur", style: TextStyle(color: Colors.white)),
+      );
+    }
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 20),
       padding: const EdgeInsets.all(8),
@@ -204,41 +224,70 @@ class _principalState extends State<principal> {
         border: Border.all(color: Colors.white.withOpacity(0.15)),
       ),
       child: Column(
-        crossAxisAlignment:
-            CrossAxisAlignment.start, //bech titktib historique aal lisar
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Positioned(
-            child: Text(
-              "Historique",
-              style: TextStyle(
-                color: Colors.black87,
-                fontWeight: FontWeight.w800,
-                fontSize: 14,
-              ),
+          const Text(
+            "Historique",
+            style: TextStyle(
+              color: Colors.black87,
+              fontWeight: FontWeight.w800,
+              fontSize: 14,
             ),
           ),
-
           Expanded(
-            child: listeHistorique.isEmpty
-                ? Align(
-                    //? ken l condition s7i7a yarja3 min ? w ken ghalta yarja3 :
+            child: StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance
+                  .collection('users')
+                  .doc(user.uid)
+                  .collection('conversations')
+                  .orderBy('dateMaj', descending: true)
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Center(
+                    child: Text(
+                      "Chargement...",
+                      style: TextStyle(color: Colors.white.withOpacity(0.8)),
+                    ),
+                  );
+                }
+
+                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                  return Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
                       "Aucune activité pour le moment",
                       style: TextStyle(color: Colors.white.withOpacity(0.75)),
                     ),
-                  )
-                : ListView.separated(
-                    itemCount: listeHistorique.length,
-                    physics: const ClampingScrollPhysics(),
-                    separatorBuilder: (_, __) => const SizedBox(
-                      height: 10,
-                    ), //yaamal espace baad koul 3onsor
-                    itemBuilder: (context, index) {
-                      final element =
-                          listeHistorique[index]; //koul historique aando index
+                  );
+                }
 
-                      return Container(
+                final docs = snapshot.data!.docs;
+
+                return ListView.separated(
+                  itemCount: docs.length,
+                  physics: const ClampingScrollPhysics(),
+                  separatorBuilder: (_, __) => const SizedBox(height: 10),
+                  itemBuilder: (context, index) {
+                    final data = docs[index].data() as Map<String, dynamic>;
+                    final conversationId = docs[index].id;
+
+                    String heure = "";
+                    if (data['dateMaj'] != null) {
+                      final date = (data['dateMaj'] as Timestamp).toDate();
+                      heure =
+                          "${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}";
+                    }
+
+                    return GestureDetector(
+                      onTap: () {
+                        Navigator.pushNamed(
+                          context,
+                          chat.screenRoute,
+                          arguments: conversationId,
+                        );
+                      },
+                      child: Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 14,
                           vertical: 12,
@@ -260,7 +309,7 @@ class _principalState extends State<principal> {
                                 shape: BoxShape.circle,
                               ),
                               child: Icon(
-                                element.icone,
+                                Icons.chat_bubble_outline,
                                 color: Colors.white.withOpacity(0.85),
                                 size: 18,
                               ),
@@ -271,8 +320,8 @@ class _principalState extends State<principal> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    element.titre,
-                                    style: TextStyle(
+                                    data['titre'] ?? '',
+                                    style: const TextStyle(
                                       color: Colors.white,
                                       fontWeight: FontWeight.w700,
                                       fontSize: 13,
@@ -280,7 +329,7 @@ class _principalState extends State<principal> {
                                   ),
                                   const SizedBox(height: 2),
                                   Text(
-                                    element.sousTitre,
+                                    data['dernierMessage'] ?? '',
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                     style: TextStyle(
@@ -292,11 +341,9 @@ class _principalState extends State<principal> {
                                 ],
                               ),
                             ),
-                            SizedBox(
-                              width: MediaQuery.of(context).size.height * 0.01,
-                            ),
+                            const SizedBox(width: 8),
                             Text(
-                              formaterHeure(element.dateHeure),
+                              heure,
                               style: TextStyle(
                                 color: Colors.white.withOpacity(0.65),
                                 fontSize: 11,
@@ -305,9 +352,12 @@ class _principalState extends State<principal> {
                             ),
                           ],
                         ),
-                      );
-                    },
-                  ),
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
           ),
         ],
       ),
@@ -321,6 +371,21 @@ class _principalState extends State<principal> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
+        title: Text(
+          nom.isEmpty
+              ? "ORA"
+              : "~ ${nom.toUpperCase()} ${prenom.toUpperCase()} ~",
+          textAlign: TextAlign.center,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 20,
+            fontWeight: FontWeight.w800,
+            letterSpacing: 1.2,
+          ),
+        ),
+        centerTitle: true,
         actions: [
           IconButton(
             style: const ButtonStyle(
@@ -425,14 +490,19 @@ class _principalState extends State<principal> {
                           width: 120,
                           height: 44,
                           child: ElevatedButton(
-                            onPressed: () {
-                              Navigator.pushNamed(context, chat.screenRoute);
-
-                              ajouterHistorique(
-                                titre: "Chat avec ORA",
-                                sousTitre: "Discussion commencée",
-                                icone: Icons.chat_bubble_outline,
+                            onPressed: () async {
+                              final texte = "vide";
+                              final conversationId = await creerConversation(
+                                texte,
                               );
+
+                              if (conversationId.isNotEmpty) {
+                                Navigator.pushNamed(
+                                  context,
+                                  chat.screenRoute,
+                                  arguments: conversationId,
+                                );
+                              }
                             },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color.fromARGB(
@@ -737,18 +807,4 @@ class MesNotes extends StatelessWidget {
       ),
     );
   }
-}
-
-class ElementHistorique {
-  final String titre;
-  final String sousTitre;
-  final DateTime dateHeure;
-  final IconData icone;
-
-  ElementHistorique({
-    required this.titre,
-    required this.sousTitre,
-    required this.dateHeure,
-    required this.icone,
-  });
 }

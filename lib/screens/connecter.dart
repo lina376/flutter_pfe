@@ -12,9 +12,9 @@ class connecter extends StatefulWidget {
 }
 
 class _connecterState extends State<connecter> {
-  final _formkey = GlobalKey<FormState>();
+  final _formkey = GlobalKey<FormState>(); //clé du formulaire (validation)
   final _auth = FirebaseAuth.instance;
-  bool isLoading = false;
+  bool isLoading = false; //apres connecter
   late String email;
   late String motdepasse;
 
@@ -166,6 +166,7 @@ class _connecterState extends State<connecter> {
                                       principal.screenRoute,
                                     );
                                   }
+                                  // gestion des erreurs Firebase
                                 } on FirebaseAuthException catch (e) {
                                   String message = "Une erreur s'est produite";
 
