@@ -265,31 +265,62 @@ class _mesnotesState extends State<mesnotes> {
                                     ],
                                   ),
                                 ),
-                                FutureBuilder<bool>(
-                                  future: isFavori("note_$noteId"),
-                                  builder: (context, snapshot) {
-                                    final isFav = snapshot.data ?? false;
+                                Row(
+                                  children: [
+                                    //  FAVORI
+                                    FutureBuilder<bool>(
+                                      future: isFavori("note_$noteId"),
+                                      builder: (context, snapshot) {
+                                        final isFav = snapshot.data ?? false;
 
-                                    return IconButton(
-                                      icon: Icon(
-                                        isFav
-                                            ? Icons.favorite
-                                            : Icons.favorite_border,
-                                        color: Colors.white,
-                                      ),
-                                      onPressed: () async {
-                                        await toggleFavori({
-                                          "id": "note_$noteId",
-                                          "type": "note",
-                                          "title": titre,
-                                          "desc": contenu,
-                                          "contenu": contenu,
-                                          "date": date,
-                                        });
+                                        return GestureDetector(
+                                          onTap: () async {
+                                            await toggleFavori({
+                                              "id": "note_$noteId",
+                                              "type": "note",
+                                              "title": titre,
+                                              "desc": contenu,
+                                              "contenu": contenu,
+                                              "date": date,
+                                            });
+                                            setState(() {});
+                                          },
+                                          child: Icon(
+                                            isFav
+                                                ? Icons.favorite
+                                                : Icons.favorite_border,
+                                            color: Colors.redAccent,
+                                            size: 18, // 👈 صغير
+                                          ),
+                                        );
+                                      },
+                                    ),
+
+                                    const SizedBox(width: 8),
+
+                                    //  DELETE
+                                    GestureDetector(
+                                      onTap: () async {
+                                        final user =
+                                            FirebaseAuth.instance.currentUser;
+                                        if (user == null) return;
+
+                                        await FirebaseFirestore.instance
+                                            .collection('users')
+                                            .doc(user.uid)
+                                            .collection('notes')
+                                            .doc(noteId)
+                                            .delete();
+
                                         setState(() {});
                                       },
-                                    );
-                                  },
+                                      child: const Icon(
+                                        Icons.delete_outline,
+                                        color: Colors.white,
+                                        size: 18,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ],
                             ),
