@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:ora/screens/principal.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:intl/intl.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Calendrier extends StatefulWidget {
   static const String screenRoute = 'pagecalendrier';
@@ -13,59 +15,100 @@ class Calendrier extends StatefulWidget {
 }
 
 class _CalendrierState extends State<Calendrier> {
-  // Date affichée (mois) + date sélectionnée
+  final _auth = FirebaseAuth.instance;
+  final _firestore = FirebaseFirestore.instance;
+
   DateTime _moisAffiche = DateTime.now();
   DateTime _dateSelectionnee = DateTime.now();
 
-  // Normalisation ken jour m a
-  static DateTime _dateSansHeure(DateTime d) =>
-      DateTime(d.year, d.month, d.day);
-
-  // Tâches par date
-  final Map<DateTime, List<Tache>> _tachesParDate = {
-    // lblasa eli nkhazen feha map key->valeur
-    _dateSansHeure(DateTime.now()): [
-      Tache("Tâche 1", "10:00", true),
-      Tache("Tâche 2", "11:00", true),
-      Tache("Tâche 3", "12:30", false),
-    ],
-    _dateSansHeure(DateTime.now().add(const Duration(days: 2))): [
-      Tache("Réunion", "09:00", false),
-      Tache("Rapport", "15:00", false),
-    ],
-  };
-
-  // Liste des tâches du jour sélectionné
-  List<Tache> get _tachesDuJour =>
-      _tachesParDate[_dateSansHeure(_dateSelectionnee)] ?? [];
-  // Changer état (done) d’une tâche
-  void _changerEtatTache(int index, bool? valeur) {
-    final cle = _dateSansHeure(_dateSelectionnee);
-    final liste = _tachesParDate[cle];
-    if (liste == null) return;
-
-    setState(() {
-      liste[index] = liste[index].copyWith(done: valeur ?? false);
-    });
+  static DateTime _dateSansHeure(DateTime d) {
+    return DateTime(d.year, d.month, d.day);
   }
 
-  // Choisir l’heure (TimePicker)
   Future<String?> _choisirHeure() async {
     final picked = await showTimePicker(
       context: context,
       initialTime: TimeOfDay.now(),
     );
+
     if (picked == null) return null;
 
-    final hh = picked.hour.toString().padLeft(
-      2,
-      '0',
-    ); // mithel 9 yrodha 09 bech tben w9t
+    final hh = picked.hour.toString().padLeft(2, '0');
     final mm = picked.minute.toString().padLeft(2, '0');
     return "$hh:$mm";
   }
 
-  // Dialog ajout tâche (titre + heure)
+  Future<void> ajouterTacheFirebase({
+    required String titre,
+    required String heure,
+    required DateTime date,
+  }) async {
+    final user = _auth.currentUser;
+    if (user == null) return;
+
+    final dateChoisie = _dateSansHeure(date);
+
+    await _firestore
+        .collection('users')
+        .doc(user.uid)
+        .collection('taches')
+        .add({
+          'titre': titre,
+          'heure': heure,
+          'date': Timestamp.fromDate(dateChoisie),
+          'terminee': false,
+          'createdAt': Timestamp.now(),
+        });
+  }
+
+  Future<void> changerEtatTacheFirebase(String tacheId, bool valeur) async {
+    final user = _auth.currentUser;
+    if (user == null) return;
+
+    await _firestore
+        .collection('users')
+        .doc(user.uid)
+        .collection('taches')
+        .doc(tacheId)
+        .update({'terminee': valeur});
+  }
+
+  Future<void> supprimerTacheFirebase(String tacheId) async {
+    final user = _auth.currentUser;
+    if (user == null) return;
+
+    await _firestore
+        .collection('users')
+        .doc(user.uid)
+        .collection('taches')
+        .doc(tacheId)
+        .delete();
+  }
+
+  Stream<QuerySnapshot> streamTachesDuJour() {
+    final user = _auth.currentUser;
+    if (user == null) {
+      return const Stream.empty();
+    }
+
+    final debutJour = DateTime(
+      _dateSelectionnee.year,
+      _dateSelectionnee.month,
+      _dateSelectionnee.day,
+    );
+
+    final finJour = debutJour.add(const Duration(days: 1));
+
+    return _firestore
+        .collection('users')
+        .doc(user.uid)
+        .collection('taches')
+        .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(debutJour))
+        .where('date', isLessThan: Timestamp.fromDate(finJour))
+        .orderBy('date')
+        .snapshots();
+  }
+
   void _afficherAjoutTache() {
     final titreCtrl = TextEditingController();
     String? heureChoisie;
@@ -74,7 +117,6 @@ class _CalendrierState extends State<Calendrier> {
       context: context,
       builder: (context) {
         return StatefulBuilder(
-          //bech yaaml t7dith
           builder: (context, setLocalState) {
             return AlertDialog(
               title: const Text("Nouvelle tâche"),
@@ -88,7 +130,7 @@ class _CalendrierState extends State<Calendrier> {
                       border: OutlineInputBorder(),
                     ),
                   ),
-                  SizedBox(height: MediaQuery.of(context).size.height * 0.01),
+                  const SizedBox(height: 12),
                   InkWell(
                     onTap: () async {
                       final h = await _choisirHeure();
@@ -124,20 +166,19 @@ class _CalendrierState extends State<Calendrier> {
                   child: const Text("Annuler"),
                 ),
                 ElevatedButton(
-                  onPressed: () {
+                  onPressed: () async {
                     final titre = titreCtrl.text.trim();
                     if (titre.isEmpty) return;
 
-                    final cle = _dateSansHeure(_dateSelectionnee);
+                    await ajouterTacheFirebase(
+                      titre: titre,
+                      heure: heureChoisie ?? "--:--",
+                      date: _dateSelectionnee,
+                    );
 
-                    setState(() {
-                      _tachesParDate.putIfAbsent(cle, () => []);
-                      _tachesParDate[cle]!.add(
-                        Tache(titre, heureChoisie ?? "--:--", false),
-                      );
-                    });
-
-                    Navigator.pop(context);
+                    if (mounted) {
+                      Navigator.pop(context);
+                    }
                   },
                   child: const Text("Ajouter"),
                 ),
@@ -149,6 +190,50 @@ class _CalendrierState extends State<Calendrier> {
     );
   }
 
+  Widget _buildTacheItem(Tache t) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Checkbox(
+            value: t.terminee,
+            onChanged: (v) async {
+              await changerEtatTacheFirebase(t.id, v ?? false);
+            },
+            side: BorderSide(color: Colors.white.withOpacity(0.8)),
+            checkColor: Colors.white,
+            activeColor: const Color(0xFF2F7BFF),
+          ),
+          Expanded(
+            child: Text(
+              t.titre,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                decoration: t.terminee
+                    ? TextDecoration.lineThrough
+                    : TextDecoration.none,
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Text(t.heure, style: TextStyle(color: Colors.white.withOpacity(0.7))),
+          IconButton(
+            onPressed: () async {
+              await supprimerTacheFirebase(t.id);
+            },
+            icon: const Icon(Icons.delete, color: Colors.white),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -156,7 +241,6 @@ class _CalendrierState extends State<Calendrier> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-
         leading: IconButton(
           style: const ButtonStyle(
             backgroundColor: WidgetStatePropertyAll<Color>(
@@ -172,8 +256,6 @@ class _CalendrierState extends State<Calendrier> {
           constraints: const BoxConstraints(minHeight: 50, minWidth: 50),
         ),
       ),
-
-      // buttom+
       floatingActionButton: FloatingActionButton(
         onPressed: _afficherAjoutTache,
         backgroundColor: const Color.fromARGB(
@@ -185,7 +267,6 @@ class _CalendrierState extends State<Calendrier> {
         child: const Icon(Icons.add, color: Colors.black),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-
       body: Container(
         width: double.infinity,
         height: double.infinity,
@@ -196,172 +277,164 @@ class _CalendrierState extends State<Calendrier> {
           ),
         ),
         child: SafeArea(
-          child: SingleChildScrollView(
-            child: SizedBox(
-              height: MediaQuery.of(context).size.height,
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      "Calendrier",
-                      style: TextStyle(
-                        fontSize: 42,
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    SizedBox(height: MediaQuery.of(context).size.height * 0.02),
-
-                    // Carte Calendrier
-                    Container(
-                      padding: const EdgeInsets.all(19),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.18),
-                        borderRadius: BorderRadius.circular(18),
-                      ),
-                      child: TableCalendar(
-                        firstDay: DateTime.utc(2016, 1, 1),
-                        lastDay: DateTime.utc(2036, 12, 31),
-                        focusedDay: _moisAffiche,
-
-                        startingDayOfWeek: StartingDayOfWeek.sunday,
-
-                        selectedDayPredicate: (jour) => isSameDay(
-                          jour,
-                          _dateSelectionnee,
-                        ), //ylawn nhar leli khtarto
-
-                        onDaySelected: (jourSelectionne, moisFocalise) {
-                          setState(() {
-                            _dateSelectionnee = jourSelectionne;
-                            _moisAffiche = moisFocalise;
-                          });
-                        },
-
-                        headerStyle: HeaderStyle(
-                          formatButtonVisible: false,
-                          titleCentered: true,
-                          titleTextFormatter: (date, locale) =>
-                              DateFormat('MMM yyyy', 'en_US').format(date),
-                          titleTextStyle: const TextStyle(
-                            color: Colors.black,
-                            fontWeight: FontWeight.w700,
-                          ),
-                          leftChevronIcon: const Icon(
-                            Icons.chevron_left,
-                            color: Colors.black,
-                          ),
-                          rightChevronIcon: const Icon(
-                            Icons.chevron_right,
-                            color: Colors.black,
-                          ),
-                        ),
-
-                        daysOfWeekStyle: DaysOfWeekStyle(
-                          weekdayStyle: TextStyle(
-                            color: Colors.black.withOpacity(0.70),
-                          ),
-                          weekendStyle: TextStyle(
-                            color: Colors.black.withOpacity(0.70),
-                          ),
-                        ),
-
-                        calendarStyle: CalendarStyle(
-                          outsideDaysVisible: false,
-                          defaultTextStyle: const TextStyle(
-                            color: Colors.black,
-                          ),
-                          weekendTextStyle: const TextStyle(
-                            color: Colors.black,
-                          ),
-                          todayDecoration: BoxDecoration(
-                            color: Colors.black.withOpacity(0.08),
-                            shape: BoxShape.circle,
-                          ),
-                          selectedDecoration: const BoxDecoration(
-                            color: Color(0xFF2F7BFF),
-                            shape: BoxShape.circle,
-                          ),
-                          selectedTextStyle: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 14),
-
-                    // Panel tâches
-                    Expanded(
-                      child: Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.12),
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(
-                            color: Colors.white.withOpacity(0.18),
-                          ),
-                        ),
-                        child: _tachesDuJour.isEmpty
-                            ? Center(
-                                child: Text(
-                                  "Aucune tâche",
-                                  style: TextStyle(
-                                    color: Colors.white.withOpacity(0.85),
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              )
-                            : ListView.separated(
-                                itemCount: _tachesDuJour.length,
-                                separatorBuilder: (_, __) => Divider(
-                                  color: Colors.white.withOpacity(0.15),
-                                ),
-                                itemBuilder: (context, index) {
-                                  final t = _tachesDuJour[index];
-                                  return Row(
-                                    children: [
-                                      Checkbox(
-                                        value: t.terminee,
-                                        onChanged: (v) =>
-                                            _changerEtatTache(index, v),
-                                        side: BorderSide(
-                                          color: Colors.white.withOpacity(0.8),
-                                        ),
-                                        checkColor: Colors.white,
-                                        activeColor: const Color(0xFF2F7BFF),
-                                      ),
-                                      Expanded(
-                                        child: Text(
-                                          t.titre,
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 16,
-                                            decoration: t.terminee
-                                                ? TextDecoration.lineThrough
-                                                : TextDecoration.none,
-                                          ),
-                                        ),
-                                      ),
-                                      Text(
-                                        t.heure,
-                                        style: TextStyle(
-                                          color: Colors.white.withOpacity(0.7),
-                                        ),
-                                      ),
-                                    ],
-                                  );
-                                },
-                              ),
-                      ),
-                    ),
-                  ],
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  "Calendrier",
+                  style: TextStyle(
+                    fontSize: 42,
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              ),
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.all(19),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.18),
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                  child: TableCalendar(
+                    firstDay: DateTime.utc(2016, 1, 1),
+                    lastDay: DateTime.utc(2036, 12, 31),
+                    focusedDay: _moisAffiche,
+                    startingDayOfWeek: StartingDayOfWeek.sunday,
+                    selectedDayPredicate: (jour) =>
+                        isSameDay(jour, _dateSelectionnee),
+                    onDaySelected: (jourSelectionne, moisFocalise) {
+                      setState(() {
+                        _dateSelectionnee = jourSelectionne;
+                        _moisAffiche = moisFocalise;
+                      });
+                    },
+                    headerStyle: HeaderStyle(
+                      formatButtonVisible: false,
+                      titleCentered: true,
+                      titleTextFormatter: (date, locale) =>
+                          DateFormat('MMM yyyy', 'en_US').format(date),
+                      titleTextStyle: const TextStyle(
+                        color: Colors.black,
+                        fontWeight: FontWeight.w700,
+                      ),
+                      leftChevronIcon: const Icon(
+                        Icons.chevron_left,
+                        color: Colors.black,
+                      ),
+                      rightChevronIcon: const Icon(
+                        Icons.chevron_right,
+                        color: Colors.black,
+                      ),
+                    ),
+                    daysOfWeekStyle: DaysOfWeekStyle(
+                      weekdayStyle: TextStyle(
+                        color: Colors.black.withOpacity(0.70),
+                      ),
+                      weekendStyle: TextStyle(
+                        color: Colors.black.withOpacity(0.70),
+                      ),
+                    ),
+                    calendarStyle: CalendarStyle(
+                      outsideDaysVisible: false,
+                      defaultTextStyle: const TextStyle(color: Colors.black),
+                      weekendTextStyle: const TextStyle(color: Colors.black),
+                      todayDecoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.08),
+                        shape: BoxShape.circle,
+                      ),
+                      selectedDecoration: const BoxDecoration(
+                        color: Color(0xFF2F7BFF),
+                        shape: BoxShape.circle,
+                      ),
+                      selectedTextStyle: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 14),
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: Colors.white.withOpacity(0.18)),
+                    ),
+                    child: StreamBuilder<QuerySnapshot>(
+                      stream: streamTachesDuJour(),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const Center(
+                            child: CircularProgressIndicator(),
+                          );
+                        }
+
+                        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                          return Center(
+                            child: Text(
+                              "Aucune tâche",
+                              style: TextStyle(
+                                color: Colors.white.withOpacity(0.85),
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          );
+                        }
+
+                        final taches = snapshot.data!.docs.map((doc) {
+                          return Tache.fromFirestore(
+                            doc.id,
+                            doc.data() as Map<String, dynamic>,
+                          );
+                        }).toList();
+
+                        final tachesEnCours = taches
+                            .where((t) => !t.terminee)
+                            .toList();
+                        final tachesTerminees = taches
+                            .where((t) => t.terminee)
+                            .toList();
+
+                        return ListView(
+                          children: [
+                            if (tachesEnCours.isNotEmpty) ...[
+                              const Text(
+                                "En cours",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+                              ...tachesEnCours.map((t) => _buildTacheItem(t)),
+                              const SizedBox(height: 20),
+                            ],
+                            if (tachesTerminees.isNotEmpty) ...[
+                              const Text(
+                                "Terminées",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+                              ...tachesTerminees.map((t) => _buildTacheItem(t)),
+                            ],
+                          ],
+                        );
+                      },
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ),
@@ -370,14 +443,38 @@ class _CalendrierState extends State<Calendrier> {
   }
 }
 
-// Modèle tache
 class Tache {
+  final String id;
   final String titre;
   final String heure;
+  final DateTime date;
   final bool terminee;
 
-  Tache(this.titre, this.heure, this.terminee);
+  Tache({
+    required this.id,
+    required this.titre,
+    required this.heure,
+    required this.date,
+    required this.terminee,
+  });
 
-  Tache copyWith({String? titre, String? heure, bool? done}) =>
-      Tache(titre ?? this.titre, heure ?? this.heure, done ?? terminee);
+  factory Tache.fromFirestore(String id, Map<String, dynamic> data) {
+    return Tache(
+      id: id,
+      titre: data['titre'] ?? '',
+      heure: data['heure'] ?? '--:--',
+      date: (data['date'] as Timestamp).toDate(),
+      terminee: data['terminee'] ?? false,
+    );
+  }
+
+  Map<String, dynamic> toFirestore() {
+    return {
+      'titre': titre,
+      'heure': heure,
+      'date': Timestamp.fromDate(date),
+      'terminee': terminee,
+      'createdAt': Timestamp.now(),
+    };
+  }
 }
