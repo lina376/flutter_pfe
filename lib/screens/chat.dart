@@ -14,9 +14,13 @@ class chat extends StatefulWidget {
 class _chatState extends State<chat> {
   bool modeVocal = true; // true = micro / false = écriture
   String? conversationId; // id de la conversation courante
+
   final ScrollController scrollController = ScrollController();
   final TextEditingController controleurMessage = TextEditingController();
   final FocusNode focusTexte = FocusNode();
+
+  int ancienNombreMessages = 0;
+
   String formaterHeure(Timestamp? timestamp) {
     if (timestamp == null) return "";
     final date = timestamp.toDate();
@@ -28,21 +32,17 @@ class _chatState extends State<chat> {
     super.didChangeDependencies();
 
     final args = ModalRoute.of(context)?.settings.arguments;
-
     if (args is String) {
       conversationId ??= args;
     }
   }
 
   void scrollVersBas() {
-    //bech l myra3lich mloul n7eb l msg lekher dhaher
     if (!scrollController.hasClients) return;
 
-    final position = scrollController.position.maxScrollExtent;
-
     scrollController.animateTo(
-      position,
-      duration: const Duration(milliseconds: 2500),
+      scrollController.position.maxScrollExtent,
+      duration: const Duration(milliseconds: 80),
       curve: Curves.easeOut,
     );
   }
@@ -51,8 +51,8 @@ class _chatState extends State<chat> {
   void dispose() {
     controleurMessage.dispose();
     focusTexte.dispose();
-    super.dispose();
     scrollController.dispose();
+    super.dispose();
   }
 
   Future<void> ajouterMessage({
@@ -74,7 +74,8 @@ class _chatState extends State<chat> {
       'date': Timestamp.now(),
     });
 
-    String reponseOra = "Bonjour, je suis ORA. J'ai bien reçu votre message.";
+    const String reponseOra =
+        "Bonjour, je suis ORA. J'ai bien reçu votre message.";
 
     await conversationRef.collection('messages').add({
       'texte': reponseOra,
@@ -121,6 +122,7 @@ class _chatState extends State<chat> {
     final user = FirebaseAuth.instance.currentUser;
 
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         backgroundColor: const Color.fromARGB(87, 27, 2, 48),
@@ -214,16 +216,21 @@ class _chatState extends State<chat> {
                             }
 
                             final messages = snapshot.data!.docs;
-                            WidgetsBinding.instance.addPostFrameCallback((_) {
-                              //ba3d koul update taaml scroll
-                              scrollVersBas();
-                            });
+
+                            if (messages.length != ancienNombreMessages) {
+                              ancienNombreMessages = messages.length;
+
+                              WidgetsBinding.instance.addPostFrameCallback((_) {
+                                scrollVersBas();
+                              });
+                            }
+
                             return ListView.builder(
-                              padding: const EdgeInsets.only(bottom: 12),
-                              itemCount: messages.length,
                               controller: scrollController,
                               keyboardDismissBehavior:
                                   ScrollViewKeyboardDismissBehavior.manual,
+                              padding: const EdgeInsets.only(bottom: 12),
+                              itemCount: messages.length,
                               itemBuilder: (context, index) {
                                 final data =
                                     messages[index].data()
@@ -246,7 +253,7 @@ class _chatState extends State<chat> {
                                     ),
                                     padding: const EdgeInsets.symmetric(
                                       horizontal: 14,
-                                      vertical: 10,
+                                      vertical: 12,
                                     ),
                                     decoration: BoxDecoration(
                                       color: const Color.fromARGB(
@@ -270,9 +277,11 @@ class _chatState extends State<chat> {
                                           texte,
                                           style: const TextStyle(
                                             color: Colors.white,
+                                            fontSize: 14,
+                                            height: 1.3,
                                           ),
                                         ),
-                                        const SizedBox(height: 4),
+                                        const SizedBox(height: 6),
                                         Text(
                                           heure,
                                           style: TextStyle(
@@ -280,6 +289,7 @@ class _chatState extends State<chat> {
                                               0.7,
                                             ),
                                             fontSize: 10,
+                                            height: 1.2,
                                           ),
                                         ),
                                       ],
@@ -360,9 +370,9 @@ class _chatState extends State<chat> {
 
                 if (!modeVocal)
                   Positioned(
-                    left: 0,
-                    right: 0,
-                    bottom: MediaQuery.of(context).size.height * 0.01,
+                    left: 10,
+                    right: 10,
+                    bottom: 8,
                     child: Row(
                       children: [
                         GestureDetector(
