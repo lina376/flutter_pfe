@@ -3,6 +3,8 @@ import 'package:ora/screens/notes2.dart';
 import 'dart:math';
 import 'fav.dart';
 import 'package:ora/screens/principal.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class mesnotes extends StatefulWidget {
   static const String screenRoute = 'pagemesnotes';
@@ -14,15 +16,8 @@ class mesnotes extends StatefulWidget {
 
 class _mesnotesState extends State<mesnotes> {
   final TextEditingController searchCtrl = TextEditingController();
-  //exemple
-  final List<Notee> notes = [
-    Notee(
-      id: '1',
-      title: 'Note 1',
-      contenu: 'noteee',
-      date: DateTime(2026, 1, 2, 12, 8),
-    ),
-  ];
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   @override
   void dispose() {
@@ -52,35 +47,50 @@ class _mesnotesState extends State<mesnotes> {
     return "$day $month $hour:$min";
   }
 
-  List<Notee> get _filteredNotes {
-    final q = searchCtrl.text.trim().toLowerCase();
-    if (q.isEmpty) return notes;
-    return notes.where((n) => n.title.toLowerCase().contains(q)).toList();
-  }
-
   Future<void> _addNote() async {
-    final result = await Navigator.push(
+    await Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => const notes2()),
     );
+  }
 
-    if (result != null && result is Map) {
-      final titre = (result["titre"] ?? "").toString();
-      final contenu = (result["contenu"] ?? "").toString();
+  Stream<QuerySnapshot> _notesStream() {
+    final user = _auth.currentUser;
+    if (user == null) return const Stream.empty();
 
-      if (titre.trim().isEmpty && contenu.trim().isEmpty) return;
+    return _firestore
+        .collection('users')
+        .doc(user.uid)
+        .collection('notes')
+        .orderBy('date', descending: true)
+        .snapshots();
+  }
 
-      setState(() {
-        notes.insert(
-          0,
-          Notee(
-            id: DateTime.now().millisecondsSinceEpoch.toString(),
-            title: titre,
-            contenu: contenu,
-            date: result["date"] ?? DateTime.now(),
-            liked: result["liked"] ?? false,
-          ),
-        );
+  Future<void> _mettreAJourFavoriSiExiste({
+    required String noteId,
+    required String titre,
+    required String contenu,
+    required bool liked,
+  }) async {
+    final user = _auth.currentUser;
+    if (user == null) return;
+
+    final favorisRef = _firestore
+        .collection('users')
+        .doc(user.uid)
+        .collection('favoris');
+
+    final query = await favorisRef
+        .where('idOriginal', isEqualTo: 'note_$noteId')
+        .get();
+
+    for (final doc in query.docs) {
+      await doc.reference.update({
+        'title': titre,
+        'desc': contenu,
+        'contenu': contenu,
+        'liked': liked,
+        'date': Timestamp.now(),
       });
     }
   }
@@ -102,7 +112,7 @@ class _mesnotesState extends State<mesnotes> {
           ),
           icon: const Icon(Icons.chevron_left, color: Colors.white),
           onPressed: () {
-            Navigator.pushNamed(context, principal.screenRoute);
+            Navigator.pop(context);
           },
           tooltip: 'chevron',
           iconSize: 40,
@@ -145,7 +155,6 @@ class _mesnotesState extends State<mesnotes> {
                   ),
                 ),
               ),
-
               Positioned(
                 top: h * -0.01,
                 right: h * 0.001,
@@ -154,118 +163,143 @@ class _mesnotesState extends State<mesnotes> {
                   child: Image.asset('images/robot2.png', width: 180),
                 ),
               ),
-
               Positioned(
                 top: h * 0.20,
                 left: 16,
                 right: 16,
                 bottom: 90,
-                child: ListView.separated(
-                  padding: const EdgeInsets.only(bottom: 10),
-                  itemCount: _filteredNotes.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 14),
-                  itemBuilder: (context, index) {
-                    final n = _filteredNotes[index];
+                child: StreamBuilder<QuerySnapshot>(
+                  stream: _notesStream(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
 
-                    return GestureDetector(
-                      onTap: () async {
-                        final result = await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => notes2(
-                              initial: {
-                                "id": n.id,
-                                "titre": n.title,
-                                "contenu": n.contenu,
-                                "liked": n.liked,
-                                "date": n.date,
-                              },
+                    if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                      return Center(
+                        child: Text(
+                          "Aucune note",
+                          style: TextStyle(
+                            color: Colors.white.withOpacity(0.8),
+                          ),
+                        ),
+                      );
+                    }
+
+                    final allDocs = snapshot.data!.docs;
+
+                    final q = searchCtrl.text.trim().toLowerCase();
+                    final docs = allDocs.where((doc) {
+                      final data = doc.data() as Map<String, dynamic>;
+                      final titre = (data["titre"] ?? "")
+                          .toString()
+                          .toLowerCase();
+                      return q.isEmpty || titre.contains(q);
+                    }).toList();
+
+                    return ListView.separated(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      itemCount: docs.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 14),
+                      itemBuilder: (context, index) {
+                        final doc = docs[index];
+                        final data = doc.data() as Map<String, dynamic>;
+
+                        final noteId = doc.id;
+                        final titre = data["titre"] ?? "Sans titre";
+                        final contenu = data["contenu"] ?? "";
+                        final liked = data["liked"] ?? false;
+                        final Timestamp? ts = data["date"] as Timestamp?;
+                        final date = ts?.toDate() ?? DateTime.now();
+
+                        return GestureDetector(
+                          onTap: () async {
+                            await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => notes2(
+                                  initial: {
+                                    "id": noteId,
+                                    "titre": titre,
+                                    "contenu": contenu,
+                                    "liked": liked,
+                                    "date": date,
+                                  },
+                                ),
+                              ),
+                            );
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.18),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: Colors.white.withOpacity(0.15),
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        _formatDate(date),
+                                        style: TextStyle(
+                                          color: Colors.white.withOpacity(0.75),
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        titre,
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w800,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                FutureBuilder<bool>(
+                                  future: isFavori("note_$noteId"),
+                                  builder: (context, snapshot) {
+                                    final isFav = snapshot.data ?? false;
+
+                                    return IconButton(
+                                      icon: Icon(
+                                        isFav
+                                            ? Icons.favorite
+                                            : Icons.favorite_border,
+                                        color: Colors.white,
+                                      ),
+                                      onPressed: () async {
+                                        await toggleFavori({
+                                          "id": "note_$noteId",
+                                          "type": "note",
+                                          "title": titre,
+                                          "desc": contenu,
+                                          "contenu": contenu,
+                                          "date": date,
+                                        });
+                                        setState(() {});
+                                      },
+                                    );
+                                  },
+                                ),
+                              ],
                             ),
                           ),
                         );
-
-                        if (result != null && result is Map) {
-                          setState(() {
-                            n.title = result["titre"] ?? n.title;
-                            n.contenu = result["contenu"] ?? n.contenu;
-                            n.liked = result["liked"] ?? n.liked;
-                            n.date = result["date"] ?? n.date;
-                          });
-                        }
                       },
-                      child: Container(
-                        padding: const EdgeInsets.all(14),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.18),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: Colors.white.withOpacity(0.15),
-                          ),
-                        ),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    _formatDate(n.date),
-                                    style: TextStyle(
-                                      color: Colors.white.withOpacity(0.75),
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    n.title,
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w800,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-
-                            FutureBuilder<bool>(
-                              future: isFavori("note_${n.id}"),
-                              builder: (context, snapshot) {
-                                final isFav = snapshot.data ?? false;
-
-                                return IconButton(
-                                  icon: Icon(
-                                    isFav
-                                        ? Icons.favorite
-                                        : Icons.favorite_border,
-                                    color: Colors.white,
-                                  ),
-                                  onPressed: () async {
-                                    await toggleFavori({
-                                      "id": "note_${n.id}",
-                                      "type": "note",
-                                      "title": n.title,
-                                      "desc": n.contenu,
-                                      "contenu": n.contenu,
-                                      "date": n.date,
-                                    });
-
-                                    setState(() {
-                                      n.liked = !n.liked;
-                                    });
-                                  },
-                                );
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
                     );
                   },
                 ),
               ),
-
               Positioned(
                 bottom: h * 0.01,
                 left: h * 0.001,
@@ -339,20 +373,4 @@ class barederecherche extends StatelessWidget {
       ),
     );
   }
-}
-
-class Notee {
-  final String id;
-  String title;
-  String contenu;
-  DateTime date;
-  bool liked;
-
-  Notee({
-    required this.id,
-    required this.title,
-    required this.contenu,
-    required this.date,
-    this.liked = false,
-  });
 }

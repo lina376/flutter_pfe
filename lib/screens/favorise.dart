@@ -38,7 +38,10 @@ class _FavoriseState extends State<Favorise> {
         MaterialPageRoute(
           builder: (_) => notes2(
             initial: {
-              "id": data["idOriginal"] ?? "",
+              "id": (data["idOriginal"] ?? "").toString().replaceFirst(
+                "note_",
+                "",
+              ),
               "titre": data["title"] ?? "",
               "contenu": data["contenu"] ?? "",
               "liked": true,

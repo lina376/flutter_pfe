@@ -43,6 +43,7 @@ Future<void> toggleFavori(Map<String, dynamic> item) async {
       'date': item['date'] is DateTime
           ? Timestamp.fromDate(item['date'])
           : Timestamp.now(),
+      'noteDocId': item['noteDocId'] ?? '',
     });
   }
 }

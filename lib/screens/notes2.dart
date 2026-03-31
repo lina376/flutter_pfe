@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:ora/screens/mesnotes.dart';
 import 'package:ora/screens/principal.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class notes2 extends StatefulWidget {
   static const String screenRoute = 'pagenotes2';
@@ -16,9 +18,13 @@ class _notes2State extends State<notes2> {
   final titreCtrl = TextEditingController();
   final contenuCtrl = TextEditingController();
 
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
   bool bold = false;
   bool italic = false;
   bool liked = false;
+  bool isSaving = false;
 
   @override
   void dispose() {
@@ -27,19 +33,92 @@ class _notes2State extends State<notes2> {
     super.dispose();
   }
 
-  void _save() {
-    final titre = titreCtrl.text.trim();
-    final contenu = contenuCtrl.text.trim();
+  Future<void> _mettreAJourFavoriSiExiste({
+    required String noteId,
+    required String titre,
+    required String contenu,
+    required bool liked,
+  }) async {
+    final user = _auth.currentUser;
+    if (user == null) return;
 
-    if (titre.isEmpty && contenu.isEmpty) return;
+    final favorisRef = _firestore
+        .collection('users')
+        .doc(user.uid)
+        .collection('favoris');
 
-    Navigator.pop(context, {
-      "id": widget.initial?["id"],
-      "titre": titre.isEmpty ? "Sans titre" : titre,
-      "contenu": contenu,
-      "liked": liked,
-      "date": DateTime.now(),
-    });
+    final query = await favorisRef
+        .where('idOriginal', isEqualTo: 'note_$noteId')
+        .get();
+
+    for (final doc in query.docs) {
+      await doc.reference.update({
+        'title': titre,
+        'desc': contenu,
+        'contenu': contenu,
+        'liked': liked,
+        'date': Timestamp.now(),
+      });
+    }
+  }
+
+  Future<void> _save() async {
+    try {
+      final titre = titreCtrl.text.trim();
+      final contenu = contenuCtrl.text.trim();
+
+      if (titre.isEmpty && contenu.isEmpty) return;
+
+      final user = _auth.currentUser;
+      if (user == null) return;
+
+      final titreFinal = titre.isEmpty ? "Sans titre" : titre;
+
+      final data = {
+        "titre": titreFinal,
+        "contenu": contenu,
+        "liked": liked,
+        "date": Timestamp.now(),
+      };
+
+      final noteId = widget.initial?["id"];
+
+      if (noteId != null && noteId.toString().isNotEmpty) {
+        await _firestore
+            .collection('users')
+            .doc(user.uid)
+            .collection('notes')
+            .doc(noteId)
+            .update(data);
+
+        await _mettreAJourFavoriSiExiste(
+          noteId: noteId.toString(),
+          titre: titreFinal,
+          contenu: contenu,
+          liked: liked,
+        );
+      } else {
+        final docRef = await _firestore
+            .collection('users')
+            .doc(user.uid)
+            .collection('notes')
+            .add(data);
+
+        await _mettreAJourFavoriSiExiste(
+          noteId: docRef.id,
+          titre: titreFinal,
+          contenu: contenu,
+          liked: liked,
+        );
+      }
+
+      if (!mounted) return;
+      Navigator.pop(context);
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Erreur: $e")));
+    }
   }
 
   @override
@@ -56,9 +135,11 @@ class _notes2State extends State<notes2> {
 
   @override
   Widget build(BuildContext context) {
-    final now = DateTime.now();
-    final dateTxt = DateFormat("MMM d, yyyy").format(now); // Apr 1, 2025
-    final timeTxt = DateFormat("h:mm a").format(now); // 9:41 AM
+    final initialDate = widget.initial?["date"];
+    final shownDate = initialDate is DateTime ? initialDate : DateTime.now();
+
+    final dateTxt = DateFormat("MMM d, yyyy").format(shownDate);
+    final timeTxt = DateFormat("h:mm a").format(shownDate);
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -85,7 +166,7 @@ class _notes2State extends State<notes2> {
                   ),
                   icon: const Icon(Icons.chevron_left, color: Colors.white),
                   onPressed: () {
-                    Navigator.pushNamed(context, mesnotes.screenRoute);
+                    Navigator.pop(context);
                   },
                   tooltip: 'chevron',
                   iconSize: 40,
@@ -116,7 +197,6 @@ class _notes2State extends State<notes2> {
                   ),
                 ),
               ),
-
               Positioned(
                 top: MediaQuery.of(context).size.height * 0.03,
                 left: MediaQuery.of(context).size.height * 0.08,
@@ -130,7 +210,6 @@ class _notes2State extends State<notes2> {
                   ],
                 ),
               ),
-
               Positioned(
                 top: MediaQuery.of(context).size.height * 0.09,
                 left: MediaQuery.of(context).size.height * 0.02,
@@ -138,7 +217,6 @@ class _notes2State extends State<notes2> {
                 bottom: MediaQuery.of(context).size.height * 0.1,
                 child: Column(
                   children: [
-                    // Title
                     Container(
                       height: 48,
                       padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -162,10 +240,7 @@ class _notes2State extends State<notes2> {
                         ),
                       ),
                     ),
-
                     SizedBox(height: MediaQuery.of(context).size.height * 0.01),
-
-                    // grand note
                     Expanded(
                       child: Container(
                         padding: const EdgeInsets.all(14),
@@ -203,7 +278,6 @@ class _notes2State extends State<notes2> {
                   ],
                 ),
               ),
-
               Positioned(
                 left: MediaQuery.of(context).size.height * 0.04,
                 right: MediaQuery.of(context).size.height * 0.04,
@@ -234,7 +308,6 @@ class _notes2State extends State<notes2> {
                         isActive: liked,
                         onTap: () => setState(() => liked = !liked),
                       ),
-
                       _Btn(icon: Icons.check, onTap: _save),
                     ],
                   ),
