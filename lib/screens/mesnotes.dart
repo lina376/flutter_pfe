@@ -229,21 +229,33 @@ class _mesnotesState extends State<mesnotes> {
                               ),
                             ),
 
-                            IconButton(
-                              icon: Icon(
-                                FavGlobal("note_${n.id}")
-                                    ? Icons.favorite
-                                    : Icons.favorite_border,
-                                color: Colors.white,
-                              ),
-                              onPressed: () {
-                                toggleFavGlobal({
-                                  "id": "note_${n.id}",
-                                  "title": n.title,
-                                  "desc": "Note",
-                                  "date": DateTime.now(),
-                                });
-                                setState(() => n.liked = !n.liked);
+                            FutureBuilder<bool>(
+                              future: isFavori("note_${n.id}"),
+                              builder: (context, snapshot) {
+                                final isFav = snapshot.data ?? false;
+
+                                return IconButton(
+                                  icon: Icon(
+                                    isFav
+                                        ? Icons.favorite
+                                        : Icons.favorite_border,
+                                    color: Colors.white,
+                                  ),
+                                  onPressed: () async {
+                                    await toggleFavori({
+                                      "id": "note_${n.id}",
+                                      "type": "note",
+                                      "title": n.title,
+                                      "desc": n.contenu,
+                                      "contenu": n.contenu,
+                                      "date": n.date,
+                                    });
+
+                                    setState(() {
+                                      n.liked = !n.liked;
+                                    });
+                                  },
+                                );
                               },
                             ),
                           ],
