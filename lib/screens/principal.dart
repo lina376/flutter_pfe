@@ -632,6 +632,7 @@ class _principalState extends State<principal> {
                               borderRadius: BorderRadius.circular(18),
                             ),
                             child: TableCalendar(
+                              sixWeekMonthsEnforced: true,
                               rowHeight: 35,
                               firstDay: DateTime.utc(2016, 1, 1),
                               lastDay: DateTime.utc(2036, 12, 31),
@@ -711,9 +712,9 @@ class _principalState extends State<principal> {
                         //historique
                         left: MediaQuery.of(context).size.height * 0.01,
                         right: MediaQuery.of(context).size.height * 0.01,
-                        bottom: MediaQuery.of(context).size.height * 0.12,
+                        bottom: MediaQuery.of(context).size.height * -0.08,
                         child: SizedBox(
-                          height: 165,
+                          height: MediaQuery.of(context).size.height * 0.4,
                           child: sectionHistorique(),
                         ),
                       ),
