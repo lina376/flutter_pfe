@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'dart:math';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'notification_service.dart';
 
 class notifications extends StatefulWidget {
   static const String screenRoute = 'pagenotifications';
@@ -11,19 +14,58 @@ class notifications extends StatefulWidget {
 }
 
 class _notificationsState extends State<notifications> {
-  final List<Notification> listeNotifications = [
-    Notification(
-      id: "n1",
-      titre: "Notification tache",
-      description: "C'est l'heure de votre tâche",
-      dateTime: DateTime.now().add(const Duration(minutes: 5)),
-      icon: Icons.check_box_outlined,
-    ),
-  ];
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  IconData _getIcon(String iconType) {
+    switch (iconType) {
+      case 'water':
+        return Icons.water_drop;
+      case 'doctor':
+        return Icons.medical_services;
+      case 'medicine':
+        return Icons.medication;
+      case 'sport':
+        return Icons.fitness_center;
+      case 'sleep':
+        return Icons.bedtime;
+      default:
+        return Icons.notifications_active;
+    }
+  }
+
+  Stream<QuerySnapshot<Map<String, dynamic>>> _notificationsStream() {
+    final user = _auth.currentUser;
+    if (user == null) {
+      return const Stream.empty();
+    }
+
+    return _firestore
+        .collection('users')
+        .doc(user.uid)
+        .collection('notifications')
+        .orderBy('scheduledFor', descending: true)
+        .snapshots();
+  }
+
+  Future<void> _addTestNotifications() async {
+    await NotificationService.sendWaterReminder(waterMl: 400);
+
+    await NotificationService.sendDoctorAppointmentReminder(
+      doctorName: 'Dr. Ahmed',
+      appointmentDate: DateTime.now().add(const Duration(hours: 2)),
+    );
+
+    await NotificationService.sendMedicineReminder(
+      medicineName: 'Vitamine D',
+      reminderTime: DateTime.now().add(const Duration(minutes: 30)),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final h = MediaQuery.of(context).size.height;
+
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
@@ -40,6 +82,12 @@ class _notificationsState extends State<notifications> {
           iconSize: 40,
           constraints: const BoxConstraints(minHeight: 50, minWidth: 50),
         ),
+        actions: [
+          IconButton(
+            onPressed: _addTestNotifications,
+            icon: const Icon(Icons.add_alert, color: Colors.white),
+          ),
+        ],
       ),
       body: Container(
         width: double.infinity,
@@ -57,7 +105,6 @@ class _notificationsState extends State<notifications> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 10),
-
                 Row(
                   children: [
                     const Expanded(
@@ -70,68 +117,161 @@ class _notificationsState extends State<notifications> {
                         ),
                       ),
                     ),
-                    Positioned(
-                      top: h * -0.01,
-                      right: h * 0.01,
-                      child: Transform.rotate(
-                        angle: -pi / 3.8,
-                        child: Image.asset('images/robot2.png', width: 100),
-                      ),
+                    Transform.rotate(
+                      angle: -pi / 3.8,
+                      child: Image.asset('images/robot2.png', width: 100),
                     ),
                   ],
                 ),
-
+                const SizedBox(height: 14),
                 Expanded(
-                  child: ListView.separated(
-                    itemCount: listeNotifications.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 12),
-                    itemBuilder: (context, index) {
-                      final n = listeNotifications[index];
+                  child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                    stream: _notificationsStream(),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
 
-                      return GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) =>
-                                  NotificationDetailsPage(notification: n),
+                      if (snapshot.hasError) {
+                        return const Center(
+                          child: Text(
+                            "Erreur de chargement",
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        );
+                      }
+
+                      final docs = snapshot.data?.docs ?? [];
+
+                      if (docs.isEmpty) {
+                        return const Center(
+                          child: Text(
+                            "Aucune notification",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        );
+                      }
+
+                      return ListView.separated(
+                        itemCount: docs.length,
+                        separatorBuilder: (_, __) => const SizedBox(height: 12),
+                        itemBuilder: (context, index) {
+                          final doc = docs[index];
+                          final data = doc.data();
+
+                          final notif = AppNotification.fromFirestore(
+                            doc.id,
+                            data,
+                            _getIcon(data['iconType'] ?? ''),
+                          );
+
+                          return GestureDetector(
+                            onTap: () async {
+                              await NotificationService.markAsRead(notif.id);
+
+                              if (!context.mounted) return;
+
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => NotificationDetailsPage(
+                                    notification: notif,
+                                  ),
+                                ),
+                              );
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 12,
+                              ),
+                              decoration: BoxDecoration(
+                                color: notif.isRead
+                                    ? Colors.white.withOpacity(0.12)
+                                    : Colors.white.withOpacity(0.22),
+                                borderRadius: BorderRadius.circular(18),
+                                border: Border.all(
+                                  color: Colors.white.withOpacity(0.12),
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  CircleAvatar(
+                                    radius: 22,
+                                    backgroundColor: Colors.white.withOpacity(
+                                      0.25,
+                                    ),
+                                    child: Icon(
+                                      notif.icon,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          notif.title,
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.w800,
+                                            fontSize: 14,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          notif.body,
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: TextStyle(
+                                            color: Colors.white.withOpacity(
+                                              0.85,
+                                            ),
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Column(
+                                    children: [
+                                      Text(
+                                        DateFormat(
+                                          "HH:mm",
+                                        ).format(notif.dateTime),
+                                        style: TextStyle(
+                                          color: Colors.white.withOpacity(0.85),
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 6),
+                                      IconButton(
+                                        onPressed: () async {
+                                          await NotificationService.deleteNotification(
+                                            notif.id,
+                                          );
+                                        },
+                                        icon: const Icon(
+                                          Icons.delete_outline,
+                                          color: Colors.white70,
+                                          size: 20,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
                             ),
                           );
                         },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 14,
-                            vertical: 12,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.18),
-                            borderRadius: BorderRadius.circular(18),
-                            border: Border.all(
-                              color: Colors.white.withOpacity(0.12),
-                            ),
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(n.icon, color: Colors.black87),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Text(
-                                  n.titre,
-                                  style: const TextStyle(
-                                    color: Colors.black87,
-                                    fontWeight: FontWeight.w800,
-                                    fontSize: 13,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              const Icon(
-                                Icons.keyboard_arrow_down,
-                                color: Colors.black54,
-                              ),
-                            ],
-                          ),
-                        ),
                       );
                     },
                   ),
@@ -146,18 +286,21 @@ class _notificationsState extends State<notifications> {
 }
 
 class NotificationDetailsPage extends StatelessWidget {
-  final Notification notification;
+  final AppNotification notification;
   const NotificationDetailsPage({super.key, required this.notification});
 
   String _timeHHmm(DateTime d) => DateFormat("HH:mm").format(d);
 
   String _inHowLong(DateTime target) {
     final diff = target.difference(DateTime.now());
+
     if (diff.inSeconds <= 0) return "Maintenant";
-    if (diff.inMinutes < 60)
+    if (diff.inMinutes < 60) {
       return "Dans ${diff.inMinutes} minutes (${_timeHHmm(target)})";
-    if (diff.inHours < 24)
+    }
+    if (diff.inHours < 24) {
       return "Dans ${diff.inHours} heures (${_timeHHmm(target)})";
+    }
     return "Le ${DateFormat('dd/MM/yyyy').format(target)} (${_timeHHmm(target)})";
   }
 
@@ -196,7 +339,6 @@ class NotificationDetailsPage extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // cercle icon
                   Container(
                     width: 110,
                     height: 110,
@@ -214,11 +356,9 @@ class NotificationDetailsPage extends StatelessWidget {
                       color: Colors.amber,
                     ),
                   ),
-
                   const SizedBox(height: 18),
-
                   Text(
-                    notification.titre,
+                    notification.title,
                     textAlign: TextAlign.center,
                     style: const TextStyle(
                       color: Colors.white,
@@ -226,11 +366,9 @@ class NotificationDetailsPage extends StatelessWidget {
                       fontWeight: FontWeight.w900,
                     ),
                   ),
-
                   const SizedBox(height: 10),
-
                   Text(
-                    notification.description,
+                    notification.body,
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: Colors.white.withOpacity(0.9),
@@ -238,9 +376,7 @@ class NotificationDetailsPage extends StatelessWidget {
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-
                   const SizedBox(height: 10),
-
                   Text(
                     _inHowLong(notification.dateTime),
                     textAlign: TextAlign.center,
@@ -260,18 +396,45 @@ class NotificationDetailsPage extends StatelessWidget {
   }
 }
 
-class Notification {
+class AppNotification {
   final String id;
-  final String titre;
-  final String description;
+  final String title;
+  final String body;
   final DateTime dateTime;
   final IconData icon;
+  final bool isRead;
+  final String type;
+  final String iconType;
+  final Map<String, dynamic> data;
 
-  Notification({
+  AppNotification({
     required this.id,
-    required this.titre,
-    required this.description,
+    required this.title,
+    required this.body,
     required this.dateTime,
     required this.icon,
+    required this.isRead,
+    required this.type,
+    required this.iconType,
+    required this.data,
   });
+
+  factory AppNotification.fromFirestore(
+    String id,
+    Map<String, dynamic> json,
+    IconData icon,
+  ) {
+    return AppNotification(
+      id: id,
+      title: (json['title'] ?? '').toString(),
+      body: (json['body'] ?? '').toString(),
+      dateTime:
+          (json['scheduledFor'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      icon: icon,
+      isRead: (json['isRead'] ?? false) == true,
+      type: (json['type'] ?? '').toString(),
+      iconType: (json['iconType'] ?? '').toString(),
+      data: Map<String, dynamic>.from(json['data'] ?? {}),
+    );
+  }
 }
