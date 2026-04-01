@@ -66,6 +66,66 @@ class _mesnotesState extends State<mesnotes> {
         .snapshots();
   }
 
+  Future<void> supprimerNoteEtFavori(String noteId) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    try {
+      // 1) supprimer la note
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .collection('notes')
+          .doc(noteId)
+          .delete();
+
+      // 2) supprimer le favori lié à cette note
+      final favorisQuery = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .collection('favoris')
+          .where('idOriginal', isEqualTo: 'note_$noteId')
+          .get();
+
+      for (final doc in favorisQuery.docs) {
+        await doc.reference.delete();
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Erreur suppression : $e")));
+    }
+  }
+
+  Future<void> _mettreAJourFavoriSiExiste({
+    required String noteId,
+    required String titre,
+    required String contenu,
+    required bool liked,
+  }) async {
+    final user = _auth.currentUser;
+    if (user == null) return;
+
+    final favorisRef = _firestore
+        .collection('users')
+        .doc(user.uid)
+        .collection('favoris');
+
+    final query = await favorisRef
+        .where('idOriginal', isEqualTo: 'note_$noteId')
+        .get();
+
+    for (final doc in query.docs) {
+      await doc.reference.update({
+        'title': titre,
+        'desc': contenu,
+        'contenu': contenu,
+        'liked': liked,
+        'date': Timestamp.now(),
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final h = MediaQuery.of(context).size.height;
@@ -272,19 +332,9 @@ class _mesnotesState extends State<mesnotes> {
                                     //  DELETE
                                     GestureDetector(
                                       onTap: () async {
-                                        final user =
-                                            FirebaseAuth.instance.currentUser;
-                                        if (user == null) return;
-
-                                        await FirebaseFirestore.instance
-                                            .collection('users')
-                                            .doc(user.uid)
-                                            .collection('notes')
-                                            .doc(noteId)
-                                            .delete();
-
-                                        setState(() {});
+                                        await supprimerNoteEtFavori(noteId);
                                       },
+
                                       child: const Icon(
                                         Icons.delete_outline,
                                         color: Colors.white,
