@@ -71,7 +71,7 @@ class _mesnotesState extends State<mesnotes> {
     if (user == null) return;
 
     try {
-      // 1) supprimer la note
+      // supprimer la note
       await FirebaseFirestore.instance
           .collection('users')
           .doc(user.uid)
@@ -79,7 +79,7 @@ class _mesnotesState extends State<mesnotes> {
           .doc(noteId)
           .delete();
 
-      // 2) supprimer le favori lié à cette note
+      //  supprimer le favori lié à cette note
       final favorisQuery = await FirebaseFirestore.instance
           .collection('users')
           .doc(user.uid)
@@ -94,35 +94,6 @@ class _mesnotesState extends State<mesnotes> {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text("Erreur suppression : $e")));
-    }
-  }
-
-  Future<void> _mettreAJourFavoriSiExiste({
-    required String noteId,
-    required String titre,
-    required String contenu,
-    required bool liked,
-  }) async {
-    final user = _auth.currentUser;
-    if (user == null) return;
-
-    final favorisRef = _firestore
-        .collection('users')
-        .doc(user.uid)
-        .collection('favoris');
-
-    final query = await favorisRef
-        .where('idOriginal', isEqualTo: 'note_$noteId')
-        .get();
-
-    for (final doc in query.docs) {
-      await doc.reference.update({
-        'title': titre,
-        'desc': contenu,
-        'contenu': contenu,
-        'liked': liked,
-        'date': Timestamp.now(),
-      });
     }
   }
 
