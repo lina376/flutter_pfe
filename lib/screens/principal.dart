@@ -18,55 +18,33 @@ class principal extends StatefulWidget {
 }
 
 class _principalState extends State<principal> {
-  final _auth = FirebaseAuth.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
   late User signedInUser;
-  String nom = "";
-  String prenom = "";
-  Future<void> getUserData() async {
-    final user = _auth.currentUser;
 
-    if (user != null) {
-      final doc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .get();
+  DateTime _moisAffiche = DateTime.now();
+  DateTime _dateSelectionnee = DateTime.now();
 
-      setState(() {
-        nom = doc['nom'];
-        prenom = doc['prenom'];
-      });
-    }
-  }
+  bool _notif = true;
 
-  //bech nfa3lou l methode getCurrenUser
   @override
   void initState() {
     super.initState();
     getCurrenUser();
-    getUserData();
   }
 
   void getCurrenUser() {
-    //tchof ken fama user dkhal wele
-    final user = _auth.currentUser; //0 ken mdkhal 7ad
+    final user = _auth.currentUser;
     if (user != null) {
       signedInUser = user;
-      print(signedInUser.email);
-    }
-    try {
-      if (user != null) {
-        signedInUser = user;
-      }
-    } catch (e) {
-      print(e);
     }
   }
 
-  // Date affichée (mois) + date sélectionnée
-  DateTime _moisAffiche = DateTime.now();
-  DateTime _dateSelectionnee = DateTime.now();
+  Future<void> _logout() async {
+    await _auth.signOut();
+    if (!mounted) return;
+    Navigator.pushReplacementNamed(context, 'pageconnecter');
+  }
 
-  // Normalisation ken jour m a
   Future<String> creerConversation(String premierMessage) async {
     final user = FirebaseAuth.instance.currentUser;
 
@@ -85,8 +63,6 @@ class _principalState extends State<principal> {
 
     return doc.id;
   }
-
-  bool _notif = true;
 
   void _Parametre() {
     showModalBottomSheet(
@@ -141,12 +117,7 @@ class _principalState extends State<principal> {
                               Navigator.pushNamed(context, 'pagefavorise');
                             },
                           ),
-
-                          const Divider(
-                            color: Colors.white24,
-                            height: 18,
-                          ), //khat
-                          //Notifications switch
+                          const Divider(color: Colors.white24, height: 18),
                           ListTile(
                             contentPadding: EdgeInsets.zero,
                             leading: const Icon(
@@ -165,11 +136,10 @@ class _principalState extends State<principal> {
                               },
                             ),
                           ),
-
                           TextButton(
-                            onPressed: () {
+                            onPressed: () async {
                               Navigator.pop(context);
-                              Navigator.pushNamed(context, 'pageconnecter');
+                              await _logout();
                             },
                             child: const Text(
                               "Déconnecter",
@@ -203,6 +173,69 @@ class _principalState extends State<principal> {
       title: Text(title, style: const TextStyle(color: Colors.white)),
       trailing: const Icon(Icons.chevron_right, color: Colors.white70),
       onTap: onTap,
+    );
+  }
+
+  Widget _buildUserTitle() {
+    final user = _auth.currentUser;
+
+    if (user == null) {
+      return const Text(
+        "ORA",
+        textAlign: TextAlign.center,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(
+          color: Colors.white,
+          fontSize: 20,
+          fontWeight: FontWeight.w800,
+          letterSpacing: 1.2,
+        ),
+      );
+    }
+
+    return StreamBuilder<DocumentSnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .snapshots(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData || !snapshot.data!.exists) {
+          return const Text(
+            "ORA",
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 20,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 1.2,
+            ),
+          );
+        }
+
+        final data = snapshot.data!.data() as Map<String, dynamic>;
+        final String nom = (data['nom'] ?? '').toString().trim();
+        final String prenom = (data['prenom'] ?? '').toString().trim();
+
+        final String title = (nom.isEmpty && prenom.isEmpty)
+            ? "ORA"
+            : "~ ${nom.toUpperCase()} ${prenom.toUpperCase()} ~";
+
+        return Text(
+          title,
+          textAlign: TextAlign.center,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 20,
+            fontWeight: FontWeight.w800,
+            letterSpacing: 1.2,
+          ),
+        );
+      },
     );
   }
 
@@ -371,20 +404,7 @@ class _principalState extends State<principal> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: Text(
-          nom.isEmpty
-              ? "ORA"
-              : "~ ${nom.toUpperCase()} ${prenom.toUpperCase()} ~",
-          textAlign: TextAlign.center,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 20,
-            fontWeight: FontWeight.w800,
-            letterSpacing: 1.2,
-          ),
-        ),
+        title: _buildUserTitle(),
         centerTitle: true,
         actions: [
           IconButton(
@@ -409,9 +429,7 @@ class _principalState extends State<principal> {
             ),
           ),
           icon: const Icon(Icons.menu, color: Colors.white),
-
           onPressed: () => _Parametre(),
-
           tooltip: 'parametre',
           iconSize: 25,
           constraints: const BoxConstraints(minHeight: 25, minWidth: 25),
@@ -420,7 +438,7 @@ class _principalState extends State<principal> {
       body: Container(
         width: double.infinity,
         height: double.infinity,
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           image: DecorationImage(
             image: AssetImage("images/b5.png"),
             fit: BoxFit.cover,
@@ -435,10 +453,13 @@ class _principalState extends State<principal> {
                   Positioned(
                     top: MediaQuery.of(context).size.height * 0.001,
                     left: MediaQuery.of(context).size.height * 0.0001,
-                    child: SizedBox(width: 395, height: 45, child: recherche()),
+                    child: const SizedBox(
+                      width: 395,
+                      height: 45,
+                      child: recherche(),
+                    ),
                   ),
                   Positioned(
-                    //frame de robot
                     top: MediaQuery.of(context).size.height * 0.08,
                     left: MediaQuery.of(context).size.height * 0.02,
                     child: SizedBox(
@@ -456,9 +477,7 @@ class _principalState extends State<principal> {
                       ),
                     ),
                   ),
-
                   Positioned(
-                    //frame de notes
                     top: MediaQuery.of(context).size.height * 0.08,
                     right: MediaQuery.of(context).size.height * 0.02,
                     child: GestureDetector(
@@ -503,14 +522,6 @@ class _principalState extends State<principal> {
                                   arguments: conversationId,
                                 );
                               }
-
-                              if (conversationId.isNotEmpty) {
-                                Navigator.pushNamed(
-                                  context,
-                                  chat.screenRoute,
-                                  arguments: conversationId,
-                                );
-                              }
                             },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color.fromARGB(
@@ -526,7 +537,6 @@ class _principalState extends State<principal> {
                             ),
                             child: const Text(
                               "Discuter",
-
                               style: TextStyle(
                                 color: Color.fromARGB(255, 50, 43, 43),
                                 fontWeight: FontWeight.w700,
@@ -542,7 +552,6 @@ class _principalState extends State<principal> {
                           width: 35,
                           height: 15,
                           child: Container(
-                            padding: const EdgeInsets.all(14),
                             decoration: BoxDecoration(
                               color: const Color.fromARGB(
                                 221,
@@ -565,7 +574,6 @@ class _principalState extends State<principal> {
                           width: 25,
                           height: 12,
                           child: Container(
-                            padding: const EdgeInsets.all(14),
                             decoration: BoxDecoration(
                               color: const Color.fromARGB(
                                 221,
@@ -588,7 +596,6 @@ class _principalState extends State<principal> {
                           width: 20,
                           height: 8,
                           child: Container(
-                            padding: const EdgeInsets.all(14),
                             decoration: BoxDecoration(
                               color: const Color.fromARGB(
                                 221,
@@ -612,7 +619,7 @@ class _principalState extends State<principal> {
                       Positioned(
                         right: MediaQuery.of(context).size.height * 0.001,
                         top: MediaQuery.of(context).size.height * 0.08,
-                        child: MesNotes(),
+                        child: const MesNotes(),
                       ),
                       Positioned(
                         top: MediaQuery.of(context).size.height * 0.3,
@@ -632,27 +639,20 @@ class _principalState extends State<principal> {
                               borderRadius: BorderRadius.circular(18),
                             ),
                             child: TableCalendar(
-                              sixWeekMonthsEnforced:
-                                  true, //bech ykouno lochhra lkoul bnafs lertifa3
+                              sixWeekMonthsEnforced: true,
                               rowHeight: 35,
                               firstDay: DateTime.utc(2016, 1, 1),
                               lastDay: DateTime.utc(2036, 12, 31),
                               focusedDay: _moisAffiche,
-
                               startingDayOfWeek: StartingDayOfWeek.sunday,
-
-                              selectedDayPredicate: (jour) => isSameDay(
-                                jour,
-                                _dateSelectionnee,
-                              ), //ylawn nhar leli khtarto
-
+                              selectedDayPredicate: (jour) =>
+                                  isSameDay(jour, _dateSelectionnee),
                               onDaySelected: (jourSelectionne, moisFocalise) {
                                 setState(() {
                                   _dateSelectionnee = jourSelectionne;
                                   _moisAffiche = moisFocalise;
                                 });
                               },
-
                               headerStyle: HeaderStyle(
                                 formatButtonVisible: false,
                                 titleCentered: true,
@@ -674,7 +674,6 @@ class _principalState extends State<principal> {
                                   color: Colors.black,
                                 ),
                               ),
-
                               daysOfWeekStyle: DaysOfWeekStyle(
                                 weekdayStyle: TextStyle(
                                   color: Colors.black.withOpacity(0.70),
@@ -683,7 +682,6 @@ class _principalState extends State<principal> {
                                   color: Colors.black.withOpacity(0.70),
                                 ),
                               ),
-
                               calendarStyle: CalendarStyle(
                                 outsideDaysVisible: false,
                                 defaultTextStyle: const TextStyle(
@@ -710,7 +708,6 @@ class _principalState extends State<principal> {
                         ),
                       ),
                       Positioned(
-                        //historique
                         left: MediaQuery.of(context).size.height * 0.01,
                         right: MediaQuery.of(context).size.height * 0.01,
                         bottom: MediaQuery.of(context).size.height * -0.08,

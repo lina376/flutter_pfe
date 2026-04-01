@@ -1,6 +1,9 @@
-import 'package:flutter/material.dart';
 import 'dart:io';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 import 'package:ora/screens/principal.dart';
 
 class Profil extends StatefulWidget {
@@ -12,13 +15,73 @@ class Profil extends StatefulWidget {
 }
 
 class _ProfilState extends State<Profil> {
-  DateTime? _birthDate;
+  final _formKey = GlobalKey<FormState>();
+
+  final TextEditingController _nomCtrl = TextEditingController();
+  final TextEditingController _prenomCtrl = TextEditingController();
+  final TextEditingController _emailCtrl = TextEditingController();
   final TextEditingController _birthCtrl = TextEditingController();
+
+  DateTime? _birthDate;
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
 
   @override
   void dispose() {
+    _nomCtrl.dispose();
+    _prenomCtrl.dispose();
+    _emailCtrl.dispose();
     _birthCtrl.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadUserData() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final doc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+
+      if (doc.exists) {
+        final data = doc.data() as Map<String, dynamic>;
+
+        _nomCtrl.text = (data['nom'] ?? '').toString();
+        _prenomCtrl.text = (data['prenom'] ?? '').toString();
+        _emailCtrl.text = (data['email'] ?? user.email ?? '').toString();
+
+        if (data['dateNaissance'] != null &&
+            data['dateNaissance'].toString().isNotEmpty) {
+          final parsed = DateTime.tryParse(data['dateNaissance']);
+          if (parsed != null) {
+            _birthDate = parsed;
+            _birthCtrl.text =
+                "${parsed.day.toString().padLeft(2, '0')}/${parsed.month.toString().padLeft(2, '0')}/${parsed.year}";
+          }
+        }
+      } else {
+        _emailCtrl.text = user.email ?? '';
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Erreur chargement profil : $e")));
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   Future<void> _selectBirthDate() async {
@@ -33,11 +96,58 @@ class _ProfilState extends State<Profil> {
 
     setState(() {
       _birthDate = picked;
-      _birthCtrl.text = "${picked.day}/${picked.month}/${picked.year}";
+      _birthCtrl.text =
+          "${picked.day.toString().padLeft(2, '0')}/${picked.month.toString().padLeft(2, '0')}/${picked.year}";
     });
   }
 
-  final _formkey = GlobalKey<FormState>();
+  Future<void> _saveProfile() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+        'nom': _nomCtrl.text.trim(),
+        'prenom': _prenomCtrl.text.trim(),
+        'email': _emailCtrl.text.trim(),
+        'dateNaissance': _birthDate?.toIso8601String() ?? '',
+        'updatedAt': FieldValue.serverTimestamp(),
+        'createdAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Profil mis à jour avec succès")),
+      );
+
+      Navigator.pushReplacementNamed(context, principal.screenRoute);
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Erreur sauvegarde : $e")));
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  InputDecoration _inputDecoration(String hint, {Widget? suffixIcon}) {
+    return InputDecoration(
+      hintText: hint,
+      filled: true,
+      fillColor: Colors.white,
+      suffixIcon: suffixIcon,
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -46,7 +156,6 @@ class _ProfilState extends State<Profil> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-
         leading: IconButton(
           style: const ButtonStyle(
             backgroundColor: WidgetStatePropertyAll<Color>(
@@ -55,7 +164,7 @@ class _ProfilState extends State<Profil> {
           ),
           icon: const Icon(Icons.chevron_left, color: Colors.white),
           onPressed: () {
-            Navigator.pushNamed(context, principal.screenRoute);
+            Navigator.pushReplacementNamed(context, principal.screenRoute);
           },
           tooltip: 'chevron',
           iconSize: 40,
@@ -65,235 +174,144 @@ class _ProfilState extends State<Profil> {
       body: Container(
         width: double.infinity,
         height: double.infinity,
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           image: DecorationImage(
             image: AssetImage("images/b5.png"),
             fit: BoxFit.cover,
           ),
         ),
         child: SafeArea(
-          child: SingleChildScrollView(
-            child: SizedBox(
-              height: MediaQuery.of(context).size.height,
-              child: Form(
-                key: _formkey,
-                child: Stack(
-                  children: [
-                    Positioned(
-                      top: MediaQuery.of(context).size.height * 0.0001,
-                      left: MediaQuery.of(context).size.height * 0.165,
-                      child: Text(
-                        "Profil",
-                        style: TextStyle(
-                          fontSize: 46,
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                    Positioned(
-                      top: MediaQuery.of(context).size.height * 0.065,
-                      left: MediaQuery.of(context).size.height * 0.18,
-                      child: ProfileAvatar(),
-                    ),
-                    Positioned(
-                      top: MediaQuery.of(context).size.height * 0.2,
-                      left: MediaQuery.of(context).size.height * 0.01,
-                      child: Text(
-                        "Nom",
-                        style: TextStyle(color: Colors.white, fontSize: 15),
-                      ),
-                    ),
-                    Positioned(
-                      top: MediaQuery.of(context).size.height * 0.23,
-                      left: MediaQuery.of(context).size.height * 0.01,
-                      right: MediaQuery.of(context).size.height * 0.01,
-                      child: TextField(
-                        decoration: InputDecoration(
-                          hintText: "Nom",
-                          filled: true,
-                          fillColor: Colors.white, //pour arriere blanc
-                          border: OutlineInputBorder(
-                            gapPadding: 3.0,
-                            borderRadius: BorderRadius.circular(8),
-                            borderSide: BorderSide(width: 0.5),
+          child: _isLoading
+              ? const Center(
+                  child: CircularProgressIndicator(color: Colors.white),
+                )
+              : SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 20,
+                  ),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      children: [
+                        const SizedBox(height: 10),
+                        const Text(
+                          "Profil",
+                          style: TextStyle(
+                            fontSize: 42,
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
-                      ),
-                    ),
-                    Positioned(
-                      top: MediaQuery.of(context).size.height * 0.3,
-                      left: MediaQuery.of(context).size.height * 0.01,
-                      child: Text(
-                        "Prénom",
-                        style: TextStyle(color: Colors.white, fontSize: 14),
-                      ),
-                    ),
-                    Positioned(
-                      top: MediaQuery.of(context).size.height * 0.33,
-                      left: MediaQuery.of(context).size.height * 0.01,
-                      right: MediaQuery.of(context).size.height * 0.01,
-                      child: TextField(
-                        decoration: InputDecoration(
-                          hintText: "Prénom",
-                          filled: true,
-                          fillColor: Colors.white, //pour arriere blanc
-                          border: OutlineInputBorder(
-                            gapPadding: 3.0,
-                            borderRadius: BorderRadius.circular(8),
-                            borderSide: BorderSide(width: 0.5),
+                        const SizedBox(height: 12),
+                        const ProfileAvatar(),
+                        const SizedBox(height: 24),
+
+                        const Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            "Nom",
+                            style: TextStyle(color: Colors.white, fontSize: 15),
                           ),
                         ),
-                      ),
-                    ),
-                    Positioned(
-                      top: MediaQuery.of(context).size.height * 0.4,
-                      left: MediaQuery.of(context).size.height * 0.01,
-                      child: Text(
-                        "Email",
-                        style: TextStyle(color: Colors.white, fontSize: 14),
-                      ),
-                    ),
-
-                    Positioned(
-                      top: MediaQuery.of(context).size.height * 0.43,
-                      left: MediaQuery.of(context).size.height * 0.01,
-                      right: MediaQuery.of(context).size.height * 0.01,
-                      child: TextFormField(
-                        decoration: InputDecoration(
-                          hintText: "Email",
-                          filled: true,
-                          fillColor: Colors.white, //pour arriere blanc
-                          border: OutlineInputBorder(
-                            gapPadding: 3.0,
-                            borderRadius: BorderRadius.circular(8),
-                            borderSide: BorderSide(width: 0.5),
-                          ),
-                        ),
-                        validator: (value) {
-                          //validator tkhdem ken ma3 TextFormField
-                          if (value == null || value.isEmpty) {
-                            return "Email obligatoire";
-                          }
-
-                          final emailRegex = RegExp(
-                            r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
-                          );
-
-                          if (!emailRegex.hasMatch(value)) {
-                            return "Format email incorrect";
-                          }
-
-                          return null;
-                        },
-                      ),
-                    ),
-
-                    Positioned(
-                      top: MediaQuery.of(context).size.height * 0.52,
-                      left: MediaQuery.of(context).size.height * 0.01,
-                      child: Text(
-                        "Mot de passe",
-                        style: TextStyle(color: Colors.white, fontSize: 14),
-                      ),
-                    ),
-                    Positioned(
-                      top: MediaQuery.of(context).size.height * 0.55,
-                      left: MediaQuery.of(context).size.height * 0.01,
-                      right: MediaQuery.of(context).size.height * 0.01,
-                      child: Form(
-                        child: TextFormField(
-                          obscureText: true,
-                          decoration: InputDecoration(
-                            hintText: "Mot de passe",
-                            filled: true,
-                            fillColor: Colors.white,
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
+                        const SizedBox(height: 6),
+                        TextFormField(
+                          controller: _nomCtrl,
+                          decoration: _inputDecoration("Nom"),
                           validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return "Mot de passe obligatoire";
+                            if (value == null || value.trim().isEmpty) {
+                              return "Nom obligatoire";
                             }
-
-                            final passwordRegex = RegExp(
-                              r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{8,}$',
-                            );
-
-                            if (!passwordRegex.hasMatch(value)) {
-                              return "Min 8 caractères, 1 majuscule, 1 chiffre";
-                            }
-
                             return null;
                           },
                         ),
-                      ),
-                    ),
-                    Positioned(
-                      top: MediaQuery.of(context).size.height * 0.635,
-                      left: MediaQuery.of(context).size.height * 0.01,
-                      child: Text(
-                        "Date de naissance",
-                        style: TextStyle(color: Colors.white, fontSize: 14),
-                      ),
-                    ),
-                    Positioned(
-                      top: MediaQuery.of(context).size.height * 0.665,
-                      left: MediaQuery.of(context).size.height * 0.01,
-                      right: MediaQuery.of(context).size.height * 0.01,
-                      child: TextFormField(
-                        readOnly: true,
-                        onTap: _selectBirthDate,
-                        decoration: InputDecoration(
-                          labelText: "JJ/MM/AAAA",
-                          suffixIcon: const Icon(Icons.calendar_today),
-                          filled: true,
-                          fillColor: Colors.white,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        controller: TextEditingController(
-                          text: _birthDate == null
-                              ? ""
-                              : "${_birthDate!.day}/${_birthDate!.month}/${_birthDate!.year}",
-                        ),
-                      ),
-                    ),
-                    Positioned(
-                      top: MediaQuery.of(context).size.height * 0.8,
+                        const SizedBox(height: 16),
 
-                      left: MediaQuery.of(context).size.height * 0.16,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          if (_formkey.currentState!.validate()) {
-                            Navigator.pushNamed(context, principal.screenRoute);
-                          }
-                        },
-                        child: Text(
-                          "Sauvegarder",
-                          style: TextStyle(
-                            color: const Color.fromARGB(136, 10, 11, 22),
+                        const Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            "Prénom",
+                            style: TextStyle(color: Colors.white, fontSize: 15),
                           ),
                         ),
-                        style: ElevatedButton.styleFrom(
-                          shape: StadiumBorder(),
-                          backgroundColor: const Color.fromARGB(
-                            172,
-                            153,
-                            129,
-                            180,
-                          ),
-                          elevation: 1,
+                        const SizedBox(height: 6),
+                        TextFormField(
+                          controller: _prenomCtrl,
+                          decoration: _inputDecoration("Prénom"),
+                          validator: (value) {
+                            if (value == null || value.trim().isEmpty) {
+                              return "Prénom obligatoire";
+                            }
+                            return null;
+                          },
                         ),
-                      ),
+                        const SizedBox(height: 16),
+
+                        const Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            "Email",
+                            style: TextStyle(color: Colors.white, fontSize: 15),
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        TextFormField(
+                          controller: _emailCtrl,
+                          readOnly: true,
+                          decoration: _inputDecoration("Email"),
+                        ),
+                        const SizedBox(height: 16),
+
+                        const Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            "Date de naissance",
+                            style: TextStyle(color: Colors.white, fontSize: 15),
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        TextFormField(
+                          controller: _birthCtrl,
+                          readOnly: true,
+                          onTap: _selectBirthDate,
+                          decoration: _inputDecoration(
+                            "JJ/MM/AAAA",
+                            suffixIcon: const Icon(
+                              Icons.calendar_today,
+                              color: Colors.black54,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 30),
+
+                        SizedBox(
+                          width: 180,
+                          height: 48,
+                          child: ElevatedButton(
+                            onPressed: _saveProfile,
+                            style: ElevatedButton.styleFrom(
+                              shape: const StadiumBorder(),
+                              backgroundColor: const Color.fromARGB(
+                                172,
+                                153,
+                                129,
+                                180,
+                              ),
+                              elevation: 1,
+                            ),
+                            child: const Text(
+                              "Sauvegarder",
+                              style: TextStyle(
+                                color: Color.fromARGB(136, 10, 11, 22),
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
-              ),
-            ),
-          ),
         ),
       ),
     );
@@ -325,8 +343,11 @@ class _ProfileAvatarState extends State<ProfileAvatar> {
       onTap: _pick,
       child: CircleAvatar(
         radius: 45,
+        backgroundColor: Colors.white,
         backgroundImage: _imageFile != null ? FileImage(_imageFile!) : null,
-        child: _imageFile == null ? const Icon(Icons.person, size: 40) : null,
+        child: _imageFile == null
+            ? const Icon(Icons.person, size: 40, color: Colors.black54)
+            : null,
       ),
     );
   }
