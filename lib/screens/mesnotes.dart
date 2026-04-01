@@ -66,35 +66,6 @@ class _mesnotesState extends State<mesnotes> {
         .snapshots();
   }
 
-  Future<void> _mettreAJourFavoriSiExiste({
-    required String noteId,
-    required String titre,
-    required String contenu,
-    required bool liked,
-  }) async {
-    final user = _auth.currentUser;
-    if (user == null) return;
-
-    final favorisRef = _firestore
-        .collection('users')
-        .doc(user.uid)
-        .collection('favoris');
-
-    final query = await favorisRef
-        .where('idOriginal', isEqualTo: 'note_$noteId')
-        .get();
-
-    for (final doc in query.docs) {
-      await doc.reference.update({
-        'title': titre,
-        'desc': contenu,
-        'contenu': contenu,
-        'liked': liked,
-        'date': Timestamp.now(),
-      });
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final h = MediaQuery.of(context).size.height;
@@ -290,7 +261,7 @@ class _mesnotesState extends State<mesnotes> {
                                                 ? Icons.favorite
                                                 : Icons.favorite_border,
                                             color: Colors.redAccent,
-                                            size: 18, // 👈 صغير
+                                            size: 18,
                                           ),
                                         );
                                       },
