@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:ora/screens/notes2.dart';
 import 'dart:math';
 import 'fav.dart';
-import 'package:ora/screens/principal.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
