@@ -1,9 +1,9 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:ora/controllers/controleur_tache.dart';
 import 'package:ora/screens/principal.dart';
 import 'package:table_calendar/table_calendar.dart';
-import 'package:intl/intl.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Calendrier extends StatefulWidget {
   static const String screenRoute = 'pagecalendrier';
@@ -15,15 +15,10 @@ class Calendrier extends StatefulWidget {
 }
 
 class _CalendrierState extends State<Calendrier> {
-  final _auth = FirebaseAuth.instance;
-  final _firestore = FirebaseFirestore.instance;
+  final ControleurTache _controleurTache = ControleurTache();
 
   DateTime _moisAffiche = DateTime.now();
   DateTime _dateSelectionnee = DateTime.now();
-
-  static DateTime _dateSansHeure(DateTime d) {
-    return DateTime(d.year, d.month, d.day);
-  }
 
   Future<String?> _choisirHeure() async {
     final picked = await showTimePicker(
@@ -36,77 +31,6 @@ class _CalendrierState extends State<Calendrier> {
     final hh = picked.hour.toString().padLeft(2, '0');
     final mm = picked.minute.toString().padLeft(2, '0');
     return "$hh:$mm";
-  }
-
-  Future<void> ajouterTacheFirebase({
-    required String titre,
-    required String heure,
-    required DateTime date,
-  }) async {
-    final user = _auth.currentUser;
-    if (user == null) return;
-
-    final dateChoisie = _dateSansHeure(date);
-
-    await _firestore
-        .collection('users')
-        .doc(user.uid)
-        .collection('taches')
-        .add({
-          'titre': titre,
-          'heure': heure,
-          'date': Timestamp.fromDate(dateChoisie),
-          'terminee': false,
-          'createdAt': Timestamp.now(),
-        });
-  }
-
-  Future<void> changerEtatTacheFirebase(String tacheId, bool valeur) async {
-    final user = _auth.currentUser;
-    if (user == null) return;
-
-    await _firestore
-        .collection('users')
-        .doc(user.uid)
-        .collection('taches')
-        .doc(tacheId)
-        .update({'terminee': valeur});
-  }
-
-  Future<void> supprimerTacheFirebase(String tacheId) async {
-    final user = _auth.currentUser;
-    if (user == null) return;
-
-    await _firestore
-        .collection('users')
-        .doc(user.uid)
-        .collection('taches')
-        .doc(tacheId)
-        .delete();
-  }
-
-  Stream<QuerySnapshot> streamTachesDuJour() {
-    final user = _auth.currentUser;
-    if (user == null) {
-      return const Stream.empty();
-    }
-
-    final debutJour = DateTime(
-      _dateSelectionnee.year,
-      _dateSelectionnee.month,
-      _dateSelectionnee.day,
-    );
-
-    final finJour = debutJour.add(const Duration(days: 1));
-
-    return _firestore
-        .collection('users')
-        .doc(user.uid)
-        .collection('taches')
-        .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(debutJour))
-        .where('date', isLessThan: Timestamp.fromDate(finJour))
-        .orderBy('date')
-        .snapshots();
   }
 
   void _afficherAjoutTache() {
@@ -170,7 +94,7 @@ class _CalendrierState extends State<Calendrier> {
                     final titre = titreCtrl.text.trim();
                     if (titre.isEmpty) return;
 
-                    await ajouterTacheFirebase(
+                    await _controleurTache.ajouterTache(
                       titre: titre,
                       heure: heureChoisie ?? "--:--",
                       date: _dateSelectionnee,
@@ -203,7 +127,10 @@ class _CalendrierState extends State<Calendrier> {
           Checkbox(
             value: t.terminee,
             onChanged: (v) async {
-              await changerEtatTacheFirebase(t.id, v ?? false);
+              await _controleurTache.changerEtatTache(
+                idTache: t.id,
+                terminee: v ?? false,
+              );
             },
             side: BorderSide(color: Colors.white.withOpacity(0.8)),
             checkColor: Colors.white,
@@ -225,7 +152,7 @@ class _CalendrierState extends State<Calendrier> {
           Text(t.heure, style: TextStyle(color: Colors.white.withOpacity(0.7))),
           IconButton(
             onPressed: () async {
-              await supprimerTacheFirebase(t.id);
+              await _controleurTache.supprimerTache(t.id);
             },
             icon: const Icon(Icons.delete, color: Colors.white),
           ),
@@ -364,8 +291,10 @@ class _CalendrierState extends State<Calendrier> {
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(color: Colors.white.withOpacity(0.18)),
                     ),
-                    child: StreamBuilder<QuerySnapshot>(
-                      stream: streamTachesDuJour(),
+                    child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                      stream: _controleurTache.obtenirFluxTachesParDate(
+                        _dateSelectionnee,
+                      ),
                       builder: (context, snapshot) {
                         if (snapshot.connectionState ==
                             ConnectionState.waiting) {
@@ -388,9 +317,14 @@ class _CalendrierState extends State<Calendrier> {
                         }
 
                         final taches = snapshot.data!.docs.map((doc) {
-                          return Tache.fromFirestore(
-                            doc.id,
-                            doc.data() as Map<String, dynamic>,
+                          final data = doc.data();
+
+                          return Tache(
+                            id: doc.id,
+                            titre: (data['titre'] ?? '').toString(),
+                            heure: (data['heure'] ?? '--:--').toString(),
+                            date: (data['date'] as Timestamp).toDate(),
+                            terminee: (data['terminee'] ?? false) == true,
                           );
                         }).toList();
 
@@ -457,24 +391,4 @@ class Tache {
     required this.date,
     required this.terminee,
   });
-
-  factory Tache.fromFirestore(String id, Map<String, dynamic> data) {
-    return Tache(
-      id: id,
-      titre: data['titre'] ?? '',
-      heure: data['heure'] ?? '--:--',
-      date: (data['date'] as Timestamp).toDate(),
-      terminee: data['terminee'] ?? false,
-    );
-  }
-
-  Map<String, dynamic> toFirestore() {
-    return {
-      'titre': titre,
-      'heure': heure,
-      'date': Timestamp.fromDate(date),
-      'terminee': terminee,
-      'createdAt': Timestamp.now(),
-    };
-  }
 }

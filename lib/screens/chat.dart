@@ -1,7 +1,6 @@
-import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:intl/intl.dart';
+import 'package:flutter/material.dart';
+import 'package:ora/controllers/controleur_chat.dart';
 
 class chat extends StatefulWidget {
   static const String screenRoute = 'pagechat';
@@ -12,17 +11,13 @@ class chat extends StatefulWidget {
 }
 
 class _chatState extends State<chat> {
-  bool modeVocal = true; // true = micro / false = écriture
-  String? conversationId; // id de la conversation courante
+  final ControleurChat _controleurChat = ControleurChat();
+
+  bool modeVocal = true;
+  String? conversationId;
 
   final TextEditingController controleurMessage = TextEditingController();
   final FocusNode focusTexte = FocusNode();
-
-  String formaterHeure(Timestamp? timestamp) {
-    if (timestamp == null) return "";
-    final date = timestamp.toDate();
-    return DateFormat('HH:mm').format(date);
-  }
 
   @override
   void didChangeDependencies() {
@@ -38,43 +33,7 @@ class _chatState extends State<chat> {
   void dispose() {
     controleurMessage.dispose();
     focusTexte.dispose();
-
     super.dispose();
-  }
-
-  Future<void> ajouterMessage({
-    required String conversationId,
-    required String texte,
-  }) async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
-
-    final conversationRef = FirebaseFirestore.instance
-        .collection('users')
-        .doc(user.uid)
-        .collection('conversations')
-        .doc(conversationId);
-
-    await conversationRef.collection('messages').add({
-      'texte': texte,
-      'sender': 'user',
-      'date': Timestamp.now(),
-    });
-
-    const String reponseOra =
-        "Bonjour, je suis ORA. J'ai bien reçu votre message.";
-
-    await conversationRef.collection('messages').add({
-      'texte': reponseOra,
-      'sender': 'ora',
-      'date': Timestamp.now(),
-    });
-
-    await conversationRef.update({
-      'dernierMessage': reponseOra,
-      'dateMaj': Timestamp.now(),
-      'titre': texte.length > 20 ? "${texte.substring(0, 20)}..." : texte,
-    });
   }
 
   Future<void> envoyerMessage() async {
@@ -82,7 +41,10 @@ class _chatState extends State<chat> {
 
     if (texte.isEmpty || conversationId == null) return;
 
-    await ajouterMessage(conversationId: conversationId!, texte: texte);
+    await _controleurChat.ajouterMessage(
+      conversationId: conversationId!,
+      texte: texte,
+    );
 
     controleurMessage.clear();
   }
@@ -96,13 +58,16 @@ class _chatState extends State<chat> {
     setState(() => modeVocal = false);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       FocusScope.of(context).requestFocus(focusTexte);
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final user = FirebaseAuth.instance.currentUser;
+    final user = _controleurChat.obtenirUtilisateurActuel();
+    final hauteur = MediaQuery.of(context).size.height;
+    final clavier = MediaQuery.of(context).viewInsets.bottom;
 
     return Scaffold(
       resizeToAvoidBottomInset: false,
@@ -138,21 +103,18 @@ class _chatState extends State<chat> {
           child: Stack(
             children: [
               Positioned.fill(
-                top: MediaQuery.of(context).size.height * -0.2,
-                left: MediaQuery.of(context).size.height * -0.4,
+                top: hauteur * -0.2,
+                left: hauteur * -0.4,
                 child: Opacity(
                   opacity: 0.4,
                   child: Image.asset("images/robot1.png", fit: BoxFit.cover),
                 ),
               ),
-
               Positioned(
-                top: MediaQuery.of(context).size.height * 0.12,
+                top: hauteur * 0.12,
                 left: 12,
                 right: 12,
-                bottom: modeVocal
-                    ? 140
-                    : MediaQuery.of(context).viewInsets.bottom + 70,
+                bottom: modeVocal ? 140 : clavier + 70,
                 child: conversationId == null || user == null
                     ? const Center(
                         child: Text(
@@ -162,15 +124,10 @@ class _chatState extends State<chat> {
                           ),
                         ),
                       )
-                    : StreamBuilder<QuerySnapshot>(
-                        stream: FirebaseFirestore.instance
-                            .collection('users')
-                            .doc(user.uid)
-                            .collection('conversations')
-                            .doc(conversationId)
-                            .collection('messages')
-                            .orderBy('date', descending: true)
-                            .snapshots(),
+                    : StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                        stream: _controleurChat.obtenirFluxMessages(
+                          conversationId: conversationId!,
+                        ),
                         builder: (context, snapshot) {
                           if (snapshot.connectionState ==
                               ConnectionState.waiting) {
@@ -205,16 +162,17 @@ class _chatState extends State<chat> {
                             padding: const EdgeInsets.only(bottom: 12),
                             itemCount: messages.length,
                             itemBuilder: (context, index) {
-                              final data =
-                                  messages[index].data()
-                                      as Map<String, dynamic>;
+                              final data = messages[index].data();
 
-                              final texte = data['texte'] ?? '';
-                              final sender = data['sender'] ?? 'user';
+                              final texte = (data['texte'] ?? '').toString();
+                              final sender = (data['sender'] ?? 'user')
+                                  .toString();
                               final isUser = sender == 'user';
                               final Timestamp? dateMessage =
                                   data['date'] as Timestamp?;
-                              final heure = formaterHeure(dateMessage);
+                              final heure = _controleurChat.formaterHeure(
+                                dateMessage,
+                              );
 
                               return Align(
                                 alignment: isUser
@@ -272,11 +230,10 @@ class _chatState extends State<chat> {
                         },
                       ),
               ),
-
               if (modeVocal)
                 Positioned(
-                  top: MediaQuery.of(context).size.height * 0.7,
-                  left: MediaQuery.of(context).size.height * 0.2,
+                  top: hauteur * 0.7,
+                  left: hauteur * 0.2,
                   child: GestureDetector(
                     onTap: passerEnModeVocal,
                     child: Container(
@@ -303,11 +260,10 @@ class _chatState extends State<chat> {
                     ),
                   ),
                 ),
-
               if (modeVocal)
                 Positioned(
-                  top: MediaQuery.of(context).size.height * 0.77,
-                  left: MediaQuery.of(context).size.height * 0.35,
+                  top: hauteur * 0.77,
+                  left: hauteur * 0.35,
                   child: GestureDetector(
                     onTap: passerEnModeEcriture,
                     child: Container(
@@ -338,12 +294,11 @@ class _chatState extends State<chat> {
                     ),
                   ),
                 ),
-
               if (!modeVocal)
                 Positioned(
                   left: 10,
                   right: 10,
-                  bottom: MediaQuery.of(context).viewInsets.bottom + 8,
+                  bottom: clavier + 8,
                   child: Row(
                     children: [
                       GestureDetector(

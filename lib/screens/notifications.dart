@@ -1,9 +1,9 @@
+import 'dart:math';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'dart:math';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'notification_service.dart';
+import 'package:ora/controllers/controleur_notification.dart';
+import 'package:ora/services/service_notification.dart';
 
 class notifications extends StatefulWidget {
   static const String screenRoute = 'pagenotifications';
@@ -14,8 +14,8 @@ class notifications extends StatefulWidget {
 }
 
 class _notificationsState extends State<notifications> {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final ControleurNotification _controleurNotification =
+      ControleurNotification();
 
   IconData _getIcon(String iconType) {
     switch (iconType) {
@@ -34,29 +34,17 @@ class _notificationsState extends State<notifications> {
     }
   }
 
-  Stream<QuerySnapshot<Map<String, dynamic>>> _notificationsStream() {
-    final user = _auth.currentUser;
-    if (user == null) {
-      return const Stream.empty();
-    }
-
-    return _firestore
-        .collection('users')
-        .doc(user.uid)
-        .collection('notifications')
-        .orderBy('scheduledFor', descending: true)
-        .snapshots();
-  }
+  final ServiceNotification _serviceNotification = ServiceNotification();
 
   Future<void> _addTestNotifications() async {
-    await NotificationService.sendWaterReminder(waterMl: 400);
+    await _serviceNotification.sendWaterReminder(waterMl: 400);
 
-    await NotificationService.sendDoctorAppointmentReminder(
+    await _serviceNotification.sendDoctorAppointmentReminder(
       doctorName: 'Dr. Ahmed',
       appointmentDate: DateTime.now().add(const Duration(hours: 2)),
     );
 
-    await NotificationService.sendMedicineReminder(
+    await _serviceNotification.sendMedicineReminder(
       medicineName: 'Vitamine D',
       reminderTime: DateTime.now().add(const Duration(minutes: 30)),
     );
@@ -64,8 +52,6 @@ class _notificationsState extends State<notifications> {
 
   @override
   Widget build(BuildContext context) {
-    final h = MediaQuery.of(context).size.height;
-
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
@@ -126,7 +112,7 @@ class _notificationsState extends State<notifications> {
                 const SizedBox(height: 14),
                 Expanded(
                   child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-                    stream: _notificationsStream(),
+                    stream: _controleurNotification.obtenirFluxNotifications(),
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
                         return const Center(child: CircularProgressIndicator());
@@ -171,7 +157,9 @@ class _notificationsState extends State<notifications> {
 
                           return GestureDetector(
                             onTap: () async {
-                              await NotificationService.markAsRead(notif.id);
+                              await _controleurNotification.marquerCommeLu(
+                                notif.id,
+                              );
 
                               if (!context.mounted) return;
 
@@ -243,9 +231,9 @@ class _notificationsState extends State<notifications> {
                                   Column(
                                     children: [
                                       Text(
-                                        DateFormat(
-                                          "HH:mm",
-                                        ).format(notif.dateTime),
+                                        _controleurNotification.formaterDate(
+                                          data['createdAt'],
+                                        ),
                                         style: TextStyle(
                                           color: Colors.white.withOpacity(0.85),
                                           fontSize: 11,
@@ -255,9 +243,8 @@ class _notificationsState extends State<notifications> {
                                       const SizedBox(height: 6),
                                       IconButton(
                                         onPressed: () async {
-                                          await NotificationService.deleteNotification(
-                                            notif.id,
-                                          );
+                                          await _controleurNotification
+                                              .supprimerNotification(notif.id);
                                         },
                                         icon: const Icon(
                                           Icons.delete_outline,

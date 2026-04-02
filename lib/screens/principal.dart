@@ -1,13 +1,12 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:ora/controllers/controleur_principal.dart';
 import 'package:ora/screens/calendrier.dart';
 import 'package:ora/screens/chat.dart';
 import 'package:ora/screens/mesnotes.dart';
 import 'package:ora/screens/notifications.dart';
-
 import 'package:table_calendar/table_calendar.dart';
 import 'package:intl/intl.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 class principal extends StatefulWidget {
   static const String screenRoute = 'pageprincipal';
@@ -18,50 +17,23 @@ class principal extends StatefulWidget {
 }
 
 class _principalState extends State<principal> {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  late User signedInUser;
+  final ControleurPrincipal _controleurPrincipal = ControleurPrincipal();
 
   DateTime _moisAffiche = DateTime.now();
   DateTime _dateSelectionnee = DateTime.now();
 
   bool _notif = true;
 
-  @override
-  void initState() {
-    super.initState();
-    getCurrenUser();
-  }
-
-  void getCurrenUser() {
-    final user = _auth.currentUser;
-    if (user != null) {
-      signedInUser = user;
-    }
-  }
-
   Future<void> _logout() async {
-    await _auth.signOut();
+    await _controleurPrincipal.seDeconnecter();
     if (!mounted) return;
     Navigator.pushReplacementNamed(context, 'pageconnecter');
   }
 
   Future<String> creerConversation(String premierMessage) async {
-    final user = FirebaseAuth.instance.currentUser;
-
-    if (user == null) return "";
-
-    final doc = await FirebaseFirestore.instance
-        .collection('users')
-        .doc(user.uid)
-        .collection('conversations')
-        .add({
-          'titre': premierMessage,
-          'dernierMessage': premierMessage,
-          'dateCreation': Timestamp.now(),
-          'dateMaj': Timestamp.now(),
-        });
-
-    return doc.id;
+    return _controleurPrincipal.creerConversation(
+      premierMessage: premierMessage,
+    );
   }
 
   void _Parametre() {
@@ -177,28 +149,8 @@ class _principalState extends State<principal> {
   }
 
   Widget _buildUserTitle() {
-    final user = _auth.currentUser;
-
-    if (user == null) {
-      return const Text(
-        "ORA",
-        textAlign: TextAlign.center,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: TextStyle(
-          color: Colors.white,
-          fontSize: 20,
-          fontWeight: FontWeight.w800,
-          letterSpacing: 1.2,
-        ),
-      );
-    }
-
-    return StreamBuilder<DocumentSnapshot>(
-      stream: FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .snapshots(),
+    return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+      stream: _controleurPrincipal.obtenirFluxUtilisateur(),
       builder: (context, snapshot) {
         if (!snapshot.hasData || !snapshot.data!.exists) {
           return const Text(
@@ -215,13 +167,8 @@ class _principalState extends State<principal> {
           );
         }
 
-        final data = snapshot.data!.data() as Map<String, dynamic>;
-        final String nom = (data['nom'] ?? '').toString().trim();
-        final String prenom = (data['prenom'] ?? '').toString().trim();
-
-        final String title = (nom.isEmpty && prenom.isEmpty)
-            ? "ORA"
-            : "~ ${nom.toUpperCase()} ${prenom.toUpperCase()} ~";
+        final data = snapshot.data!.data();
+        final title = _controleurPrincipal.obtenirNomAffichage(data);
 
         return Text(
           title,
@@ -240,7 +187,7 @@ class _principalState extends State<principal> {
   }
 
   Widget sectionHistorique() {
-    final user = _auth.currentUser;
+    final user = _controleurPrincipal.obtenirUtilisateurActuel();
 
     if (user == null) {
       return const Center(
@@ -268,13 +215,8 @@ class _principalState extends State<principal> {
             ),
           ),
           Expanded(
-            child: StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance
-                  .collection('users')
-                  .doc(user.uid)
-                  .collection('conversations')
-                  .orderBy('dateMaj', descending: true)
-                  .snapshots(),
+            child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+              stream: _controleurPrincipal.obtenirFluxConversations(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return Center(
@@ -302,11 +244,12 @@ class _principalState extends State<principal> {
                   physics: const ClampingScrollPhysics(),
                   separatorBuilder: (_, __) => const SizedBox(height: 10),
                   itemBuilder: (context, index) {
-                    final data = docs[index].data() as Map<String, dynamic>;
+                    final data = docs[index].data();
                     final conversationId = docs[index].id;
 
                     String heure = "";
-                    if (data['dateMaj'] != null) {
+                    if (data['dateMaj'] != null &&
+                        data['dateMaj'] is Timestamp) {
                       final date = (data['dateMaj'] as Timestamp).toDate();
                       heure =
                           "${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}";
@@ -353,7 +296,7 @@ class _principalState extends State<principal> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    data['titre'] ?? '',
+                                    (data['titre'] ?? '').toString(),
                                     style: const TextStyle(
                                       color: Colors.white,
                                       fontWeight: FontWeight.w700,
@@ -362,7 +305,7 @@ class _principalState extends State<principal> {
                                   ),
                                   const SizedBox(height: 2),
                                   Text(
-                                    data['dernierMessage'] ?? '',
+                                    (data['dernierMessage'] ?? '').toString(),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                     style: TextStyle(
@@ -399,6 +342,8 @@ class _principalState extends State<principal> {
 
   @override
   Widget build(BuildContext context) {
+    final hauteur = MediaQuery.of(context).size.height;
+
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
@@ -451,8 +396,8 @@ class _principalState extends State<principal> {
               child: Stack(
                 children: [
                   Positioned(
-                    top: MediaQuery.of(context).size.height * 0.001,
-                    left: MediaQuery.of(context).size.height * 0.0001,
+                    top: hauteur * 0.001,
+                    left: hauteur * 0.0001,
                     child: const SizedBox(
                       width: 395,
                       height: 45,
@@ -460,8 +405,8 @@ class _principalState extends State<principal> {
                     ),
                   ),
                   Positioned(
-                    top: MediaQuery.of(context).size.height * 0.08,
-                    left: MediaQuery.of(context).size.height * 0.02,
+                    top: hauteur * 0.08,
+                    left: hauteur * 0.02,
                     child: SizedBox(
                       width: 210,
                       height: 170,
@@ -478,8 +423,8 @@ class _principalState extends State<principal> {
                     ),
                   ),
                   Positioned(
-                    top: MediaQuery.of(context).size.height * 0.08,
-                    right: MediaQuery.of(context).size.height * 0.02,
+                    top: hauteur * 0.08,
+                    right: hauteur * 0.02,
                     child: GestureDetector(
                       onTap: () {
                         Navigator.pushNamed(context, mesnotes.screenRoute);
@@ -503,8 +448,8 @@ class _principalState extends State<principal> {
                   Stack(
                     children: [
                       Positioned(
-                        top: MediaQuery.of(context).size.height * 0.095,
-                        left: MediaQuery.of(context).size.height * 0.035,
+                        top: hauteur * 0.095,
+                        left: hauteur * 0.035,
                         child: SizedBox(
                           width: 120,
                           height: 44,
@@ -515,7 +460,7 @@ class _principalState extends State<principal> {
                                 texte,
                               );
 
-                              if (conversationId.isNotEmpty) {
+                              if (conversationId.isNotEmpty && mounted) {
                                 Navigator.pushNamed(
                                   context,
                                   chat.screenRoute,
@@ -546,8 +491,8 @@ class _principalState extends State<principal> {
                         ),
                       ),
                       Positioned(
-                        top: MediaQuery.of(context).size.height * 0.155,
-                        left: MediaQuery.of(context).size.height * 0.05,
+                        top: hauteur * 0.155,
+                        left: hauteur * 0.05,
                         child: SizedBox(
                           width: 35,
                           height: 15,
@@ -568,8 +513,8 @@ class _principalState extends State<principal> {
                         ),
                       ),
                       Positioned(
-                        top: MediaQuery.of(context).size.height * 0.174,
-                        left: MediaQuery.of(context).size.height * 0.07,
+                        top: hauteur * 0.174,
+                        left: hauteur * 0.07,
                         child: SizedBox(
                           width: 25,
                           height: 12,
@@ -590,8 +535,8 @@ class _principalState extends State<principal> {
                         ),
                       ),
                       Positioned(
-                        top: MediaQuery.of(context).size.height * 0.19,
-                        left: MediaQuery.of(context).size.height * 0.09,
+                        top: hauteur * 0.19,
+                        left: hauteur * 0.09,
                         child: SizedBox(
                           width: 20,
                           height: 8,
@@ -612,19 +557,19 @@ class _principalState extends State<principal> {
                         ),
                       ),
                       Positioned(
-                        top: MediaQuery.of(context).size.height * 0.13,
-                        left: MediaQuery.of(context).size.height * 0.12,
+                        top: hauteur * 0.13,
+                        left: hauteur * 0.12,
                         child: Image.asset("images/robot0.png", width: 95),
                       ),
                       Positioned(
-                        right: MediaQuery.of(context).size.height * 0.001,
-                        top: MediaQuery.of(context).size.height * 0.08,
+                        right: hauteur * 0.001,
+                        top: hauteur * 0.08,
                         child: const MesNotes(),
                       ),
                       Positioned(
-                        top: MediaQuery.of(context).size.height * 0.3,
-                        left: MediaQuery.of(context).size.height * 0.02,
-                        right: MediaQuery.of(context).size.height * 0.02,
+                        top: hauteur * 0.3,
+                        left: hauteur * 0.02,
+                        right: hauteur * 0.02,
                         child: GestureDetector(
                           onTap: () {
                             Navigator.pushNamed(
@@ -708,11 +653,11 @@ class _principalState extends State<principal> {
                         ),
                       ),
                       Positioned(
-                        left: MediaQuery.of(context).size.height * 0.01,
-                        right: MediaQuery.of(context).size.height * 0.01,
-                        bottom: MediaQuery.of(context).size.height * -0.08,
+                        left: hauteur * 0.01,
+                        right: hauteur * 0.01,
+                        bottom: hauteur * -0.08,
                         child: SizedBox(
-                          height: MediaQuery.of(context).size.height * 0.4,
+                          height: hauteur * 0.4,
                           child: sectionHistorique(),
                         ),
                       ),

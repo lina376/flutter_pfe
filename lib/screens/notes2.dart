@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-
+import 'package:ora/controllers/controleur_note.dart';
 import 'package:ora/screens/principal.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 class notes2 extends StatefulWidget {
   static const String screenRoute = 'pagenotes2';
   final Map<String, dynamic>? initial;
+
   const notes2({super.key, this.initial});
 
   @override
@@ -17,9 +16,7 @@ class notes2 extends StatefulWidget {
 class _notes2State extends State<notes2> {
   final titreCtrl = TextEditingController();
   final contenuCtrl = TextEditingController();
-
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final ControleurNote _controleurNote = ControleurNote();
 
   bool bold = false;
   bool italic = false;
@@ -33,35 +30,6 @@ class _notes2State extends State<notes2> {
     super.dispose();
   }
 
-  Future<void> _mettreAJourFavoriSiExiste({
-    required String noteId,
-    required String titre,
-    required String contenu,
-    required bool liked,
-  }) async {
-    final user = _auth.currentUser;
-    if (user == null) return;
-
-    final favorisRef = _firestore
-        .collection('users')
-        .doc(user.uid)
-        .collection('favoris');
-
-    final query = await favorisRef
-        .where('idOriginal', isEqualTo: 'note_$noteId')
-        .get();
-
-    for (final doc in query.docs) {
-      await doc.reference.update({
-        'title': titre,
-        'desc': contenu,
-        'contenu': contenu,
-        'liked': liked,
-        'date': Timestamp.now(),
-      });
-    }
-  }
-
   Future<void> _save() async {
     try {
       final titre = titreCtrl.text.trim();
@@ -69,55 +37,30 @@ class _notes2State extends State<notes2> {
 
       if (titre.isEmpty && contenu.isEmpty) return;
 
-      final user = _auth.currentUser;
-      if (user == null) return;
+      setState(() {
+        isSaving = true;
+      });
 
-      final titreFinal = titre.isEmpty ? "Sans titre" : titre;
-
-      final data = {
-        "titre": titreFinal,
-        "contenu": contenu,
-        "liked": liked,
-        "date": Timestamp.now(),
-      };
-
-      final noteId = widget.initial?["id"];
-
-      if (noteId != null && noteId.toString().isNotEmpty) {
-        await _firestore
-            .collection('users')
-            .doc(user.uid)
-            .collection('notes')
-            .doc(noteId)
-            .update(data);
-
-        await _mettreAJourFavoriSiExiste(
-          noteId: noteId.toString(),
-          titre: titreFinal,
-          contenu: contenu,
-          liked: liked,
-        );
-      } else {
-        final docRef = await _firestore
-            .collection('users')
-            .doc(user.uid)
-            .collection('notes')
-            .add(data);
-
-        await _mettreAJourFavoriSiExiste(
-          noteId: docRef.id,
-          titre: titreFinal,
-          contenu: contenu,
-          liked: liked,
-        );
-      }
+      await _controleurNote.enregistrerNote(
+        idNote: widget.initial?["id"]?.toString(),
+        titre: titre,
+        contenu: contenu,
+        aimee: liked,
+      );
 
       if (!mounted) return;
       Navigator.pop(context);
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text("Erreur: $e")));
+    } finally {
+      if (mounted) {
+        setState(() {
+          isSaving = false;
+        });
+      }
     }
   }
 
@@ -127,9 +70,9 @@ class _notes2State extends State<notes2> {
 
     final init = widget.initial;
     if (init != null) {
-      titreCtrl.text = (init["titre"] ?? "") as String;
-      contenuCtrl.text = (init["contenu"] ?? "") as String;
-      liked = (init["liked"] ?? false) as bool;
+      titreCtrl.text = (init["titre"] ?? "").toString();
+      contenuCtrl.text = (init["contenu"] ?? "").toString();
+      liked = (init["liked"] ?? false) == true;
     }
   }
 
@@ -308,7 +251,10 @@ class _notes2State extends State<notes2> {
                         isActive: liked,
                         onTap: () => setState(() => liked = !liked),
                       ),
-                      _Btn(icon: Icons.check, onTap: _save),
+                      _Btn(
+                        icon: isSaving ? Icons.hourglass_top : Icons.check,
+                        onTap: isSaving ? () {} : _save,
+                      ),
                     ],
                   ),
                 ),

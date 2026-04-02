@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:ora/controllers/controleur_authentification.dart';
 import 'package:ora/screens/creecompte.dart';
 import 'package:ora/screens/principal.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
 class connecter extends StatefulWidget {
   static const String screenRoute = 'pageconnecter';
@@ -12,14 +13,18 @@ class connecter extends StatefulWidget {
 }
 
 class _connecterState extends State<connecter> {
-  final _formkey = GlobalKey<FormState>(); //clé du formulaire (validation)
-  final _auth = FirebaseAuth.instance;
-  bool isLoading = false; //apres connecter
-  late String email;
-  late String motdepasse;
+  final _formkey = GlobalKey<FormState>();
+  final ControleurAuthentification _controleurAuthentification =
+      ControleurAuthentification();
+
+  bool isLoading = false;
+  String email = '';
+  String motdepasse = '';
 
   @override
   Widget build(BuildContext context) {
+    final hauteur = MediaQuery.of(context).size.height;
+
     return Scaffold(
       extendBodyBehindAppBar: true,
       body: Container(
@@ -34,12 +39,12 @@ class _connecterState extends State<connecter> {
         child: SafeArea(
           child: SingleChildScrollView(
             child: SizedBox(
-              height: MediaQuery.of(context).size.height,
+              height: hauteur,
               child: Stack(
                 children: [
                   Positioned(
-                    top: MediaQuery.of(context).size.height * 0.2,
-                    left: MediaQuery.of(context).size.height * 0.11,
+                    top: hauteur * 0.2,
+                    left: hauteur * 0.11,
                     child: const Text(
                       'Bienvenue',
                       style: TextStyle(
@@ -64,17 +69,17 @@ class _connecterState extends State<connecter> {
                     child: Stack(
                       children: [
                         Positioned(
-                          top: MediaQuery.of(context).size.height * 0.35,
-                          left: MediaQuery.of(context).size.height * 0.01,
+                          top: hauteur * 0.35,
+                          left: hauteur * 0.01,
                           child: const Text(
                             "Email",
                             style: TextStyle(color: Colors.white, fontSize: 14),
                           ),
                         ),
                         Positioned(
-                          top: MediaQuery.of(context).size.height * 0.38,
-                          left: MediaQuery.of(context).size.height * 0.01,
-                          right: MediaQuery.of(context).size.height * 0.01,
+                          top: hauteur * 0.38,
+                          left: hauteur * 0.01,
+                          right: hauteur * 0.01,
                           child: TextFormField(
                             keyboardType: TextInputType.emailAddress,
                             decoration: InputDecoration(
@@ -108,17 +113,17 @@ class _connecterState extends State<connecter> {
                           ),
                         ),
                         Positioned(
-                          top: MediaQuery.of(context).size.height * 0.47,
-                          left: MediaQuery.of(context).size.height * 0.01,
+                          top: hauteur * 0.47,
+                          left: hauteur * 0.01,
                           child: const Text(
                             "Mot de passe",
                             style: TextStyle(color: Colors.white, fontSize: 14),
                           ),
                         ),
                         Positioned(
-                          top: MediaQuery.of(context).size.height * 0.5,
-                          left: MediaQuery.of(context).size.height * 0.01,
-                          right: MediaQuery.of(context).size.height * 0.01,
+                          top: hauteur * 0.5,
+                          left: hauteur * 0.01,
+                          right: hauteur * 0.01,
                           child: TextFormField(
                             obscureText: true,
                             decoration: InputDecoration(
@@ -141,9 +146,9 @@ class _connecterState extends State<connecter> {
                           ),
                         ),
                         Positioned(
-                          top: MediaQuery.of(context).size.height * 0.6,
-                          right: MediaQuery.of(context).size.height * 0.165,
-                          left: MediaQuery.of(context).size.height * 0.165,
+                          top: hauteur * 0.6,
+                          right: hauteur * 0.165,
+                          left: hauteur * 0.165,
                           child: ElevatedButton(
                             onPressed: () async {
                               if (isLoading) return;
@@ -154,11 +159,14 @@ class _connecterState extends State<connecter> {
                                 });
 
                                 try {
-                                  final userCredential = await _auth
-                                      .signInWithEmailAndPassword(
-                                        email: email.trim(),
-                                        password: motdepasse.trim(),
-                                      );
+                                  final userCredential =
+                                      await _controleurAuthentification
+                                          .seConnecter(
+                                            email: email.trim(),
+                                            motDePasse: motdepasse.trim(),
+                                          );
+
+                                  if (!mounted) return;
 
                                   if (userCredential.user != null) {
                                     Navigator.pushReplacementNamed(
@@ -166,7 +174,6 @@ class _connecterState extends State<connecter> {
                                       principal.screenRoute,
                                     );
                                   }
-                                  // gestion des erreurs Firebase
                                 } on FirebaseAuthException catch (e) {
                                   String message = "Une erreur s'est produite";
 
@@ -181,29 +188,24 @@ class _connecterState extends State<connecter> {
                                     message = "Email ou mot de passe incorrect";
                                   }
 
+                                  if (!mounted) return;
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(content: Text(message)),
                                   );
                                 } catch (e) {
+                                  if (!mounted) return;
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(content: Text("Erreur : $e")),
                                   );
                                 } finally {
-                                  setState(() {
-                                    isLoading = false;
-                                  });
+                                  if (mounted) {
+                                    setState(() {
+                                      isLoading = false;
+                                    });
+                                  }
                                 }
                               }
                             },
-                            child: Center(
-                              child: Text(
-                                isLoading ? "Connexion..." : "connecter",
-                                textAlign: TextAlign.center,
-                                style: const TextStyle(
-                                  color: Color.fromARGB(136, 10, 11, 22),
-                                ),
-                              ),
-                            ),
                             style: ElevatedButton.styleFrom(
                               shape: const StadiumBorder(),
                               backgroundColor: const Color.fromARGB(
@@ -214,11 +216,20 @@ class _connecterState extends State<connecter> {
                               ),
                               elevation: 1,
                             ),
+                            child: Center(
+                              child: Text(
+                                isLoading ? "Connexion..." : "connecter",
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  color: Color.fromARGB(136, 10, 11, 22),
+                                ),
+                              ),
+                            ),
                           ),
                         ),
                         Positioned(
-                          top: MediaQuery.of(context).size.height * 0.8,
-                          left: MediaQuery.of(context).size.height * 0.188,
+                          top: hauteur * 0.8,
+                          left: hauteur * 0.188,
                           child: GestureDetector(
                             onTap: () {
                               Navigator.pushNamed(

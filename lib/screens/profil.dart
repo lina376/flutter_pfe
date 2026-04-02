@@ -1,13 +1,13 @@
 import 'dart:io';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:ora/controllers/controleur_profil.dart';
 import 'package:ora/screens/principal.dart';
 
 class Profil extends StatefulWidget {
   static const String screenRoute = 'pageprofil';
+
   const Profil({super.key});
 
   @override
@@ -15,7 +15,8 @@ class Profil extends StatefulWidget {
 }
 
 class _ProfilState extends State<Profil> {
-  final _formKey = GlobalKey<FormState>();
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final ControleurProfil _controleur = ControleurProfil();
 
   final TextEditingController _nomCtrl = TextEditingController();
   final TextEditingController _prenomCtrl = TextEditingController();
@@ -41,46 +42,39 @@ class _ProfilState extends State<Profil> {
   }
 
   Future<void> _loadUserData() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
-
     setState(() {
       _isLoading = true;
     });
 
     try {
-      final doc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .get();
+      final data = await _controleur.chargerProfil();
 
-      if (doc.exists) {
-        final data = doc.data() as Map<String, dynamic>;
-
+      if (data != null) {
         _nomCtrl.text = (data['nom'] ?? '').toString();
         _prenomCtrl.text = (data['prenom'] ?? '').toString();
-        _emailCtrl.text = (data['email'] ?? user.email ?? '').toString();
+        _emailCtrl.text = (data['email'] ?? '').toString();
 
-        if (data['dateNaissance'] != null &&
-            data['dateNaissance'].toString().isNotEmpty) {
-          final parsed = DateTime.tryParse(data['dateNaissance']);
+        final dateTexte = (data['dateNaissance'] ?? '').toString();
+        if (dateTexte.isNotEmpty) {
+          final parsed = DateTime.tryParse(dateTexte);
           if (parsed != null) {
             _birthDate = parsed;
             _birthCtrl.text =
                 "${parsed.day.toString().padLeft(2, '0')}/${parsed.month.toString().padLeft(2, '0')}/${parsed.year}";
           }
         }
-      } else {
-        _emailCtrl.text = user.email ?? '';
       }
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text("Erreur chargement profil : $e")));
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -104,22 +98,16 @@ class _ProfilState extends State<Profil> {
   Future<void> _saveProfile() async {
     if (!_formKey.currentState!.validate()) return;
 
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
-
     setState(() {
       _isLoading = true;
     });
 
     try {
-      await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
-        'nom': _nomCtrl.text.trim(),
-        'prenom': _prenomCtrl.text.trim(),
-        'email': _emailCtrl.text.trim(),
-        'dateNaissance': _birthDate?.toIso8601String() ?? '',
-        'updatedAt': FieldValue.serverTimestamp(),
-        'createdAt': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true));
+      await _controleur.mettreAJourProfil(
+        nom: _nomCtrl.text.trim(),
+        prenom: _prenomCtrl.text.trim(),
+        dateNaissance: _birthDate?.toIso8601String(),
+      );
 
       if (!mounted) return;
 
@@ -129,13 +117,16 @@ class _ProfilState extends State<Profil> {
 
       Navigator.pushReplacementNamed(context, principal.screenRoute);
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text("Erreur sauvegarde : $e")));
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -206,7 +197,6 @@ class _ProfilState extends State<Profil> {
                         const SizedBox(height: 12),
                         const ProfileAvatar(),
                         const SizedBox(height: 24),
-
                         const Align(
                           alignment: Alignment.centerLeft,
                           child: Text(
@@ -226,7 +216,6 @@ class _ProfilState extends State<Profil> {
                           },
                         ),
                         const SizedBox(height: 16),
-
                         const Align(
                           alignment: Alignment.centerLeft,
                           child: Text(
@@ -246,7 +235,6 @@ class _ProfilState extends State<Profil> {
                           },
                         ),
                         const SizedBox(height: 16),
-
                         const Align(
                           alignment: Alignment.centerLeft,
                           child: Text(
@@ -261,7 +249,6 @@ class _ProfilState extends State<Profil> {
                           decoration: _inputDecoration("Email"),
                         ),
                         const SizedBox(height: 16),
-
                         const Align(
                           alignment: Alignment.centerLeft,
                           child: Text(
@@ -283,12 +270,11 @@ class _ProfilState extends State<Profil> {
                           ),
                         ),
                         const SizedBox(height: 30),
-
                         SizedBox(
                           width: 180,
                           height: 48,
                           child: ElevatedButton(
-                            onPressed: _saveProfile,
+                            onPressed: _isLoading ? null : _saveProfile,
                             style: ElevatedButton.styleFrom(
                               shape: const StadiumBorder(),
                               backgroundColor: const Color.fromARGB(
@@ -330,7 +316,7 @@ class _ProfileAvatarState extends State<ProfileAvatar> {
 
   Future<void> _pick() async {
     final result = await FilePicker.platform.pickFiles(type: FileType.image);
-    if (result == null) return;
+    if (result == null || result.files.single.path == null) return;
 
     setState(() {
       _imageFile = File(result.files.single.path!);

@@ -1,8 +1,7 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:ora/controllers/controleur_favori.dart';
 import 'package:ora/screens/notes2.dart';
 
 class Favorise extends StatefulWidget {
@@ -14,23 +13,14 @@ class Favorise extends StatefulWidget {
 }
 
 class _FavoriseState extends State<Favorise> {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final ControleurFavori _controleurFavori = ControleurFavori();
 
   Future<void> supprimerFavori(String docId) async {
-    final user = _auth.currentUser;
-    if (user == null) return;
-
-    await _firestore
-        .collection('users')
-        .doc(user.uid)
-        .collection('favoris')
-        .doc(docId)
-        .delete();
+    await _controleurFavori.supprimerFavori(docId);
   }
 
   Future<void> ouvrirFavori(Map<String, dynamic> data) async {
-    final type = data["type"] ?? "";
+    final type = (data["type"] ?? "").toString();
 
     if (type == "note") {
       await Navigator.push(
@@ -38,12 +28,11 @@ class _FavoriseState extends State<Favorise> {
         MaterialPageRoute(
           builder: (_) => notes2(
             initial: {
-              "id": (data["idOriginal"] ?? "").toString().replaceFirst(
-                "note_",
-                "",
+              "id": _controleurFavori.extraireIdNoteDepuisIdOriginal(
+                (data["idOriginal"] ?? "").toString(),
               ),
-              "titre": data["title"] ?? "",
-              "contenu": data["contenu"] ?? "",
+              "titre": (data["title"] ?? "").toString(),
+              "contenu": (data["contenu"] ?? "").toString(),
               "liked": true,
               "date": (data["date"] as Timestamp?)?.toDate() ?? DateTime.now(),
             },
@@ -55,8 +44,6 @@ class _FavoriseState extends State<Favorise> {
 
   @override
   Widget build(BuildContext context) {
-    final user = _auth.currentUser;
-
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
@@ -102,148 +89,130 @@ class _FavoriseState extends State<Favorise> {
                 ),
                 const SizedBox(height: 16),
                 Expanded(
-                  child: user == null
-                      ? Center(
+                  child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                    stream: _controleurFavori.obtenirFluxFavoris(),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+
+                      if (snapshot.hasError) {
+                        return Center(
                           child: Text(
-                            "Aucun utilisateur connecté",
+                            "Erreur de chargement",
                             style: TextStyle(
                               color: Colors.white.withOpacity(0.8),
                             ),
                           ),
-                        )
-                      : StreamBuilder<QuerySnapshot>(
-                          stream: _firestore
-                              .collection('users')
-                              .doc(user.uid)
-                              .collection('favoris')
-                              .orderBy('date', descending: true)
-                              .snapshots(),
-                          builder: (context, snapshot) {
-                            if (snapshot.connectionState ==
-                                ConnectionState.waiting) {
-                              return const Center(
-                                child: CircularProgressIndicator(),
-                              );
-                            }
+                        );
+                      }
 
-                            if (snapshot.hasError) {
-                              return Center(
-                                child: Text(
-                                  "Erreur de chargement",
-                                  style: TextStyle(
-                                    color: Colors.white.withOpacity(0.8),
-                                  ),
+                      if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                        return Center(
+                          child: Text(
+                            "Aucun favori",
+                            style: TextStyle(
+                              color: Colors.white.withOpacity(0.8),
+                            ),
+                          ),
+                        );
+                      }
+
+                      final docs = snapshot.data!.docs;
+
+                      return ListView.separated(
+                        itemCount: docs.length,
+                        separatorBuilder: (_, __) => const SizedBox(height: 14),
+                        itemBuilder: (context, index) {
+                          final doc = docs[index];
+                          final data = doc.data();
+
+                          final Timestamp? ts = data["date"] as Timestamp?;
+                          final String dt = ts != null
+                              ? DateFormat(
+                                  "dd/MM/yyyy, HH:mm",
+                                ).format(ts.toDate())
+                              : "";
+
+                          return GestureDetector(
+                            onTap: () async {
+                              await ouvrirFavori(data);
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.18),
+                                borderRadius: BorderRadius.circular(18),
+                                border: Border.all(
+                                  color: Colors.white.withOpacity(0.12),
                                 ),
-                              );
-                            }
-
-                            if (!snapshot.hasData ||
-                                snapshot.data!.docs.isEmpty) {
-                              return Center(
-                                child: Text(
-                                  "Aucun favori",
-                                  style: TextStyle(
-                                    color: Colors.white.withOpacity(0.8),
+                              ),
+                              child: Row(
+                                children: [
+                                  const Icon(
+                                    Icons.favorite,
+                                    color: Colors.redAccent,
+                                    size: 30,
                                   ),
-                                ),
-                              );
-                            }
-
-                            final docs = snapshot.data!.docs;
-
-                            return ListView.separated(
-                              itemCount: docs.length,
-                              separatorBuilder: (_, __) =>
-                                  const SizedBox(height: 14),
-                              itemBuilder: (context, index) {
-                                final doc = docs[index];
-                                final data = doc.data() as Map<String, dynamic>;
-
-                                final Timestamp? ts =
-                                    data["date"] as Timestamp?;
-                                final String dt = ts != null
-                                    ? DateFormat(
-                                        "dd/MM/yyyy, HH:mm",
-                                      ).format(ts.toDate())
-                                    : "";
-
-                                return GestureDetector(
-                                  onTap: () async {
-                                    await ouvrirFavori(data);
-                                  },
-                                  child: Container(
-                                    padding: const EdgeInsets.all(16),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white.withOpacity(0.18),
-                                      borderRadius: BorderRadius.circular(18),
-                                      border: Border.all(
-                                        color: Colors.white.withOpacity(0.12),
-                                      ),
-                                    ),
-                                    child: Row(
+                                  const SizedBox(width: 14),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
-                                        const Icon(
-                                          Icons.favorite,
-                                          color: Colors.redAccent,
-                                          size: 30,
-                                        ),
-                                        const SizedBox(width: 14),
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                data["title"] ?? "",
-                                                maxLines: 1,
-                                                overflow: TextOverflow.ellipsis,
-                                                style: const TextStyle(
-                                                  color: Colors.white,
-                                                  fontWeight: FontWeight.w800,
-                                                  fontSize: 15,
-                                                ),
-                                              ),
-                                              const SizedBox(height: 3),
-                                              Text(
-                                                data["desc"] ?? "",
-                                                maxLines: 2,
-                                                overflow: TextOverflow.ellipsis,
-                                                style: TextStyle(
-                                                  color: Colors.white
-                                                      .withOpacity(0.75),
-                                                  fontSize: 12,
-                                                ),
-                                              ),
-                                              const SizedBox(height: 8),
-                                              Text(
-                                                dt,
-                                                style: TextStyle(
-                                                  color: Colors.white
-                                                      .withOpacity(0.9),
-                                                  fontSize: 10,
-                                                  fontWeight: FontWeight.w600,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                        IconButton(
-                                          icon: const Icon(
-                                            Icons.delete_outline,
+                                        Text(
+                                          (data["title"] ?? "").toString(),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: const TextStyle(
                                             color: Colors.white,
+                                            fontWeight: FontWeight.w800,
+                                            fontSize: 15,
                                           ),
-                                          onPressed: () async {
-                                            await supprimerFavori(doc.id);
-                                          },
+                                        ),
+                                        const SizedBox(height: 3),
+                                        Text(
+                                          (data["desc"] ?? "").toString(),
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: TextStyle(
+                                            color: Colors.white.withOpacity(
+                                              0.75,
+                                            ),
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 8),
+                                        Text(
+                                          dt,
+                                          style: TextStyle(
+                                            color: Colors.white.withOpacity(
+                                              0.9,
+                                            ),
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.w600,
+                                          ),
                                         ),
                                       ],
                                     ),
                                   ),
-                                );
-                              },
-                            );
-                          },
-                        ),
+                                  IconButton(
+                                    icon: const Icon(
+                                      Icons.delete_outline,
+                                      color: Colors.white,
+                                    ),
+                                    onPressed: () async {
+                                      await supprimerFavori(doc.id);
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      );
+                    },
+                  ),
                 ),
               ],
             ),

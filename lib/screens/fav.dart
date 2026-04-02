@@ -1,5 +1,5 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 final FirebaseAuth _auth = FirebaseAuth.instance;
 final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -27,23 +27,27 @@ Future<void> toggleFavori(Map<String, dynamic> item) async {
       .doc(user.uid)
       .collection('favoris');
 
-  final query = await ref.where('idOriginal', isEqualTo: item['id']).get();
+  final String idOriginal = (item['idOriginal'] ?? item['id'] ?? '').toString();
+  if (idOriginal.isEmpty) return;
+
+  final query = await ref.where('idOriginal', isEqualTo: idOriginal).get();
 
   if (query.docs.isNotEmpty) {
-    for (var doc in query.docs) {
+    for (final doc in query.docs) {
       await doc.reference.delete();
     }
   } else {
     await ref.add({
-      'idOriginal': item['id'],
+      'idOriginal': idOriginal,
       'type': item['type'] ?? 'note',
-      'title': item['title'] ?? '',
-      'desc': item['desc'] ?? '',
+      'title': item['title'] ?? item['titre'] ?? '',
+      'desc': item['desc'] ?? item['contenu'] ?? '',
       'contenu': item['contenu'] ?? '',
       'date': item['date'] is DateTime
           ? Timestamp.fromDate(item['date'])
           : Timestamp.now(),
-      'noteDocId': item['noteDocId'] ?? '',
+      'noteDocId':
+          item['noteDocId'] ?? idOriginal.toString().replaceFirst('note_', ''),
     });
   }
 }

@@ -1,9 +1,9 @@
-import 'package:flutter/material.dart';
-import 'package:ora/screens/notes2.dart';
 import 'dart:math';
-import 'fav.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
+import 'package:ora/controllers/controleur_note.dart';
+import 'package:ora/screens/notes2.dart';
+import 'fav.dart';
 
 class mesnotes extends StatefulWidget {
   static const String screenRoute = 'pagemesnotes';
@@ -15,35 +15,12 @@ class mesnotes extends StatefulWidget {
 
 class _mesnotesState extends State<mesnotes> {
   final TextEditingController searchCtrl = TextEditingController();
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final ControleurNote _controleurNote = ControleurNote();
 
   @override
   void dispose() {
     searchCtrl.dispose();
     super.dispose();
-  }
-
-  String _formatDate(DateTime d) {
-    final day = d.day.toString().padLeft(2, '0');
-    const months = [
-      'Jan',
-      'Fév',
-      'Mar',
-      'Avr',
-      'Mai',
-      'Juin',
-      'Juil',
-      'Aoû',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Déc',
-    ];
-    final month = months[d.month - 1];
-    final hour = d.hour.toString().padLeft(2, '0');
-    final min = d.minute.toString().padLeft(2, '0');
-    return "$day $month $hour:$min";
   }
 
   Future<void> _addNote() async {
@@ -53,43 +30,11 @@ class _mesnotesState extends State<mesnotes> {
     );
   }
 
-  Stream<QuerySnapshot> _notesStream() {
-    final user = _auth.currentUser;
-    if (user == null) return const Stream.empty();
-
-    return _firestore
-        .collection('users')
-        .doc(user.uid)
-        .collection('notes')
-        .orderBy('date', descending: true)
-        .snapshots();
-  }
-
   Future<void> supprimerNoteEtFavori(String noteId) async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
-
     try {
-      // supprimer la note
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .collection('notes')
-          .doc(noteId)
-          .delete();
-
-      //  supprimer le favori lié à cette note
-      final favorisQuery = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .collection('favoris')
-          .where('idOriginal', isEqualTo: 'note_$noteId')
-          .get();
-
-      for (final doc in favorisQuery.docs) {
-        await doc.reference.delete();
-      }
+      await _controleurNote.supprimerNote(noteId);
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text("Erreur suppression : $e")));
@@ -169,8 +114,8 @@ class _mesnotesState extends State<mesnotes> {
                 left: 16,
                 right: 16,
                 bottom: 90,
-                child: StreamBuilder<QuerySnapshot>(
-                  stream: _notesStream(),
+                child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                  stream: _controleurNote.obtenirFluxNotes(),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return const Center(child: CircularProgressIndicator());
@@ -191,7 +136,7 @@ class _mesnotesState extends State<mesnotes> {
 
                     final q = searchCtrl.text.trim().toLowerCase();
                     final docs = allDocs.where((doc) {
-                      final data = doc.data() as Map<String, dynamic>;
+                      final data = doc.data();
                       final titre = (data["titre"] ?? "")
                           .toString()
                           .toLowerCase();
@@ -204,12 +149,13 @@ class _mesnotesState extends State<mesnotes> {
                       separatorBuilder: (_, __) => const SizedBox(height: 14),
                       itemBuilder: (context, index) {
                         final doc = docs[index];
-                        final data = doc.data() as Map<String, dynamic>;
+                        final data = doc.data();
 
                         final noteId = doc.id;
-                        final titre = data["titre"] ?? "Sans titre";
-                        final contenu = data["contenu"] ?? "";
-                        final liked = data["liked"] ?? false;
+                        final titre = (data["titre"] ?? "Sans titre")
+                            .toString();
+                        final contenu = (data["contenu"] ?? "").toString();
+                        final liked = (data["liked"] ?? false) == true;
                         final Timestamp? ts = data["date"] as Timestamp?;
                         final date = ts?.toDate() ?? DateTime.now();
 
@@ -247,7 +193,7 @@ class _mesnotesState extends State<mesnotes> {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        _formatDate(date),
+                                        _controleurNote.formaterDate(date),
                                         style: TextStyle(
                                           color: Colors.white.withOpacity(0.75),
                                           fontSize: 12,
@@ -268,7 +214,6 @@ class _mesnotesState extends State<mesnotes> {
                                 ),
                                 Row(
                                   children: [
-                                    //  FAVORI
                                     FutureBuilder<bool>(
                                       future: isFavori("note_$noteId"),
                                       builder: (context, snapshot) {
@@ -296,15 +241,11 @@ class _mesnotesState extends State<mesnotes> {
                                         );
                                       },
                                     ),
-
                                     const SizedBox(width: 8),
-
-                                    //  DELETE
                                     GestureDetector(
                                       onTap: () async {
                                         await supprimerNoteEtFavori(noteId);
                                       },
-
                                       child: const Icon(
                                         Icons.delete_outline,
                                         color: Colors.white,
