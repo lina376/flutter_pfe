@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:ora/controllers/controleur_principal.dart';
+import 'package:ora/controlleurs/controleur_principal.dart';
 import 'package:ora/screens/calendrier.dart';
 import 'package:ora/screens/chat.dart';
 import 'package:ora/screens/mesnotes.dart';

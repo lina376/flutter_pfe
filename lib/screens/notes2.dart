@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:ora/controllers/controleur_note.dart';
+import 'package:ora/controlleurs/controleur_note.dart';
 import 'package:ora/screens/principal.dart';
 
 class notes2 extends StatefulWidget {

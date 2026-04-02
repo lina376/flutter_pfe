@@ -2,7 +2,7 @@ import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:ora/controllers/controleur_notification.dart';
+import 'package:ora/controlleurs/controleur_notification.dart';
 import 'package:ora/services/service_notification.dart';
 
 class notifications extends StatefulWidget {

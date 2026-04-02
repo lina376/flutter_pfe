@@ -2,7 +2,8 @@ import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:ora/controllers/controleur_profil.dart';
+import 'package:ora/controlleurs/controleur_profil.dart';
+import 'package:ora/models/modele_utilisateur.dart';
 import 'package:ora/screens/principal.dart';
 
 class Profil extends StatefulWidget {
@@ -47,21 +48,22 @@ class _ProfilState extends State<Profil> {
     });
 
     try {
-      final data = await _controleur.chargerProfil();
+      final user = await _controleur.chargerProfil();
 
-      if (data != null) {
-        _nomCtrl.text = (data['nom'] ?? '').toString();
-        _prenomCtrl.text = (data['prenom'] ?? '').toString();
-        _emailCtrl.text = (data['email'] ?? '').toString();
+      if (user != null) {
+        _nomCtrl.text = user.nom;
+        _prenomCtrl.text = user.prenom;
+        _emailCtrl.text = user.email;
 
-        final dateTexte = (data['dateNaissance'] ?? '').toString();
-        if (dateTexte.isNotEmpty) {
-          final parsed = DateTime.tryParse(dateTexte);
+        if (user.dateNaissance.isNotEmpty) {
+          final parsed = DateTime.tryParse(user.dateNaissance);
           if (parsed != null) {
             _birthDate = parsed;
             _birthCtrl.text =
                 "${parsed.day.toString().padLeft(2, '0')}/${parsed.month.toString().padLeft(2, '0')}/${parsed.year}";
           }
+        } else {
+          _birthCtrl.text = '';
         }
       }
     } catch (e) {
@@ -103,11 +105,14 @@ class _ProfilState extends State<Profil> {
     });
 
     try {
-      await _controleur.mettreAJourProfil(
+      final utilisateurModel = UserModel(
         nom: _nomCtrl.text.trim(),
         prenom: _prenomCtrl.text.trim(),
-        dateNaissance: _birthDate?.toIso8601String(),
+        email: _emailCtrl.text.trim(),
+        dateNaissance: _birthDate?.toIso8601String() ?? '',
       );
+
+      await _controleur.mettreAJourProfil(utilisateurModel: utilisateurModel);
 
       if (!mounted) return;
 

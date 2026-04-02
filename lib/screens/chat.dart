@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:ora/controllers/controleur_chat.dart';
+import 'package:ora/controlleurs/controleur_chat.dart';
 
 class chat extends StatefulWidget {
   static const String screenRoute = 'pagechat';

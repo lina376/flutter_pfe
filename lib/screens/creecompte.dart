@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:ora/controllers/controleur_authentification.dart';
+import 'package:ora/controlleurs/controleur_authentification.dart';
 import 'package:ora/screens/connecter.dart';
 import 'package:ora/screens/principal.dart';
 
