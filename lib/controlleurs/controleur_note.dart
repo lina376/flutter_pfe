@@ -1,4 +1,4 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import '../models/modele_note.dart';
 import '../services/service_note.dart';
 import '../services/service_favori.dart';
 
@@ -6,13 +6,16 @@ class ControleurNote {
   final ServiceNote _serviceNote = ServiceNote();
   final ServiceFavori _serviceFavori = ServiceFavori();
 
-  Stream<QuerySnapshot<Map<String, dynamic>>> obtenirFluxNotes() {
+  Stream<List<ModeleNote>> obtenirFluxNotes() {
     return _serviceNote.obtenirFluxNotes();
   }
 
   Future<void> supprimerNote(String idNote) async {
     await _serviceNote.supprimerNote(idNote);
-    await _serviceFavori.supprimerFavoriLieANote(idNote);
+
+    try {
+      await _serviceFavori.supprimerFavoriLieANote(idNote);
+    } catch (_) {}
   }
 
   Future<void> enregistrerNote({
@@ -21,34 +24,40 @@ class ControleurNote {
     required String contenu,
     required bool aimee,
   }) async {
+    final titreFinal = titre.isEmpty ? 'Sans titre' : titre;
+
     if (idNote != null && idNote.isNotEmpty) {
       await _serviceNote.mettreAJourNote(
         idNote: idNote,
-        titre: titre,
+        titre: titreFinal,
         contenu: contenu,
         aimee: aimee,
       );
 
-      await _serviceFavori.mettreAJourFavoriLieANote(
-        idNote: idNote,
-        titre: titre.isEmpty ? 'Sans titre' : titre,
-        contenu: contenu,
-        aimee: aimee,
-      );
+      try {
+        await _serviceFavori.mettreAJourFavoriLieANote(
+          idNote: idNote,
+          titre: titreFinal,
+          contenu: contenu,
+          aimee: aimee,
+        );
+      } catch (_) {}
     } else {
       final nouvelId = await _serviceNote.ajouterNote(
-        titre: titre,
+        titre: titreFinal,
         contenu: contenu,
         aimee: aimee,
       );
 
-      if (aimee && nouvelId.isNotEmpty) {
-        await _serviceFavori.basculerFavoriNote(
-          idNote: nouvelId,
-          titre: titre.isEmpty ? 'Sans titre' : titre,
-          contenu: contenu,
-          date: DateTime.now(),
-        );
+      if (nouvelId.isNotEmpty && aimee) {
+        try {
+          await _serviceFavori.basculerFavoriNote(
+            idNote: nouvelId,
+            titre: titreFinal,
+            contenu: contenu,
+            date: DateTime.now(),
+          );
+        } catch (_) {}
       }
     }
   }

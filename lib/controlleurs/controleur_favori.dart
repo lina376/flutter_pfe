@@ -1,10 +1,10 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import '../models/modele_favori.dart';
 import '../services/service_favori.dart';
 
 class ControleurFavori {
   final ServiceFavori _serviceFavori = ServiceFavori();
 
-  Stream<QuerySnapshot<Map<String, dynamic>>> obtenirFluxFavoris() {
+  Stream<List<ModeleFavori>> obtenirFluxFavoris() {
     return _serviceFavori.obtenirFluxFavoris();
   }
 

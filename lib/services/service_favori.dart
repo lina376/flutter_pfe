@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../models/modele_favori.dart';
 
 class ServiceFavori {
   final FirebaseAuth _authentification = FirebaseAuth.instance;
@@ -15,13 +16,20 @@ class ServiceFavori {
         .collection('favoris');
   }
 
-  Stream<QuerySnapshot<Map<String, dynamic>>> obtenirFluxFavoris() {
+  Stream<List<ModeleFavori>> obtenirFluxFavoris() {
     final reference = _referenceFavorisUtilisateur();
     if (reference == null) {
-      return const Stream.empty();
+      return Stream.value([]);
     }
 
-    return reference.orderBy('date', descending: true).snapshots();
+    return reference
+        .orderBy('date', descending: true)
+        .snapshots()
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) => ModeleFavori.fromFirestore(doc))
+              .toList(),
+        );
   }
 
   Future<bool> estFavori(String idOriginal) async {
@@ -64,18 +72,38 @@ class ServiceFavori {
     final reference = _referenceFavorisUtilisateur();
     if (reference == null) return;
 
+    final idOriginal = 'note_$idNote';
+
     final resultat = await reference
-        .where('idOriginal', isEqualTo: 'note_$idNote')
+        .where('idOriginal', isEqualTo: idOriginal)
         .get();
 
-    for (final document in resultat.docs) {
-      await document.reference.update({
-        'title': titre,
-        'desc': contenu,
-        'contenu': contenu,
-        'liked': aimee,
-        'date': Timestamp.now(),
-      });
+    if (aimee) {
+      if (resultat.docs.isNotEmpty) {
+        for (final document in resultat.docs) {
+          await document.reference.update({
+            'title': titre,
+            'desc': contenu,
+            'contenu': contenu,
+            'date': Timestamp.now(),
+            'noteDocId': idNote,
+          });
+        }
+      } else {
+        await reference.add({
+          'idOriginal': idOriginal,
+          'type': 'note',
+          'title': titre,
+          'desc': contenu,
+          'contenu': contenu,
+          'date': Timestamp.now(),
+          'noteDocId': idNote,
+        });
+      }
+    } else {
+      for (final document in resultat.docs) {
+        await document.reference.delete();
+      }
     }
   }
 

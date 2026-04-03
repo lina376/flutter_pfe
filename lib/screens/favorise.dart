@@ -1,7 +1,7 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:ora/controlleurs/controleur_favori.dart';
+import 'package:ora/models/modele_favori.dart';
 import 'package:ora/screens/notes2.dart';
 
 class Favorise extends StatefulWidget {
@@ -19,22 +19,22 @@ class _FavoriseState extends State<Favorise> {
     await _controleurFavori.supprimerFavori(docId);
   }
 
-  Future<void> ouvrirFavori(Map<String, dynamic> data) async {
-    final type = (data["type"] ?? "").toString();
-
-    if (type == "note") {
+  Future<void> ouvrirFavori(ModeleFavori favori) async {
+    if (favori.type == "note") {
       await Navigator.push(
         context,
         MaterialPageRoute(
           builder: (_) => notes2(
             initial: {
-              "id": _controleurFavori.extraireIdNoteDepuisIdOriginal(
-                (data["idOriginal"] ?? "").toString(),
-              ),
-              "titre": (data["title"] ?? "").toString(),
-              "contenu": (data["contenu"] ?? "").toString(),
+              "id": favori.noteDocId.isNotEmpty
+                  ? favori.noteDocId
+                  : _controleurFavori.extraireIdNoteDepuisIdOriginal(
+                      favori.idOriginal,
+                    ),
+              "titre": favori.title,
+              "contenu": favori.contenu,
               "liked": true,
-              "date": (data["date"] as Timestamp?)?.toDate() ?? DateTime.now(),
+              "date": favori.date,
             },
           ),
         ),
@@ -89,7 +89,7 @@ class _FavoriseState extends State<Favorise> {
                 ),
                 const SizedBox(height: 16),
                 Expanded(
-                  child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                  child: StreamBuilder<List<ModeleFavori>>(
                     stream: _controleurFavori.obtenirFluxFavoris(),
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
@@ -107,7 +107,9 @@ class _FavoriseState extends State<Favorise> {
                         );
                       }
 
-                      if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                      final favoris = snapshot.data ?? [];
+
+                      if (favoris.isEmpty) {
                         return Center(
                           child: Text(
                             "Aucun favori",
@@ -118,25 +120,18 @@ class _FavoriseState extends State<Favorise> {
                         );
                       }
 
-                      final docs = snapshot.data!.docs;
-
                       return ListView.separated(
-                        itemCount: docs.length,
+                        itemCount: favoris.length,
                         separatorBuilder: (_, __) => const SizedBox(height: 14),
                         itemBuilder: (context, index) {
-                          final doc = docs[index];
-                          final data = doc.data();
-
-                          final Timestamp? ts = data["date"] as Timestamp?;
-                          final String dt = ts != null
-                              ? DateFormat(
-                                  "dd/MM/yyyy, HH:mm",
-                                ).format(ts.toDate())
-                              : "";
+                          final favori = favoris[index];
+                          final dt = DateFormat(
+                            "dd/MM/yyyy, HH:mm",
+                          ).format(favori.date);
 
                           return GestureDetector(
                             onTap: () async {
-                              await ouvrirFavori(data);
+                              await ouvrirFavori(favori);
                             },
                             child: Container(
                               padding: const EdgeInsets.all(16),
@@ -161,7 +156,7 @@ class _FavoriseState extends State<Favorise> {
                                           CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          (data["title"] ?? "").toString(),
+                                          favori.title,
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
                                           style: const TextStyle(
@@ -172,7 +167,7 @@ class _FavoriseState extends State<Favorise> {
                                         ),
                                         const SizedBox(height: 3),
                                         Text(
-                                          (data["desc"] ?? "").toString(),
+                                          favori.desc,
                                           maxLines: 2,
                                           overflow: TextOverflow.ellipsis,
                                           style: TextStyle(
@@ -202,7 +197,7 @@ class _FavoriseState extends State<Favorise> {
                                       color: Colors.white,
                                     ),
                                     onPressed: () async {
-                                      await supprimerFavori(doc.id);
+                                      await supprimerFavori(favori.id);
                                     },
                                   ),
                                 ],

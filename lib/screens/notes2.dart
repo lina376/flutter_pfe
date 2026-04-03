@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:ora/controlleurs/controleur_note.dart';
 import 'package:ora/screens/principal.dart';
+import 'package:ora/screens/mesnotes.dart';
 
 class notes2 extends StatefulWidget {
   static const String screenRoute = 'pagenotes2';
@@ -14,14 +15,25 @@ class notes2 extends StatefulWidget {
 }
 
 class _notes2State extends State<notes2> {
-  final titreCtrl = TextEditingController();
-  final contenuCtrl = TextEditingController();
+  final TextEditingController titreCtrl = TextEditingController();
+  final TextEditingController contenuCtrl = TextEditingController();
   final ControleurNote _controleurNote = ControleurNote();
 
   bool bold = false;
   bool italic = false;
   bool liked = false;
-  bool isSaving = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    final init = widget.initial;
+    if (init != null) {
+      titreCtrl.text = (init["titre"] ?? "").toString();
+      contenuCtrl.text = (init["contenu"] ?? "").toString();
+      liked = (init["liked"] ?? false) == true;
+    }
+  }
 
   @override
   void dispose() {
@@ -35,11 +47,10 @@ class _notes2State extends State<notes2> {
       final titre = titreCtrl.text.trim();
       final contenu = contenuCtrl.text.trim();
 
-      if (titre.isEmpty && contenu.isEmpty) return;
-
-      setState(() {
-        isSaving = true;
-      });
+      if (titre.isEmpty && contenu.isEmpty) {
+        Navigator.pop(context, false);
+        return;
+      }
 
       await _controleurNote.enregistrerNote(
         idNote: widget.initial?["id"]?.toString(),
@@ -49,30 +60,13 @@ class _notes2State extends State<notes2> {
       );
 
       if (!mounted) return;
-      Navigator.pop(context);
+
+      Navigator.pop(context, true);
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text("Erreur: $e")));
-    } finally {
-      if (mounted) {
-        setState(() {
-          isSaving = false;
-        });
-      }
-    }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-
-    final init = widget.initial;
-    if (init != null) {
-      titreCtrl.text = (init["titre"] ?? "").toString();
-      contenuCtrl.text = (init["contenu"] ?? "").toString();
-      liked = (init["liked"] ?? false) == true;
     }
   }
 
@@ -109,7 +103,7 @@ class _notes2State extends State<notes2> {
                   ),
                   icon: const Icon(Icons.chevron_left, color: Colors.white),
                   onPressed: () {
-                    Navigator.pop(context);
+                    Navigator.pop(context, true);
                   },
                   tooltip: 'chevron',
                   iconSize: 40,
@@ -252,8 +246,11 @@ class _notes2State extends State<notes2> {
                         onTap: () => setState(() => liked = !liked),
                       ),
                       _Btn(
-                        icon: isSaving ? Icons.hourglass_top : Icons.check,
-                        onTap: isSaving ? () {} : _save,
+                        icon: const IconData(
+                          0xe156,
+                          fontFamily: 'MaterialIcons',
+                        ),
+                        onTap: _save,
                       ),
                     ],
                   ),

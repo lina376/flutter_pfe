@@ -1,9 +1,9 @@
 import 'dart:math';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:ora/controlleurs/controleur_favori.dart';
 import 'package:ora/controlleurs/controleur_note.dart';
+import 'package:ora/models/modele_note.dart';
 import 'package:ora/screens/notes2.dart';
-import 'fav.dart';
 
 class mesnotes extends StatefulWidget {
   static const String screenRoute = 'pagemesnotes';
@@ -16,6 +16,7 @@ class mesnotes extends StatefulWidget {
 class _mesnotesState extends State<mesnotes> {
   final TextEditingController searchCtrl = TextEditingController();
   final ControleurNote _controleurNote = ControleurNote();
+  final ControleurFavori _controleurFavori = ControleurFavori();
 
   @override
   void dispose() {
@@ -24,10 +25,14 @@ class _mesnotesState extends State<mesnotes> {
   }
 
   Future<void> _addNote() async {
-    await Navigator.push(
+    final resultat = await Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => const notes2()),
     );
+
+    if (resultat == true && mounted) {
+      setState(() {});
+    }
   }
 
   Future<void> supprimerNoteEtFavori(String noteId) async {
@@ -114,14 +119,16 @@ class _mesnotesState extends State<mesnotes> {
                 left: 16,
                 right: 16,
                 bottom: 90,
-                child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                child: StreamBuilder<List<ModeleNote>>(
                   stream: _controleurNote.obtenirFluxNotes(),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return const Center(child: CircularProgressIndicator());
                     }
 
-                    if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                    final allNotes = snapshot.data ?? [];
+
+                    if (allNotes.isEmpty) {
                       return Center(
                         child: Text(
                           "Aucune note",
@@ -132,49 +139,51 @@ class _mesnotesState extends State<mesnotes> {
                       );
                     }
 
-                    final allDocs = snapshot.data!.docs;
-
                     final q = searchCtrl.text.trim().toLowerCase();
-                    final docs = allDocs.where((doc) {
-                      final data = doc.data();
-                      final titre = (data["titre"] ?? "")
-                          .toString()
-                          .toLowerCase();
-                      return q.isEmpty || titre.contains(q);
+                    final notes = allNotes.where((note) {
+                      return q.isEmpty ||
+                          note.titre.toLowerCase().contains(q) ||
+                          note.contenu.toLowerCase().contains(q);
                     }).toList();
+
+                    if (notes.isEmpty) {
+                      return Center(
+                        child: Text(
+                          "Aucun résultat",
+                          style: TextStyle(
+                            color: Colors.white.withOpacity(0.8),
+                          ),
+                        ),
+                      );
+                    }
 
                     return ListView.separated(
                       padding: const EdgeInsets.only(bottom: 10),
-                      itemCount: docs.length,
+                      itemCount: notes.length,
                       separatorBuilder: (_, __) => const SizedBox(height: 14),
                       itemBuilder: (context, index) {
-                        final doc = docs[index];
-                        final data = doc.data();
-
-                        final noteId = doc.id;
-                        final titre = (data["titre"] ?? "Sans titre")
-                            .toString();
-                        final contenu = (data["contenu"] ?? "").toString();
-                        final liked = (data["liked"] ?? false) == true;
-                        final Timestamp? ts = data["date"] as Timestamp?;
-                        final date = ts?.toDate() ?? DateTime.now();
+                        final note = notes[index];
 
                         return GestureDetector(
                           onTap: () async {
-                            await Navigator.push(
+                            final resultat = await Navigator.push(
                               context,
                               MaterialPageRoute(
                                 builder: (_) => notes2(
                                   initial: {
-                                    "id": noteId,
-                                    "titre": titre,
-                                    "contenu": contenu,
-                                    "liked": liked,
-                                    "date": date,
+                                    "id": note.id,
+                                    "titre": note.titre,
+                                    "contenu": note.contenu,
+                                    "liked": note.liked,
+                                    "date": note.date,
                                   },
                                 ),
                               ),
                             );
+
+                            if (resultat == true && mounted) {
+                              setState(() {});
+                            }
                           },
                           child: Container(
                             padding: const EdgeInsets.all(14),
@@ -193,7 +202,7 @@ class _mesnotesState extends State<mesnotes> {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        _controleurNote.formaterDate(date),
+                                        _controleurNote.formaterDate(note.date),
                                         style: TextStyle(
                                           color: Colors.white.withOpacity(0.75),
                                           fontSize: 12,
@@ -202,34 +211,53 @@ class _mesnotesState extends State<mesnotes> {
                                       ),
                                       const SizedBox(height: 8),
                                       Text(
-                                        titre,
+                                        note.titre,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
                                         style: const TextStyle(
                                           color: Colors.white,
                                           fontSize: 16,
                                           fontWeight: FontWeight.w800,
                                         ),
                                       ),
+                                      if (note.contenu.trim().isNotEmpty) ...[
+                                        const SizedBox(height: 5),
+                                        Text(
+                                          note.contenu,
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: TextStyle(
+                                            color: Colors.white.withOpacity(
+                                              0.72,
+                                            ),
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                      ],
                                     ],
                                   ),
                                 ),
                                 Row(
                                   children: [
                                     FutureBuilder<bool>(
-                                      future: isFavori("note_$noteId"),
+                                      future: _controleurFavori.estFavori(
+                                        "note_${note.id}",
+                                      ),
                                       builder: (context, snapshot) {
                                         final isFav = snapshot.data ?? false;
 
                                         return GestureDetector(
                                           onTap: () async {
-                                            await toggleFavori({
-                                              "id": "note_$noteId",
-                                              "type": "note",
-                                              "title": titre,
-                                              "desc": contenu,
-                                              "contenu": contenu,
-                                              "date": date,
-                                            });
-                                            setState(() {});
+                                            await _controleurFavori
+                                                .basculerFavoriNote(
+                                                  idNote: note.id,
+                                                  titre: note.titre,
+                                                  contenu: note.contenu,
+                                                  date: note.date,
+                                                );
+                                            if (mounted) {
+                                              setState(() {});
+                                            }
                                           },
                                           child: Icon(
                                             isFav
@@ -244,7 +272,7 @@ class _mesnotesState extends State<mesnotes> {
                                     const SizedBox(width: 8),
                                     GestureDetector(
                                       onTap: () async {
-                                        await supprimerNoteEtFavori(noteId);
+                                        await supprimerNoteEtFavori(note.id);
                                       },
                                       child: const Icon(
                                         Icons.delete_outline,
