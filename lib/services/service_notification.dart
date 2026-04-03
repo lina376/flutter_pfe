@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../models/modele_notification.dart';
 
 class ServiceNotification {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -15,11 +16,18 @@ class ServiceNotification {
         .collection('notifications');
   }
 
-  Stream<QuerySnapshot<Map<String, dynamic>>> obtenirFluxNotifications() {
+  Stream<List<ModeleNotification>> obtenirFluxNotifications() {
     final ref = _refNotifications();
-    if (ref == null) return const Stream.empty();
+    if (ref == null) return Stream.value([]);
 
-    return ref.orderBy('createdAt', descending: true).snapshots();
+    return ref
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) => ModeleNotification.fromFirestore(doc))
+              .toList(),
+        );
   }
 
   Future<void> marquerCommeLu(String id) async {

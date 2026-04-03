@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../models/modele_principale.dart';
 
 class ServicePrincipal {
   final FirebaseAuth _authentification = FirebaseAuth.instance;
@@ -13,21 +14,26 @@ class ServicePrincipal {
     await _authentification.signOut();
   }
 
-  Stream<DocumentSnapshot<Map<String, dynamic>>> obtenirFluxUtilisateur() {
+  Stream<ModeleUtilisateurPrincipal?> obtenirFluxUtilisateur() {
     final utilisateur = _authentification.currentUser;
 
     if (utilisateur == null) {
-      return const Stream.empty();
+      return Stream.value(null);
     }
 
-    return _firestore.collection('users').doc(utilisateur.uid).snapshots();
+    return _firestore.collection('users').doc(utilisateur.uid).snapshots().map((
+      doc,
+    ) {
+      if (!doc.exists) return null;
+      return ModeleUtilisateurPrincipal.fromMap(doc.data());
+    });
   }
 
-  Stream<QuerySnapshot<Map<String, dynamic>>> obtenirFluxConversations() {
+  Stream<List<ModeleConversation>> obtenirFluxConversations() {
     final utilisateur = _authentification.currentUser;
 
     if (utilisateur == null) {
-      return const Stream.empty();
+      return Stream.value([]);
     }
 
     return _firestore
@@ -35,12 +41,19 @@ class ServicePrincipal {
         .doc(utilisateur.uid)
         .collection('conversations')
         .orderBy('dateMaj', descending: true)
-        .snapshots();
+        .snapshots()
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) => ModeleConversation.fromFirestore(doc))
+              .toList(),
+        );
   }
 
   Future<String> creerConversation({required String premierMessage}) async {
     final utilisateur = _authentification.currentUser;
     if (utilisateur == null) return '';
+
+    final maintenant = Timestamp.now();
 
     final document = await _firestore
         .collection('users')
@@ -49,8 +62,8 @@ class ServicePrincipal {
         .add({
           'titre': premierMessage,
           'dernierMessage': premierMessage,
-          'dateCreation': Timestamp.now(),
-          'dateMaj': Timestamp.now(),
+          'dateCreation': maintenant,
+          'dateMaj': maintenant,
         });
 
     return document.id;

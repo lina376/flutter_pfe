@@ -1,5 +1,5 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../models/modele_principale.dart';
 import '../services/service_principal.dart';
 
 class ControleurPrincipal {
@@ -9,11 +9,11 @@ class ControleurPrincipal {
     return _servicePrincipal.obtenirUtilisateurActuel();
   }
 
-  Stream<DocumentSnapshot<Map<String, dynamic>>> obtenirFluxUtilisateur() {
+  Stream<ModeleUtilisateurPrincipal?> obtenirFluxUtilisateur() {
     return _servicePrincipal.obtenirFluxUtilisateur();
   }
 
-  Stream<QuerySnapshot<Map<String, dynamic>>> obtenirFluxConversations() {
+  Stream<List<ModeleConversation>> obtenirFluxConversations() {
     return _servicePrincipal.obtenirFluxConversations();
   }
 
@@ -25,13 +25,7 @@ class ControleurPrincipal {
     return _servicePrincipal.creerConversation(premierMessage: premierMessage);
   }
 
-  String obtenirNomAffichage(Map<String, dynamic>? donnees) {
-    if (donnees == null) return 'ORA';
-
-    final prenom = (donnees['prenom'] ?? '').toString().trim();
-    final nom = (donnees['nom'] ?? '').toString().trim();
-    final nomComplet = '$prenom $nom'.trim();
-
-    return nomComplet.isEmpty ? 'ORA' : nomComplet;
+  String obtenirNomAffichage(ModeleUtilisateurPrincipal? utilisateur) {
+    return utilisateur?.nomAffichage ?? 'ORA';
   }
 }

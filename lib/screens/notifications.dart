@@ -1,12 +1,13 @@
 import 'dart:math';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:ora/controlleurs/controleur_notification.dart';
+import 'package:ora/models/modele_notification.dart';
 import 'package:ora/services/service_notification.dart';
 
 class notifications extends StatefulWidget {
   static const String screenRoute = 'pagenotifications';
+
   const notifications({super.key});
 
   @override
@@ -16,23 +17,6 @@ class notifications extends StatefulWidget {
 class _notificationsState extends State<notifications> {
   final ControleurNotification _controleurNotification =
       ControleurNotification();
-
-  IconData _getIcon(String iconType) {
-    switch (iconType) {
-      case 'water':
-        return Icons.water_drop;
-      case 'doctor':
-        return Icons.medical_services;
-      case 'medicine':
-        return Icons.medication;
-      case 'sport':
-        return Icons.fitness_center;
-      case 'sleep':
-        return Icons.bedtime;
-      default:
-        return Icons.notifications_active;
-    }
-  }
 
   final ServiceNotification _serviceNotification = ServiceNotification();
 
@@ -111,7 +95,7 @@ class _notificationsState extends State<notifications> {
                 ),
                 const SizedBox(height: 14),
                 Expanded(
-                  child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                  child: StreamBuilder<List<ModeleNotification>>(
                     stream: _controleurNotification.obtenirFluxNotifications(),
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
@@ -127,9 +111,9 @@ class _notificationsState extends State<notifications> {
                         );
                       }
 
-                      final docs = snapshot.data?.docs ?? [];
+                      final notificationsList = snapshot.data ?? [];
 
-                      if (docs.isEmpty) {
+                      if (notificationsList.isEmpty) {
                         return const Center(
                           child: Text(
                             "Aucune notification",
@@ -143,17 +127,10 @@ class _notificationsState extends State<notifications> {
                       }
 
                       return ListView.separated(
-                        itemCount: docs.length,
+                        itemCount: notificationsList.length,
                         separatorBuilder: (_, __) => const SizedBox(height: 12),
                         itemBuilder: (context, index) {
-                          final doc = docs[index];
-                          final data = doc.data();
-
-                          final notif = AppNotification.fromFirestore(
-                            doc.id,
-                            data,
-                            _getIcon(data['iconType'] ?? ''),
-                          );
+                          final notif = notificationsList[index];
 
                           return GestureDetector(
                             onTap: () async {
@@ -231,9 +208,10 @@ class _notificationsState extends State<notifications> {
                                   Column(
                                     children: [
                                       Text(
-                                        _controleurNotification.formaterDate(
-                                          data['createdAt'],
-                                        ),
+                                        _controleurNotification
+                                            .formaterDateDepuisDateTime(
+                                              notif.dateTime,
+                                            ),
                                         style: TextStyle(
                                           color: Colors.white.withOpacity(0.85),
                                           fontSize: 11,
@@ -273,7 +251,8 @@ class _notificationsState extends State<notifications> {
 }
 
 class NotificationDetailsPage extends StatelessWidget {
-  final AppNotification notification;
+  final ModeleNotification notification;
+
   const NotificationDetailsPage({super.key, required this.notification});
 
   String _timeHHmm(DateTime d) => DateFormat("HH:mm").format(d);
@@ -379,49 +358,6 @@ class NotificationDetailsPage extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
-}
-
-class AppNotification {
-  final String id;
-  final String title;
-  final String body;
-  final DateTime dateTime;
-  final IconData icon;
-  final bool isRead;
-  final String type;
-  final String iconType;
-  final Map<String, dynamic> data;
-
-  AppNotification({
-    required this.id,
-    required this.title,
-    required this.body,
-    required this.dateTime,
-    required this.icon,
-    required this.isRead,
-    required this.type,
-    required this.iconType,
-    required this.data,
-  });
-
-  factory AppNotification.fromFirestore(
-    String id,
-    Map<String, dynamic> json,
-    IconData icon,
-  ) {
-    return AppNotification(
-      id: id,
-      title: (json['title'] ?? '').toString(),
-      body: (json['body'] ?? '').toString(),
-      dateTime:
-          (json['scheduledFor'] as Timestamp?)?.toDate() ?? DateTime.now(),
-      icon: icon,
-      isRead: (json['isRead'] ?? false) == true,
-      type: (json['type'] ?? '').toString(),
-      iconType: (json['iconType'] ?? '').toString(),
-      data: Map<String, dynamic>.from(json['data'] ?? {}),
     );
   }
 }

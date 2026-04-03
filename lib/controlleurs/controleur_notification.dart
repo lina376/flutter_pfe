@@ -1,10 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../models/modele_notification.dart';
 import '../services/service_notification.dart';
 
 class ControleurNotification {
   final ServiceNotification _service = ServiceNotification();
 
-  Stream<QuerySnapshot<Map<String, dynamic>>> obtenirFluxNotifications() {
+  Stream<List<ModeleNotification>> obtenirFluxNotifications() {
     return _service.obtenirFluxNotifications();
   }
 
@@ -19,6 +20,10 @@ class ControleurNotification {
   String formaterDate(dynamic timestamp) {
     if (timestamp is! Timestamp) return '';
     final date = timestamp.toDate();
+    return "${date.day}/${date.month} ${date.hour}:${date.minute.toString().padLeft(2, '0')}";
+  }
+
+  String formaterDateDepuisDateTime(DateTime date) {
     return "${date.day}/${date.month} ${date.hour}:${date.minute.toString().padLeft(2, '0')}";
   }
 }

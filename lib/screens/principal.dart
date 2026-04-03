@@ -1,15 +1,17 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:table_calendar/table_calendar.dart';
+
 import 'package:ora/controlleurs/controleur_principal.dart';
+import 'package:ora/models/modele_principale.dart';
 import 'package:ora/screens/calendrier.dart';
 import 'package:ora/screens/chat.dart';
 import 'package:ora/screens/mesnotes.dart';
 import 'package:ora/screens/notifications.dart';
-import 'package:table_calendar/table_calendar.dart';
-import 'package:intl/intl.dart';
 
 class principal extends StatefulWidget {
   static const String screenRoute = 'pageprincipal';
+
   const principal({super.key});
 
   @override
@@ -21,7 +23,6 @@ class _principalState extends State<principal> {
 
   DateTime _moisAffiche = DateTime.now();
   DateTime _dateSelectionnee = DateTime.now();
-
   bool _notif = true;
 
   Future<void> _logout() async {
@@ -36,7 +37,7 @@ class _principalState extends State<principal> {
     );
   }
 
-  void _Parametre() {
+  void _parametre() {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -149,26 +150,11 @@ class _principalState extends State<principal> {
   }
 
   Widget _buildUserTitle() {
-    return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+    return StreamBuilder<ModeleUtilisateurPrincipal?>(
       stream: _controleurPrincipal.obtenirFluxUtilisateur(),
       builder: (context, snapshot) {
-        if (!snapshot.hasData || !snapshot.data!.exists) {
-          return const Text(
-            "ORA",
-            textAlign: TextAlign.center,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 20,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 1.2,
-            ),
-          );
-        }
-
-        final data = snapshot.data!.data();
-        final title = _controleurPrincipal.obtenirNomAffichage(data);
+        final utilisateur = snapshot.data;
+        final title = _controleurPrincipal.obtenirNomAffichage(utilisateur);
 
         return Text(
           title,
@@ -215,7 +201,7 @@ class _principalState extends State<principal> {
             ),
           ),
           Expanded(
-            child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+            child: StreamBuilder<List<ModeleConversation>>(
               stream: _controleurPrincipal.obtenirFluxConversations(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
@@ -227,7 +213,9 @@ class _principalState extends State<principal> {
                   );
                 }
 
-                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                final conversations = snapshot.data ?? [];
+
+                if (conversations.isEmpty) {
                   return Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
@@ -237,30 +225,19 @@ class _principalState extends State<principal> {
                   );
                 }
 
-                final docs = snapshot.data!.docs;
-
                 return ListView.separated(
-                  itemCount: docs.length,
+                  itemCount: conversations.length,
                   physics: const ClampingScrollPhysics(),
                   separatorBuilder: (_, __) => const SizedBox(height: 10),
                   itemBuilder: (context, index) {
-                    final data = docs[index].data();
-                    final conversationId = docs[index].id;
-
-                    String heure = "";
-                    if (data['dateMaj'] != null &&
-                        data['dateMaj'] is Timestamp) {
-                      final date = (data['dateMaj'] as Timestamp).toDate();
-                      heure =
-                          "${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}";
-                    }
+                    final conversation = conversations[index];
 
                     return GestureDetector(
                       onTap: () {
                         Navigator.pushNamed(
                           context,
                           chat.screenRoute,
-                          arguments: conversationId,
+                          arguments: conversation.id,
                         );
                       },
                       child: Container(
@@ -296,7 +273,7 @@ class _principalState extends State<principal> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    (data['titre'] ?? '').toString(),
+                                    conversation.titre,
                                     style: const TextStyle(
                                       color: Colors.white,
                                       fontWeight: FontWeight.w700,
@@ -305,7 +282,7 @@ class _principalState extends State<principal> {
                                   ),
                                   const SizedBox(height: 2),
                                   Text(
-                                    (data['dernierMessage'] ?? '').toString(),
+                                    conversation.dernierMessage,
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                     style: TextStyle(
@@ -319,7 +296,7 @@ class _principalState extends State<principal> {
                             ),
                             const SizedBox(width: 8),
                             Text(
-                              heure,
+                              conversation.heureFormattee,
                               style: TextStyle(
                                 color: Colors.white.withOpacity(0.65),
                                 fontSize: 11,
@@ -374,7 +351,7 @@ class _principalState extends State<principal> {
             ),
           ),
           icon: const Icon(Icons.menu, color: Colors.white),
-          onPressed: () => _Parametre(),
+          onPressed: _parametre,
           tooltip: 'parametre',
           iconSize: 25,
           constraints: const BoxConstraints(minHeight: 25, minWidth: 25),
@@ -401,7 +378,7 @@ class _principalState extends State<principal> {
                     child: const SizedBox(
                       width: 395,
                       height: 45,
-                      child: recherche(),
+                      child: Recherche(),
                     ),
                   ),
                   Positioned(
@@ -455,7 +432,7 @@ class _principalState extends State<principal> {
                           height: 44,
                           child: ElevatedButton(
                             onPressed: () async {
-                              final texte = "Nouvelle discussion";
+                              const texte = "Nouvelle discussion";
                               final conversationId = await creerConversation(
                                 texte,
                               );
@@ -673,8 +650,8 @@ class _principalState extends State<principal> {
   }
 }
 
-class recherche extends StatelessWidget {
-  const recherche({super.key});
+class Recherche extends StatelessWidget {
+  const Recherche({super.key});
 
   @override
   Widget build(BuildContext context) {
