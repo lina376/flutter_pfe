@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:ora/controlleurs/controleur_note.dart';
 import 'package:ora/screens/principal.dart';
-import 'package:ora/screens/mesnotes.dart';
 
 class notes2 extends StatefulWidget {
   static const String screenRoute = 'pagenotes2';

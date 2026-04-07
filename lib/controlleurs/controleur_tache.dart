@@ -1,16 +1,14 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import '../models/modele_tache.dart';
 import '../services/service_tache.dart';
 
 class ControleurTache {
   final ServiceTache _serviceTache = ServiceTache();
 
-  Stream<QuerySnapshot<Map<String, dynamic>>> obtenirFluxTaches() {
+  Stream<List<ModeleTache>> obtenirFluxTaches() {
     return _serviceTache.obtenirFluxTaches();
   }
 
-  Stream<QuerySnapshot<Map<String, dynamic>>> obtenirFluxTachesParDate(
-    DateTime date,
-  ) {
+  Stream<List<ModeleTache>> obtenirFluxTachesParDate(DateTime date) {
     return _serviceTache.obtenirFluxTachesParDate(date);
   }
 
@@ -33,19 +31,15 @@ class ControleurTache {
     return _serviceTache.changerEtatTache(idTache: idTache, terminee: terminee);
   }
 
-  List<QueryDocumentSnapshot<Map<String, dynamic>>> filtrerParDate(
-    List<QueryDocumentSnapshot<Map<String, dynamic>>> docs,
-    DateTime date,
-  ) {
-    return docs.where((doc) {
-      final data = doc.data();
-      if (data['date'] is! Timestamp) return false;
-
-      final tacheDate = (data['date'] as Timestamp).toDate();
-
-      return tacheDate.year == date.year &&
-          tacheDate.month == date.month &&
-          tacheDate.day == date.day;
+  List<ModeleTache> filtrerParDate(List<ModeleTache> taches, DateTime date) {
+    return taches.where((tache) {
+      return tache.date.year == date.year &&
+          tache.date.month == date.month &&
+          tache.date.day == date.day;
     }).toList();
+  }
+
+  void dispose() {
+    _serviceTache.dispose();
   }
 }

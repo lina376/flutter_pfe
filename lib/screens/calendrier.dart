@@ -1,7 +1,7 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:ora/controlleurs/controleur_tache.dart';
+import 'package:ora/models/modele_tache.dart';
 import 'package:ora/screens/principal.dart';
 import 'package:table_calendar/table_calendar.dart';
 
@@ -102,6 +102,7 @@ class _CalendrierState extends State<Calendrier> {
 
                     if (mounted) {
                       Navigator.pop(context);
+                      setState(() {});
                     }
                   },
                   child: const Text("Ajouter"),
@@ -114,7 +115,7 @@ class _CalendrierState extends State<Calendrier> {
     );
   }
 
-  Widget _buildTacheItem(Tache t) {
+  Widget _buildTacheItem(ModeleTache t) {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
@@ -128,9 +129,10 @@ class _CalendrierState extends State<Calendrier> {
             value: t.terminee,
             onChanged: (v) async {
               await _controleurTache.changerEtatTache(
-                idTache: t.id,
+                idTache: t.id!,
                 terminee: v ?? false,
               );
+              if (mounted) setState(() {});
             },
             side: BorderSide(color: Colors.white.withOpacity(0.8)),
             checkColor: Colors.white,
@@ -152,13 +154,20 @@ class _CalendrierState extends State<Calendrier> {
           Text(t.heure, style: TextStyle(color: Colors.white.withOpacity(0.7))),
           IconButton(
             onPressed: () async {
-              await _controleurTache.supprimerTache(t.id);
+              await _controleurTache.supprimerTache(t.id!);
+              if (mounted) setState(() {});
             },
             icon: const Icon(Icons.delete, color: Colors.white),
           ),
         ],
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _controleurTache.dispose();
+    super.dispose();
   }
 
   @override
@@ -291,7 +300,7 @@ class _CalendrierState extends State<Calendrier> {
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(color: Colors.white.withOpacity(0.18)),
                     ),
-                    child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                    child: StreamBuilder<List<ModeleTache>>(
                       stream: _controleurTache.obtenirFluxTachesParDate(
                         _dateSelectionnee,
                       ),
@@ -303,7 +312,7 @@ class _CalendrierState extends State<Calendrier> {
                           );
                         }
 
-                        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                        if (!snapshot.hasData || snapshot.data!.isEmpty) {
                           return Center(
                             child: Text(
                               "Aucune tâche",
@@ -316,21 +325,12 @@ class _CalendrierState extends State<Calendrier> {
                           );
                         }
 
-                        final taches = snapshot.data!.docs.map((doc) {
-                          final data = doc.data();
-
-                          return Tache(
-                            id: doc.id,
-                            titre: (data['titre'] ?? '').toString(),
-                            heure: (data['heure'] ?? '--:--').toString(),
-                            date: (data['date'] as Timestamp).toDate(),
-                            terminee: (data['terminee'] ?? false) == true,
-                          );
-                        }).toList();
+                        final taches = snapshot.data!;
 
                         final tachesEnCours = taches
                             .where((t) => !t.terminee)
                             .toList();
+
                         final tachesTerminees = taches
                             .where((t) => t.terminee)
                             .toList();
@@ -375,20 +375,4 @@ class _CalendrierState extends State<Calendrier> {
       ),
     );
   }
-}
-
-class Tache {
-  final String id;
-  final String titre;
-  final String heure;
-  final DateTime date;
-  final bool terminee;
-
-  Tache({
-    required this.id,
-    required this.titre,
-    required this.heure,
-    required this.date,
-    required this.terminee,
-  });
 }
