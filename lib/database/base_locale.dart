@@ -19,7 +19,7 @@ class BaseLocale {
 
     return await openDatabase(
       path,
-      version: 2,
+      version: 3,
       onCreate: _createDB,
       onUpgrade: _onUpgrade,
     );
@@ -36,12 +36,33 @@ class BaseLocale {
         terminee INTEGER NOT NULL DEFAULT 0
       )
     ''');
+
+    await db.execute('''
+      CREATE TABLE notes(
+        id TEXT PRIMARY KEY,
+        titre TEXT,
+        contenu TEXT,
+        liked INTEGER,
+        date TEXT,
+        estSynchronisee INTEGER,
+        estSupprimee INTEGER
+      )
+    ''');
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
-    if (oldVersion < 2) {
-      await db.execute('DROP TABLE IF EXISTS taches');
-      await _createDB(db, newVersion);
+    if (oldVersion < 3) {
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS notes(
+          id TEXT PRIMARY KEY,
+          titre TEXT,
+          contenu TEXT,
+          liked INTEGER,
+          date TEXT,
+          estSynchronisee INTEGER,
+          estSupprimee INTEGER
+        )
+      ''');
     }
   }
 

@@ -14,6 +14,7 @@ class notes2 extends StatefulWidget {
 }
 
 class _notes2State extends State<notes2> {
+  bool _isSaving = false;
   final TextEditingController titreCtrl = TextEditingController();
   final TextEditingController contenuCtrl = TextEditingController();
   final ControleurNote _controleurNote = ControleurNote();
@@ -42,11 +43,18 @@ class _notes2State extends State<notes2> {
   }
 
   Future<void> _save() async {
+    if (_isSaving) return;
+
+    setState(() {
+      _isSaving = true;
+    });
+
     try {
       final titre = titreCtrl.text.trim();
       final contenu = contenuCtrl.text.trim();
 
       if (titre.isEmpty && contenu.isEmpty) {
+        if (!mounted) return;
         Navigator.pop(context, false);
         return;
       }
@@ -59,13 +67,18 @@ class _notes2State extends State<notes2> {
       );
 
       if (!mounted) return;
-
       Navigator.pop(context, true);
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text("Erreur: $e")));
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSaving = false;
+        });
+      }
     }
   }
 
@@ -245,11 +258,13 @@ class _notes2State extends State<notes2> {
                         onTap: () => setState(() => liked = !liked),
                       ),
                       _Btn(
-                        icon: const IconData(
-                          0xe156,
-                          fontFamily: 'MaterialIcons',
-                        ),
-                        onTap: _save,
+                        icon: _isSaving
+                            ? Icons.hourglass_top
+                            : const IconData(
+                                0xe156,
+                                fontFamily: 'MaterialIcons',
+                              ),
+                        onTap: _isSaving ? () {} : _save,
                       ),
                     ],
                   ),

@@ -1,40 +1,112 @@
+import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../models/modele_note.dart';
+import 'package:sqflite/sqflite.dart';
+import '../database/base_locale.dart';
 
 class ServiceNote {
   final FirebaseAuth _authentification = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final BaseLocale _baseLocale = BaseLocale.instance;
 
-  Stream<List<ModeleNote>> obtenirFluxNotes() {
+  CollectionReference<Map<String, dynamic>>? get _notesRef {
     final utilisateur = _authentification.currentUser;
-    if (utilisateur == null) {
-      return Stream.value([]);
-    }
+    if (utilisateur == null) return null;
 
     return _firestore
         .collection('users')
         .doc(utilisateur.uid)
-        .collection('notes')
-        .orderBy('date', descending: true)
-        .snapshots()
-        .map(
-          (snapshot) => snapshot.docs
-              .map((doc) => ModeleNote.fromFirestore(doc))
-              .toList(),
-        );
+        .collection('notes');
   }
 
-  Future<void> supprimerNote(String idNote) async {
-    final utilisateur = _authentification.currentUser;
-    if (utilisateur == null) return;
+  Future<void> _insererOuMajLocal(ModeleNote note) async {
+    final db = await _baseLocale.database;
+    await db.insert(
+      'notes',
+      note.toLocalMap(),
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
 
-    await _firestore
-        .collection('users')
-        .doc(utilisateur.uid)
-        .collection('notes')
-        .doc(idNote)
-        .delete();
+  Future<List<ModeleNote>> _obtenirNotesLocales() async {
+    final db = await _baseLocale.database;
+    final resultat = await db.query(
+      'notes',
+      where: 'estSupprimee = ?',
+      whereArgs: [0],
+      orderBy: 'date DESC',
+    );
+
+    return resultat.map((e) => ModeleNote.fromLocalMap(e)).toList();
+  }
+
+  Future<List<ModeleNote>> _obtenirNotesLocalesNonSynchronisees() async {
+    final db = await _baseLocale.database;
+    final resultat = await db.query(
+      'notes',
+      where: 'estSynchronisee = ?',
+      whereArgs: [0],
+    );
+
+    return resultat.map((e) => ModeleNote.fromLocalMap(e)).toList();
+  }
+
+  Stream<List<ModeleNote>> obtenirFluxNotes() async* {
+    final locales = await _obtenirNotesLocales();
+    yield locales;
+
+    await synchroniserDepuisFirebase();
+
+    final apresSync = await _obtenirNotesLocales();
+    yield apresSync;
+
+    final ref = _notesRef;
+    if (ref == null) {
+      yield await _obtenirNotesLocales();
+      return;
+    }
+
+    yield* ref.orderBy('date', descending: true).snapshots().asyncMap((
+      snapshot,
+    ) async {
+      for (final doc in snapshot.docs) {
+        final note = ModeleNote.fromFirestore(doc);
+        await _insererOuMajLocal(note.copyWith(estSynchronisee: true));
+      }
+
+      return await _obtenirNotesLocales();
+    });
+  }
+
+  Future<void> synchroniserDepuisFirebase() async {
+    final ref = _notesRef;
+    if (ref == null) return;
+
+    final snapshot = await ref.orderBy('date', descending: true).get();
+
+    for (final doc in snapshot.docs) {
+      final note = ModeleNote.fromFirestore(doc);
+      await _insererOuMajLocal(note.copyWith(estSynchronisee: true));
+    }
+  }
+
+  Future<void> synchroniserVersFirebase() async {
+    final ref = _notesRef;
+    if (ref == null) return;
+
+    final notesNonSync = await _obtenirNotesLocalesNonSynchronisees();
+
+    for (final note in notesNonSync) {
+      if (note.estSupprimee) {
+        await ref.doc(note.id).delete();
+        final db = await _baseLocale.database;
+        await db.delete('notes', where: 'id = ?', whereArgs: [note.id]);
+      } else {
+        await ref.doc(note.id).set(note.toMap());
+        await _insererOuMajLocal(note.copyWith(estSynchronisee: true));
+      }
+    }
   }
 
   Future<String> ajouterNote({
@@ -42,23 +114,30 @@ class ServiceNote {
     required String contenu,
     required bool aimee,
   }) async {
-    final utilisateur = _authentification.currentUser;
-    if (utilisateur == null) return '';
+    final id = _firestore.collection('tmp').doc().id;
 
-    final donnees = {
-      'titre': titre.isEmpty ? 'Sans titre' : titre,
-      'contenu': contenu,
-      'liked': aimee,
-      'date': Timestamp.now(),
-    };
+    final note = ModeleNote(
+      id: id,
+      titre: titre.isEmpty ? 'Sans titre' : titre,
+      contenu: contenu,
+      liked: aimee,
+      date: DateTime.now(),
+      estSynchronisee: false,
+      estSupprimee: false,
+    );
 
-    final document = await _firestore
-        .collection('users')
-        .doc(utilisateur.uid)
-        .collection('notes')
-        .add(donnees);
+    await _insererOuMajLocal(note);
 
-    return document.id;
+    try {
+      final ref = _notesRef;
+      if (ref != null) {
+        await ref.doc(id).set(note.toMap()).timeout(const Duration(seconds: 2));
+
+        await _insererOuMajLocal(note.copyWith(estSynchronisee: true));
+      }
+    } catch (_) {}
+
+    return id;
   }
 
   Future<void> mettreAJourNote({
@@ -67,21 +146,48 @@ class ServiceNote {
     required String contenu,
     required bool aimee,
   }) async {
-    final utilisateur = _authentification.currentUser;
-    if (utilisateur == null) return;
+    final note = ModeleNote(
+      id: idNote,
+      titre: titre.isEmpty ? 'Sans titre' : titre,
+      contenu: contenu,
+      liked: aimee,
+      date: DateTime.now(),
+      estSynchronisee: false,
+      estSupprimee: false,
+    );
 
-    final donnees = {
-      'titre': titre.isEmpty ? 'Sans titre' : titre,
-      'contenu': contenu,
-      'liked': aimee,
-      'date': Timestamp.now(),
-    };
+    await _insererOuMajLocal(note);
 
-    await _firestore
-        .collection('users')
-        .doc(utilisateur.uid)
-        .collection('notes')
-        .doc(idNote)
-        .update(donnees);
+    try {
+      final ref = _notesRef;
+      if (ref != null) {
+        await ref
+            .doc(idNote)
+            .set(note.toMap())
+            .timeout(const Duration(seconds: 2));
+
+        await _insererOuMajLocal(note.copyWith(estSynchronisee: true));
+      }
+    } catch (_) {}
+  }
+
+  Future<void> supprimerNote(String idNote) async {
+    final db = await _baseLocale.database;
+
+    await db.update(
+      'notes',
+      {'estSupprimee': 1, 'estSynchronisee': 0},
+      where: 'id = ?',
+      whereArgs: [idNote],
+    );
+
+    try {
+      final ref = _notesRef;
+      if (ref != null) {
+        await ref.doc(idNote).delete();
+      }
+
+      await db.delete('notes', where: 'id = ?', whereArgs: [idNote]);
+    } catch (_) {}
   }
 }

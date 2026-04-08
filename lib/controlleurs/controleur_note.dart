@@ -10,6 +10,11 @@ class ControleurNote {
     return _serviceNote.obtenirFluxNotes();
   }
 
+  Future<void> synchroniserNotes() async {
+    await _serviceNote.synchroniserVersFirebase();
+    await _serviceNote.synchroniserDepuisFirebase();
+  }
+
   Future<void> supprimerNote(String idNote) async {
     await _serviceNote.supprimerNote(idNote);
 
