@@ -31,6 +31,11 @@ class ControleurTache {
     return _serviceTache.changerEtatTache(idTache: idTache, terminee: terminee);
   }
 
+  Future<void> synchroniserTaches() async {
+    await _serviceTache.synchroniserVersFirebase();
+    await _serviceTache.synchroniserDepuisFirebase();
+  }
+
   List<ModeleTache> filtrerParDate(List<ModeleTache> taches, DateTime date) {
     return taches.where((tache) {
       return tache.date.year == date.year &&

@@ -19,7 +19,7 @@ class BaseLocale {
 
     return await openDatabase(
       path,
-      version: 3,
+      version: 4,
       onCreate: _createDB,
       onUpgrade: _onUpgrade,
     );
@@ -27,15 +27,17 @@ class BaseLocale {
 
   Future<void> _createDB(Database db, int version) async {
     await db.execute('''
-      CREATE TABLE taches (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        titre TEXT NOT NULL,
-        description TEXT,
-        date TEXT,
-        heure TEXT,
-        terminee INTEGER NOT NULL DEFAULT 0
-      )
-    ''');
+  CREATE TABLE taches (
+    id TEXT PRIMARY KEY,
+    titre TEXT NOT NULL,
+    description TEXT,
+    date TEXT,
+    heure TEXT,
+    terminee INTEGER NOT NULL DEFAULT 0,
+    estSynchronisee INTEGER NOT NULL DEFAULT 1,
+    estSupprimee INTEGER NOT NULL DEFAULT 0
+  )
+''');
 
     await db.execute('''
       CREATE TABLE notes(
@@ -53,16 +55,33 @@ class BaseLocale {
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
     if (oldVersion < 3) {
       await db.execute('''
-        CREATE TABLE IF NOT EXISTS notes(
-          id TEXT PRIMARY KEY,
-          titre TEXT,
-          contenu TEXT,
-          liked INTEGER,
-          date TEXT,
-          estSynchronisee INTEGER,
-          estSupprimee INTEGER
-        )
-      ''');
+      CREATE TABLE IF NOT EXISTS notes(
+        id TEXT PRIMARY KEY,
+        titre TEXT,
+        contenu TEXT,
+        liked INTEGER,
+        date TEXT,
+        estSynchronisee INTEGER,
+        estSupprimee INTEGER
+      )
+    ''');
+    }
+
+    if (oldVersion < 4) {
+      await db.execute('DROP TABLE IF EXISTS taches');
+
+      await db.execute('''
+      CREATE TABLE taches (
+        id TEXT PRIMARY KEY,
+        titre TEXT NOT NULL,
+        description TEXT,
+        date TEXT,
+        heure TEXT,
+        terminee INTEGER NOT NULL DEFAULT 0,
+        estSynchronisee INTEGER NOT NULL DEFAULT 1,
+        estSupprimee INTEGER NOT NULL DEFAULT 0
+      )
+    ''');
     }
   }
 

@@ -15,6 +15,12 @@ class Calendrier extends StatefulWidget {
 }
 
 class _CalendrierState extends State<Calendrier> {
+  @override
+  void initState() {
+    super.initState();
+    _controleurTache.synchroniserTaches();
+  }
+
   final ControleurTache _controleurTache = ControleurTache();
 
   DateTime _moisAffiche = DateTime.now();
