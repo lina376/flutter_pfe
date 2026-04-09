@@ -1,0 +1,23 @@
+{
+  "menu.profile": "Profil",
+  "menu.favorites": "Favoriser",
+  "menu.weather": "Météo",
+  "menu.alarms": "Alarmes",
+  "menu.maps": "Maps",
+  "menu.language": "Langue",
+  "menu.notifications": "Notifications",
+  "menu.logout": "Déconnecter",
+
+  "principal.search": "Chercher",
+  "principal.discuss": "Discuter",
+  "principal.notes": "Mes Notes",
+  "principal.history": "Historique",
+  "principal.empty": "Aucune activité pour le moment",
+  "principal.new_discussion": "Nouvelle discussion",
+
+  "language.title": "Langue",
+  "language.fr": "Français",
+  "language.en": "English",
+  "language.ar": "العربية",
+  "language.saved": "Langue changée avec succès"
+}

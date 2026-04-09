@@ -25,7 +25,15 @@ class ControleurPrincipal {
     return _servicePrincipal.creerConversation(premierMessage: premierMessage);
   }
 
-  String obtenirNomAffichage(ModeleUtilisateurPrincipal? utilisateur) {
-    return utilisateur?.nomAffichage ?? 'ORA';
+  String obtenirNomAffichageSelonLangue(
+    ModeleUtilisateurPrincipal? utilisateur,
+    String languageCode,
+  ) {
+    if (utilisateur == null) return 'ORA';
+    return utilisateur.nomAffichageAvecLangue(languageCode);
+  }
+
+  String obtenirPhotoUrl(ModeleUtilisateurPrincipal? utilisateur) {
+    return utilisateur?.photoUrl ?? '';
   }
 }

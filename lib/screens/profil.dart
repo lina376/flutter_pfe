@@ -23,9 +23,19 @@ class _ProfilState extends State<Profil> {
   final TextEditingController _prenomCtrl = TextEditingController();
   final TextEditingController _emailCtrl = TextEditingController();
   final TextEditingController _birthCtrl = TextEditingController();
+  final TextEditingController _currentPasswordCtrl = TextEditingController();
+  final TextEditingController _newPasswordCtrl = TextEditingController();
+  final TextEditingController _confirmPasswordCtrl = TextEditingController();
 
   DateTime? _birthDate;
   bool _isLoading = false;
+  bool _obscureCurrentPassword = true;
+  bool _obscureNewPassword = true;
+  bool _obscureConfirmPassword = true;
+
+  String _emailInitial = '';
+  String _photoUrl = '';
+  File? _imageFile;
 
   @override
   void initState() {
@@ -39,6 +49,9 @@ class _ProfilState extends State<Profil> {
     _prenomCtrl.dispose();
     _emailCtrl.dispose();
     _birthCtrl.dispose();
+    _currentPasswordCtrl.dispose();
+    _newPasswordCtrl.dispose();
+    _confirmPasswordCtrl.dispose();
     super.dispose();
   }
 
@@ -54,6 +67,8 @@ class _ProfilState extends State<Profil> {
         _nomCtrl.text = user.nom;
         _prenomCtrl.text = user.prenom;
         _emailCtrl.text = user.email;
+        _emailInitial = user.email;
+        _photoUrl = user.photoUrl;
 
         if (user.dateNaissance.isNotEmpty) {
           final parsed = DateTime.tryParse(user.dateNaissance);
@@ -61,6 +76,8 @@ class _ProfilState extends State<Profil> {
             _birthDate = parsed;
             _birthCtrl.text =
                 "${parsed.day.toString().padLeft(2, '0')}/${parsed.month.toString().padLeft(2, '0')}/${parsed.year}";
+          } else {
+            _birthCtrl.text = '';
           }
         } else {
           _birthCtrl.text = '';
@@ -97,28 +114,118 @@ class _ProfilState extends State<Profil> {
     });
   }
 
+  Future<void> _pickImage() async {
+    final result = await FilePicker.platform.pickFiles(type: FileType.image);
+    if (result == null || result.files.single.path == null) return;
+
+    setState(() {
+      _imageFile = File(result.files.single.path!);
+    });
+  }
+
+  Future<void> _removePhoto() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      await _controleur.supprimerPhotoProfil();
+
+      setState(() {
+        _imageFile = null;
+        _photoUrl = '';
+      });
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Photo supprimée avec succès")),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Erreur suppression photo : $e")));
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
   Future<void> _saveProfile() async {
     if (!_formKey.currentState!.validate()) return;
+
+    final emailChanged = _emailCtrl.text.trim() != _emailInitial.trim();
+    final wantsPasswordChange = _newPasswordCtrl.text.trim().isNotEmpty;
+
+    if ((emailChanged || wantsPasswordChange) &&
+        _currentPasswordCtrl.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            "Entre le mot de passe actuel pour valider les changements sensibles",
+          ),
+        ),
+      );
+      return;
+    }
 
     setState(() {
       _isLoading = true;
     });
 
     try {
+      String photoFinale = _photoUrl;
+
+      if (_imageFile != null) {
+        photoFinale = await _controleur.televerserPhotoProfil(_imageFile!);
+      }
+
       final utilisateurModel = UserModel(
         nom: _nomCtrl.text.trim(),
         prenom: _prenomCtrl.text.trim(),
         email: _emailCtrl.text.trim(),
         dateNaissance: _birthDate?.toIso8601String() ?? '',
+        photoUrl: photoFinale,
       );
 
       await _controleur.mettreAJourProfil(utilisateurModel: utilisateurModel);
 
+      if (emailChanged) {
+        await _controleur.mettreAJourEmail(
+          nouvelEmail: _emailCtrl.text.trim(),
+          motDePasseActuel: _currentPasswordCtrl.text.trim(),
+        );
+      }
+
+      if (wantsPasswordChange) {
+        await _controleur.mettreAJourMotDePasse(
+          motDePasseActuel: _currentPasswordCtrl.text.trim(),
+          nouveauMotDePasse: _newPasswordCtrl.text.trim(),
+        );
+      }
+
+      _emailInitial = _emailCtrl.text.trim();
+      _photoUrl = photoFinale;
+      _imageFile = null;
+
+      _currentPasswordCtrl.clear();
+      _newPasswordCtrl.clear();
+      _confirmPasswordCtrl.clear();
+
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Profil mis à jour avec succès")),
-      );
+      String message = "Profil mis à jour avec succès";
+      if (emailChanged) {
+        message =
+            "Profil mis à jour. Vérifie aussi ta boîte mail pour confirmer le nouvel email.";
+      }
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
 
       Navigator.pushReplacementNamed(context, principal.screenRoute);
     } catch (e) {
@@ -142,6 +249,55 @@ class _ProfilState extends State<Profil> {
       fillColor: Colors.white,
       suffixIcon: suffixIcon,
       border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+    );
+  }
+
+  Widget _buildAvatar() {
+    ImageProvider? imageProvider;
+
+    if (_imageFile != null) {
+      imageProvider = FileImage(_imageFile!);
+    } else if (_photoUrl.isNotEmpty) {
+      imageProvider = NetworkImage(_photoUrl);
+    }
+
+    return Column(
+      children: [
+        GestureDetector(
+          onTap: _pickImage,
+          child: CircleAvatar(
+            radius: 45,
+            backgroundColor: Colors.white,
+            backgroundImage: imageProvider,
+            child: imageProvider == null
+                ? const Icon(Icons.person, size: 40, color: Colors.black54)
+                : null,
+          ),
+        ),
+        const SizedBox(height: 10),
+        Wrap(
+          spacing: 10,
+          children: [
+            OutlinedButton(
+              onPressed: _isLoading ? null : _pickImage,
+              style: OutlinedButton.styleFrom(
+                foregroundColor: Colors.white,
+                side: const BorderSide(color: Colors.white),
+              ),
+              child: const Text("Changer photo"),
+            ),
+            if (_photoUrl.isNotEmpty || _imageFile != null)
+              OutlinedButton(
+                onPressed: _isLoading ? null : _removePhoto,
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Colors.white,
+                  side: const BorderSide(color: Colors.white),
+                ),
+                child: const Text("Supprimer photo"),
+              ),
+          ],
+        ),
+      ],
     );
   }
 
@@ -200,8 +356,9 @@ class _ProfilState extends State<Profil> {
                           ),
                         ),
                         const SizedBox(height: 12),
-                        const ProfileAvatar(),
+                        _buildAvatar(),
                         const SizedBox(height: 24),
+
                         const Align(
                           alignment: Alignment.centerLeft,
                           child: Text(
@@ -217,10 +374,14 @@ class _ProfilState extends State<Profil> {
                             if (value == null || value.trim().isEmpty) {
                               return "Nom obligatoire";
                             }
+                            if (value.trim().length < 2) {
+                              return "Nom trop court";
+                            }
                             return null;
                           },
                         ),
                         const SizedBox(height: 16),
+
                         const Align(
                           alignment: Alignment.centerLeft,
                           child: Text(
@@ -236,10 +397,14 @@ class _ProfilState extends State<Profil> {
                             if (value == null || value.trim().isEmpty) {
                               return "Prénom obligatoire";
                             }
+                            if (value.trim().length < 2) {
+                              return "Prénom trop court";
+                            }
                             return null;
                           },
                         ),
                         const SizedBox(height: 16),
+
                         const Align(
                           alignment: Alignment.centerLeft,
                           child: Text(
@@ -250,10 +415,20 @@ class _ProfilState extends State<Profil> {
                         const SizedBox(height: 6),
                         TextFormField(
                           controller: _emailCtrl,
-                          readOnly: true,
+                          keyboardType: TextInputType.emailAddress,
                           decoration: _inputDecoration("Email"),
+                          validator: (value) {
+                            if (value == null || value.trim().isEmpty) {
+                              return "Email obligatoire";
+                            }
+                            if (!_controleur.emailValide(value)) {
+                              return "Format email invalide";
+                            }
+                            return null;
+                          },
                         ),
                         const SizedBox(height: 16),
+
                         const Align(
                           alignment: Alignment.centerLeft,
                           child: Text(
@@ -274,7 +449,114 @@ class _ProfilState extends State<Profil> {
                             ),
                           ),
                         ),
+                        const SizedBox(height: 24),
+
+                        const Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            "Mot de passe actuel",
+                            style: TextStyle(color: Colors.white, fontSize: 15),
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        TextFormField(
+                          controller: _currentPasswordCtrl,
+                          obscureText: _obscureCurrentPassword,
+                          decoration: _inputDecoration(
+                            "Mot de passe actuel",
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _obscureCurrentPassword
+                                    ? Icons.visibility_off
+                                    : Icons.visibility,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _obscureCurrentPassword =
+                                      !_obscureCurrentPassword;
+                                });
+                              },
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+
+                        const Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            "Nouveau mot de passe",
+                            style: TextStyle(color: Colors.white, fontSize: 15),
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        TextFormField(
+                          controller: _newPasswordCtrl,
+                          obscureText: _obscureNewPassword,
+                          decoration: _inputDecoration(
+                            "Nouveau mot de passe",
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _obscureNewPassword
+                                    ? Icons.visibility_off
+                                    : Icons.visibility,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _obscureNewPassword = !_obscureNewPassword;
+                                });
+                              },
+                            ),
+                          ),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) return null;
+                            if (!_controleur.motDePasseValide(value)) {
+                              return "Le mot de passe doit contenir au moins 6 caractères";
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 16),
+
+                        const Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            "Confirmer le mot de passe",
+                            style: TextStyle(color: Colors.white, fontSize: 15),
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        TextFormField(
+                          controller: _confirmPasswordCtrl,
+                          obscureText: _obscureConfirmPassword,
+                          decoration: _inputDecoration(
+                            "Confirmer le mot de passe",
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _obscureConfirmPassword
+                                    ? Icons.visibility_off
+                                    : Icons.visibility,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _obscureConfirmPassword =
+                                      !_obscureConfirmPassword;
+                                });
+                              },
+                            ),
+                          ),
+                          validator: (value) {
+                            if (_newPasswordCtrl.text.trim().isEmpty &&
+                                (value == null || value.isEmpty)) {
+                              return null;
+                            }
+                            if (value != _newPasswordCtrl.text) {
+                              return "Les mots de passe ne correspondent pas";
+                            }
+                            return null;
+                          },
+                        ),
                         const SizedBox(height: 30),
+
                         SizedBox(
                           width: 180,
                           height: 48,
@@ -304,41 +586,6 @@ class _ProfilState extends State<Profil> {
                   ),
                 ),
         ),
-      ),
-    );
-  }
-}
-
-class ProfileAvatar extends StatefulWidget {
-  const ProfileAvatar({super.key});
-
-  @override
-  State<ProfileAvatar> createState() => _ProfileAvatarState();
-}
-
-class _ProfileAvatarState extends State<ProfileAvatar> {
-  File? _imageFile;
-
-  Future<void> _pick() async {
-    final result = await FilePicker.platform.pickFiles(type: FileType.image);
-    if (result == null || result.files.single.path == null) return;
-
-    setState(() {
-      _imageFile = File(result.files.single.path!);
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: _pick,
-      child: CircleAvatar(
-        radius: 45,
-        backgroundColor: Colors.white,
-        backgroundImage: _imageFile != null ? FileImage(_imageFile!) : null,
-        child: _imageFile == null
-            ? const Icon(Icons.person, size: 40, color: Colors.black54)
-            : null,
       ),
     );
   }

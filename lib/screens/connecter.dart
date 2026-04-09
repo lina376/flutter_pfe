@@ -20,6 +20,96 @@ class _connecterState extends State<connecter> {
   bool isLoading = false;
   String email = '';
   String motdepasse = '';
+  Future<void> _motDePasseOublie() async {
+    final emailControleur = TextEditingController(text: email);
+
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("Mot de passe oublié"),
+          content: TextField(
+            controller: emailControleur,
+            keyboardType: TextInputType.emailAddress,
+            decoration: const InputDecoration(hintText: "Entrez votre email"),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text("Annuler"),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final emailSaisi = emailControleur.text.trim();
+
+                if (emailSaisi.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text("Email obligatoire")),
+                  );
+                  return;
+                }
+
+                final emailRegex = RegExp(
+                  r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
+                );
+
+                if (!emailRegex.hasMatch(emailSaisi)) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text("Format email incorrect")),
+                  );
+                  return;
+                }
+
+                try {
+                  await _controleurAuthentification.reinitialiserMotDePasse(
+                    email: emailSaisi,
+                  );
+
+                  if (!mounted) return;
+                  Navigator.pop(context);
+
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                        "Un email de réinitialisation a été envoyé",
+                      ),
+                    ),
+                  );
+                } on FirebaseAuthException catch (e) {
+                  String message = "Une erreur s'est produite";
+
+                  if (e.code == 'user-not-found') {
+                    message = "Aucun compte trouvé avec cet email";
+                  } else if (e.code == 'wrong-password') {
+                    message = "Mot de passe incorrect";
+                  } else if (e.code == 'invalid-email') {
+                    message = "Email invalide";
+                  } else if (e.code == 'network-request-failed') {
+                    message = "Problème de connexion Internet";
+                  } else {
+                    message = "Erreur Firebase : ${e.code}";
+                  }
+
+                  if (!mounted) return;
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(SnackBar(content: Text(message)));
+                } catch (e) {
+                  if (!mounted) return;
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(SnackBar(content: Text("Erreur : $e")));
+                }
+              },
+              child: const Text("Envoyer"),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -168,25 +258,62 @@ class _connecterState extends State<connecter> {
 
                                   if (!mounted) return;
 
-                                  if (userCredential.user != null) {
+                                  final user = userCredential.user;
+
+                                  if (user != null) {
+                                    await user.reload();
+                                    final userMisAJour =
+                                        FirebaseAuth.instance.currentUser;
+
+                                    if (userMisAJour != null &&
+                                        !userMisAJour.emailVerified) {
+                                      await FirebaseAuth.instance.signOut();
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        const SnackBar(
+                                          content: Text(
+                                            "Vérifiez votre email avant de vous connecter",
+                                          ),
+                                        ),
+                                      );
+                                      return;
+                                    }
+
                                     Navigator.pushReplacementNamed(
                                       context,
                                       principal.screenRoute,
                                     );
                                   }
                                 } on FirebaseAuthException catch (e) {
-                                  String message = "Une erreur s'est produite";
+                                  String message;
 
-                                  if (e.code == 'user-not-found') {
-                                    message =
-                                        "Aucun compte trouvé avec cet email";
-                                  } else if (e.code == 'wrong-password') {
-                                    message = "Mot de passe incorrect";
+                                  if (e.code == 'email-already-in-use') {
+                                    message = "Cet email est déjà utilisé";
                                   } else if (e.code == 'invalid-email') {
                                     message = "Email invalide";
-                                  } else if (e.code == 'invalid-credential') {
-                                    message = "Email ou mot de passe incorrect";
+                                  } else if (e.code == 'weak-password') {
+                                    message = "Mot de passe trop faible";
+                                  } else if (e.code ==
+                                      'operation-not-allowed') {
+                                    message =
+                                        "L'inscription par email/mot de passe n'est pas activée sur Firebase";
+                                  } else if (e.code ==
+                                      'network-request-failed') {
+                                    message = "Problème de connexion Internet";
+                                  } else if (e.code == 'too-many-requests') {
+                                    message =
+                                        "Trop de tentatives. Réessaie plus tard";
+                                  } else {
+                                    message = "Erreur Firebase : ${e.code}";
                                   }
+
+                                  print(
+                                    "FirebaseAuthException code: ${e.code}",
+                                  );
+                                  print(
+                                    "FirebaseAuthException message: ${e.message}",
+                                  );
 
                                   if (!mounted) return;
                                   ScaffoldMessenger.of(context).showSnackBar(
@@ -242,6 +369,21 @@ class _connecterState extends State<connecter> {
                               style: TextStyle(
                                 color: Colors.black,
                                 decoration: TextDecoration.underline,
+                              ),
+                            ),
+                          ),
+                        ),
+                        Positioned(
+                          top: hauteur * 0.777,
+                          right: hauteur * 0.156,
+                          child: GestureDetector(
+                            onTap: _motDePasseOublie,
+                            child: const Text(
+                              "Mot de passe oublié ",
+                              style: TextStyle(
+                                color: Color.fromARGB(255, 26, 1, 1),
+                                decoration: TextDecoration.underline,
+                                fontSize: 13,
                               ),
                             ),
                           ),

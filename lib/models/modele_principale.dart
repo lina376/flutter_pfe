@@ -3,23 +3,33 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class ModeleUtilisateurPrincipal {
   final String nom;
   final String prenom;
+  final String photoUrl;
 
-  const ModeleUtilisateurPrincipal({required this.nom, required this.prenom});
+  const ModeleUtilisateurPrincipal({
+    required this.nom,
+    required this.prenom,
+    required this.photoUrl,
+  });
 
   factory ModeleUtilisateurPrincipal.fromMap(Map<String, dynamic>? data) {
     return ModeleUtilisateurPrincipal(
       nom: (data?['nom'] ?? '').toString().trim(),
       prenom: (data?['prenom'] ?? '').toString().trim(),
+      photoUrl: (data?['photoUrl'] ?? '').toString().trim(),
     );
   }
+  String nomAffichageAvecLangue(String languageCode) {
+    if (prenom.isEmpty && nom.isEmpty) return 'ORA';
 
-  String get nomAffichage {
-    final nomComplet = '$prenom $nom'.trim();
-    return nomComplet.isEmpty ? 'ORA' : nomComplet;
+    if (languageCode == 'ar') {
+      return '$nom $prenom'.trim();
+    }
+
+    return '$prenom $nom'.trim();
   }
 
   Map<String, dynamic> toMap() {
-    return {'nom': nom, 'prenom': prenom};
+    return {'nom': nom, 'prenom': prenom, 'photoUrl': photoUrl};
   }
 }
 

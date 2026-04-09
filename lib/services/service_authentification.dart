@@ -29,6 +29,8 @@ class ServiceAuthentification {
     final utilisateur = credential.user;
 
     if (utilisateur != null) {
+      await utilisateur.sendEmailVerification();
+
       await _firestore.collection('users').doc(utilisateur.uid).set({
         'nom': nom,
         'prenom': prenom,
@@ -42,5 +44,9 @@ class ServiceAuthentification {
 
   Future<void> seDeconnecter() {
     return _firebaseAuth.signOut();
+  }
+
+  Future<void> reinitialiserMotDePasse({required String email}) async {
+    await _firebaseAuth.sendPasswordResetEmail(email: email);
   }
 }

@@ -1,0 +1,22 @@
+{
+  "menu.profile": "الملف الشخصي",
+  "menu.favorites": "المفضلة",
+  "menu.weather": "الطقس",
+  "menu.alarms": "المنبهات",
+  "menu.maps": "الخرائط",
+  "menu.language": "اللغة",
+  "menu.notifications": "الإشعارات",
+  "menu.logout": "تسجيل الخروج",
+  "principal.search": "بحث",
+  "principal.discuss": "محادثة",
+  "principal.notes": "ملاحظاتي",
+  "principal.history": "السجل",
+  "principal.empty": "لا يوجد نشاط حالياً",
+  "principal.new_discussion": "محادثة جديدة",
+
+  "language.title": "اللغة",
+  "language.fr": "الفرنسية",
+  "language.en": "الإنجليزية",
+  "language.ar": "العربية",
+  "language.saved": "تم تغيير اللغة بنجاح"
+}

@@ -1,47 +1,75 @@
+import 'package:easy_localization/easy_localization.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+
+import 'package:ora/screens/alarmes.dart';
+import 'package:ora/screens/calendrier.dart';
 import 'package:ora/screens/chat.dart';
 import 'package:ora/screens/connecter.dart';
 import 'package:ora/screens/creecompte.dart';
-import 'package:ora/screens/rencontre.dart';
-import 'package:ora/screens/principal.dart';
-import 'package:ora/screens/mesnotes.dart';
-import 'package:ora/screens/notes2.dart';
-import 'package:ora/screens/calendrier.dart';
-import 'package:ora/screens/profil.dart';
-import 'package:ora/screens/favorise.dart';
-import 'package:ora/screens/notifications.dart';
-import 'package:firebase_core/firebase_core.dart';
 
-void main() async {
-  //async w9tili l tghayorat ysiro koul w7da f w9t w sync w9tili ybdew fard w9t
+import 'package:ora/screens/favorise.dart';
+import 'package:ora/screens/langue.dart';
+import 'package:ora/screens/maps.dart';
+import 'package:ora/screens/mesnotes.dart';
+import 'package:ora/screens/meteo.dart';
+import 'package:ora/screens/notifications.dart';
+import 'package:ora/screens/principal.dart';
+import 'package:ora/screens/profil.dart';
+import 'package:ora/screens/rencontre.dart';
+
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(); //les deux bech nsjmou nsta3mlou firebase
-  runApp(const MyApp());
+  await EasyLocalization.ensureInitialized();
+  await Firebase.initializeApp();
+
+  runApp(
+    EasyLocalization(
+      supportedLocales: const [Locale('fr'), Locale('en'), Locale('ar')],
+      path: 'assets/translations',
+      fallbackLocale: const Locale('fr'),
+      startLocale: const Locale('fr'),
+      saveLocale: true,
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'ora app',
-      theme: ThemeData(primaryColor: Colors.blue, fontFamily: 'Jomhuria'),
+      debugShowCheckedModeBanner: false,
+      title: 'ORA',
+      locale: context.locale,
+      supportedLocales: context.supportedLocales,
+      localizationsDelegates: [
+        ...context.localizationDelegates,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
       initialRoute: principal.screenRoute,
       routes: {
-        rencontre.screenRoute: (ctx) => rencontre(),
-        connecter.screenRoute: (ctx) => connecter(),
-        creecompte.screenRoute: (ctx) => creecompte(),
-        principal.screenRoute: (ctx) => principal(),
-        chat.screenRoute: (ctx) => chat(),
-        Favorise.screenRoute: (ctx) => Favorise(),
-        mesnotes.screenRoute: (ctx) => mesnotes(),
-        notes2.screenRoute: (ctx) => notes2(),
-        notifications.screenRoute: (ctx) => notifications(),
-
-        Profil.screenRoute: (ctx) => Profil(),
-        Calendrier.screenRoute: (ctx) => Calendrier(),
+        rencontre.screenRoute: (context) => const rencontre(),
+        connecter.screenRoute: (context) => const connecter(),
+        creecompte.screenRoute: (context) => const creecompte(),
+        principal.screenRoute: (context) => const principal(),
+        chat.screenRoute: (context) => const chat(),
+        Favorise.screenRoute: (context) => const Favorise(),
+        mesnotes.screenRoute: (context) => const mesnotes(),
+        notifications.screenRoute: (context) => const notifications(),
+        Profil.screenRoute: (context) => const Profil(),
+        Calendrier.screenRoute: (context) => const Calendrier(),
+        MeteoPage.screenRoute: (context) => const MeteoPage(),
+        AlarmesPage.screenRoute: (context) => const AlarmesPage(),
+        MapsPage.screenRoute: (context) => const MapsPage(),
+        LanguePage.screenRoute: (context) => const LanguePage(),
       },
-      debugShowCheckedModeBanner: false,
+      theme: ThemeData(primaryColor: Colors.blue, fontFamily: 'Jomhuria'),
     );
   }
 }

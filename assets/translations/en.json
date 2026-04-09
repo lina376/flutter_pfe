@@ -1,0 +1,23 @@
+{
+  "menu.profile": "Profile",
+  "menu.favorites": "Favorites",
+  "menu.weather": "Weather",
+  "menu.alarms": "Alarms",
+  "menu.maps": "Maps",
+  "menu.language": "Language",
+  "menu.notifications": "Notifications",
+  "menu.logout": "Log out",
+
+  "principal.search": "Search",
+  "principal.discuss": "Chat",
+  "principal.notes": "My Notes",
+  "principal.history": "History",
+  "principal.empty": "No activity for now",
+  "principal.new_discussion": "New discussion",
+
+  "language.title": "Language",
+  "language.fr": "French",
+  "language.en": "English",
+  "language.ar": "Arabic",
+  "language.saved": "Language changed successfully"
+}

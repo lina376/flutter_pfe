@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -8,6 +9,10 @@ import 'package:ora/screens/calendrier.dart';
 import 'package:ora/screens/chat.dart';
 import 'package:ora/screens/mesnotes.dart';
 import 'package:ora/screens/notifications.dart';
+import 'package:ora/screens/meteo.dart';
+import 'package:ora/screens/alarmes.dart';
+import 'package:ora/screens/maps.dart';
+import 'package:ora/screens/langue.dart';
 
 class principal extends StatefulWidget {
   static const String screenRoute = 'pageprincipal';
@@ -37,92 +42,219 @@ class _principalState extends State<principal> {
     );
   }
 
+  void _ouvrirProfilDepuisMenu() {
+    Navigator.pop(context);
+    Navigator.pushNamed(context, 'pageprofil');
+  }
+
+  void _ouvrirFavorisDepuisMenu() {
+    Navigator.pop(context);
+    Navigator.pushNamed(context, 'pagefavorise');
+  }
+
+  Future<void> _deconnecterDepuisMenu() async {
+    Navigator.pop(context);
+    await _logout();
+  }
+
   void _parametre() {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
+      isDismissible: true,
+      enableDrag: true,
       barrierColor: Colors.black.withOpacity(0.25),
       builder: (ctx) {
         return StatefulBuilder(
           builder: (context, setLocal) {
-            return SafeArea(
-              child: Align(
-                alignment: Alignment.topLeft,
-                child: Padding(
-                  padding: const EdgeInsets.only(left: 10, top: 50, bottom: 50),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(20),
-                    child: Container(
-                      width: MediaQuery.of(context).size.width * 0.7,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 12,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color.fromARGB(
-                          255,
-                          20,
-                          6,
-                          31,
-                        ).withOpacity(0.5),
-                        border: Border.all(
-                          color: Colors.white.withOpacity(0.22),
+            return GestureDetector(
+              onTap: () => Navigator.pop(context),
+              child: Container(
+                color: Colors.transparent,
+                child: SafeArea(
+                  child: Align(
+                    alignment: Alignment.topLeft,
+                    child: GestureDetector(
+                      onTap: () {},
+                      child: Padding(
+                        padding: const EdgeInsets.only(
+                          left: 10,
+                          top: 50,
+                          bottom: 50,
                         ),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          _list(
-                            icon: Icons.person_outline,
-                            title: "Profil",
-                            onTap: () {
-                              Navigator.pop(context);
-                              Navigator.pushNamed(context, 'pageprofil');
-                            },
-                          ),
-                          _list(
-                            icon: Icons.favorite_border,
-                            title: "Favoriser",
-                            onTap: () {
-                              Navigator.pop(context);
-                              Navigator.pushNamed(context, 'pagefavorise');
-                            },
-                          ),
-                          const Divider(color: Colors.white24, height: 18),
-                          ListTile(
-                            contentPadding: EdgeInsets.zero,
-                            leading: const Icon(
-                              Icons.notifications_none,
-                              color: Colors.white,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(20),
+                          child: Container(
+                            width: MediaQuery.of(context).size.width * 0.72,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 14,
                             ),
-                            title: const Text(
-                              "Notifications",
-                              style: TextStyle(color: Colors.white),
-                            ),
-                            trailing: Switch(
-                              value: _notif,
-                              onChanged: (v) {
-                                setLocal(() => _notif = v);
-                                setState(() => _notif = v);
-                              },
-                            ),
-                          ),
-                          TextButton(
-                            onPressed: () async {
-                              Navigator.pop(context);
-                              await _logout();
-                            },
-                            child: const Text(
-                              "Déconnecter",
-                              style: TextStyle(
-                                color: Colors.white,
-                                decoration: TextDecoration.underline,
+                            decoration: BoxDecoration(
+                              color: const Color.fromARGB(
+                                255,
+                                20,
+                                6,
+                                31,
+                              ).withOpacity(0.58),
+                              border: Border.all(
+                                color: Colors.white.withOpacity(0.22),
                               ),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                StreamBuilder<ModeleUtilisateurPrincipal?>(
+                                  stream: _controleurPrincipal
+                                      .obtenirFluxUtilisateur(),
+                                  builder: (context, snapshot) {
+                                    final utilisateur = snapshot.data;
+                                    final nomAffichage = _controleurPrincipal
+                                        .obtenirNomAffichageSelonLangue(
+                                          utilisateur,
+                                          context.locale.languageCode,
+                                        );
+                                    final photoUrl =
+                                        utilisateur?.photoUrl ?? '';
+
+                                    return Container(
+                                      margin: const EdgeInsets.only(bottom: 12),
+                                      padding: const EdgeInsets.all(10),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white.withOpacity(0.08),
+                                        borderRadius: BorderRadius.circular(16),
+                                        border: Border.all(
+                                          color: Colors.white.withOpacity(0.08),
+                                        ),
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          CircleAvatar(
+                                            radius: 24,
+                                            backgroundColor: Colors.white
+                                                .withOpacity(0.18),
+                                            backgroundImage: photoUrl.isNotEmpty
+                                                ? NetworkImage(photoUrl)
+                                                : null,
+                                            child: photoUrl.isEmpty
+                                                ? const Icon(
+                                                    Icons.person,
+                                                    color: Colors.white,
+                                                    size: 24,
+                                                  )
+                                                : null,
+                                          ),
+                                          const SizedBox(width: 12),
+                                          Expanded(
+                                            child: Text(
+                                              nomAffichage,
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: const TextStyle(
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.w700,
+                                                fontSize: 15,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  },
+                                ),
+                                _list(
+                                  icon: Icons.person_outline,
+                                  title: 'menu.profile'.tr(),
+                                  onTap: _ouvrirProfilDepuisMenu,
+                                ),
+                                _list(
+                                  icon: Icons.favorite_border,
+                                  title: 'menu.favorites'.tr(),
+                                  onTap: _ouvrirFavorisDepuisMenu,
+                                ),
+                                const Divider(
+                                  color: Colors.white24,
+                                  height: 18,
+                                ),
+                                _list(
+                                  icon: Icons.cloud_outlined,
+                                  title: 'menu.weather'.tr(),
+                                  onTap: () {
+                                    Navigator.pop(context);
+                                    Navigator.pushNamed(
+                                      context,
+                                      MeteoPage.screenRoute,
+                                    );
+                                  },
+                                ),
+                                _list(
+                                  icon: Icons.alarm,
+                                  title: 'menu.alarms'.tr(),
+                                  onTap: () {
+                                    Navigator.pop(context);
+                                    Navigator.pushNamed(
+                                      context,
+                                      AlarmesPage.screenRoute,
+                                    );
+                                  },
+                                ),
+                                _list(
+                                  icon: Icons.map_outlined,
+                                  title: 'menu.maps'.tr(),
+                                  onTap: () {
+                                    Navigator.pop(context);
+                                    Navigator.pushNamed(
+                                      context,
+                                      MapsPage.screenRoute,
+                                    );
+                                  },
+                                ),
+                                _list(
+                                  icon: Icons.language,
+                                  title: 'menu.language'.tr(),
+                                  onTap: () {
+                                    Navigator.pop(context);
+                                    Navigator.pushNamed(
+                                      context,
+                                      LanguePage.screenRoute,
+                                    );
+                                  },
+                                ),
+                                ListTile(
+                                  contentPadding: EdgeInsets.zero,
+                                  leading: const Icon(
+                                    Icons.notifications_none,
+                                    color: Colors.white,
+                                  ),
+                                  title: Text(
+                                    'menu.notifications'.tr(),
+                                    style: const TextStyle(color: Colors.white),
+                                  ),
+                                  trailing: Switch(
+                                    value: _notif,
+                                    onChanged: (v) {
+                                      setLocal(() => _notif = v);
+                                      setState(() => _notif = v);
+                                    },
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                TextButton(
+                                  onPressed: _deconnecterDepuisMenu,
+                                  child: Text(
+                                    'menu.logout'.tr(),
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      decoration: TextDecoration.underline,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                        ],
+                        ),
                       ),
                     ),
                   ),
@@ -154,7 +286,10 @@ class _principalState extends State<principal> {
       stream: _controleurPrincipal.obtenirFluxUtilisateur(),
       builder: (context, snapshot) {
         final utilisateur = snapshot.data;
-        final title = _controleurPrincipal.obtenirNomAffichage(utilisateur);
+        final title = _controleurPrincipal.obtenirNomAffichageSelonLangue(
+          utilisateur,
+          context.locale.languageCode,
+        );
 
         return Text(
           title,
@@ -172,12 +307,44 @@ class _principalState extends State<principal> {
     );
   }
 
+  Widget _buildPhotoProfil() {
+    return StreamBuilder<ModeleUtilisateurPrincipal?>(
+      stream: _controleurPrincipal.obtenirFluxUtilisateur(),
+      builder: (context, snapshot) {
+        final utilisateur = snapshot.data;
+        final photoUrl = utilisateur?.photoUrl ?? '';
+
+        return Padding(
+          padding: const EdgeInsets.only(right: 5),
+          child: GestureDetector(
+            onTap: () {
+              Navigator.pushNamed(context, 'pageprofil');
+            },
+            child: CircleAvatar(
+              radius: 20,
+              backgroundColor: const Color.fromARGB(92, 88, 70, 142),
+              backgroundImage: photoUrl.isNotEmpty
+                  ? NetworkImage(photoUrl)
+                  : null,
+              child: photoUrl.isEmpty
+                  ? const Icon(Icons.person, color: Colors.white, size: 20)
+                  : null,
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   Widget sectionHistorique() {
     final user = _controleurPrincipal.obtenirUtilisateurActuel();
 
     if (user == null) {
-      return const Center(
-        child: Text("Aucun utilisateur", style: TextStyle(color: Colors.white)),
+      return Center(
+        child: Text(
+          'principal.no_user'.tr(),
+          style: const TextStyle(color: Colors.white),
+        ),
       );
     }
 
@@ -192,9 +359,9 @@ class _principalState extends State<principal> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            "Historique",
-            style: TextStyle(
+          Text(
+            'principal.history'.tr(),
+            style: const TextStyle(
               color: Colors.black87,
               fontWeight: FontWeight.w800,
               fontSize: 14,
@@ -207,7 +374,7 @@ class _principalState extends State<principal> {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return Center(
                     child: Text(
-                      "Chargement...",
+                      'principal.loading'.tr(),
                       style: TextStyle(color: Colors.white.withOpacity(0.8)),
                     ),
                   );
@@ -219,7 +386,7 @@ class _principalState extends State<principal> {
                   return Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
-                      "Aucune activité pour le moment",
+                      'principal.empty'.tr(),
                       style: TextStyle(color: Colors.white.withOpacity(0.75)),
                     ),
                   );
@@ -273,7 +440,11 @@ class _principalState extends State<principal> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    conversation.titre,
+                                    conversation.titre.isEmpty
+                                        ? 'principal.new_discussion'.tr()
+                                        : conversation.titre,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
                                     style: const TextStyle(
                                       color: Colors.white,
                                       fontWeight: FontWeight.w700,
@@ -328,7 +499,20 @@ class _principalState extends State<principal> {
         elevation: 0,
         title: _buildUserTitle(),
         centerTitle: true,
+        leading: IconButton(
+          style: const ButtonStyle(
+            backgroundColor: WidgetStatePropertyAll<Color>(
+              Color.fromARGB(89, 88, 70, 142),
+            ),
+          ),
+          icon: const Icon(Icons.menu, color: Colors.white),
+          onPressed: _parametre,
+          tooltip: 'parametre',
+          iconSize: 25,
+          constraints: const BoxConstraints(minHeight: 25, minWidth: 25),
+        ),
         actions: [
+          _buildPhotoProfil(),
           IconButton(
             style: const ButtonStyle(
               backgroundColor: WidgetStatePropertyAll<Color>(
@@ -344,18 +528,6 @@ class _principalState extends State<principal> {
             constraints: const BoxConstraints(minHeight: 25, minWidth: 25),
           ),
         ],
-        leading: IconButton(
-          style: const ButtonStyle(
-            backgroundColor: WidgetStatePropertyAll<Color>(
-              Color.fromARGB(89, 88, 70, 142),
-            ),
-          ),
-          icon: const Icon(Icons.menu, color: Colors.white),
-          onPressed: _parametre,
-          tooltip: 'parametre',
-          iconSize: 25,
-          constraints: const BoxConstraints(minHeight: 25, minWidth: 25),
-        ),
       ),
       body: Container(
         width: double.infinity,
@@ -432,7 +604,7 @@ class _principalState extends State<principal> {
                           height: 44,
                           child: ElevatedButton(
                             onPressed: () async {
-                              const texte = "Nouvelle discussion";
+                              final texte = 'principal.new_discussion'.tr();
                               final conversationId = await creerConversation(
                                 texte,
                               );
@@ -457,9 +629,9 @@ class _principalState extends State<principal> {
                                 borderRadius: BorderRadius.circular(22),
                               ),
                             ),
-                            child: const Text(
-                              "Discuter",
-                              style: TextStyle(
+                            child: Text(
+                              'principal.discuss'.tr(),
+                              style: const TextStyle(
                                 color: Color.fromARGB(255, 50, 43, 43),
                                 fontWeight: FontWeight.w700,
                               ),
@@ -581,7 +753,7 @@ class _principalState extends State<principal> {
                                 titleTextFormatter: (date, locale) =>
                                     DateFormat(
                                       'MMM yyyy',
-                                      'en_US',
+                                      context.locale.languageCode,
                                     ).format(date),
                                 titleTextStyle: const TextStyle(
                                   color: Colors.black,
@@ -669,12 +841,12 @@ class Recherche extends StatelessWidget {
         children: [
           const Icon(Icons.search, color: Colors.white),
           const SizedBox(width: 10),
-          const Expanded(
+          Expanded(
             child: TextField(
-              style: TextStyle(color: Color.fromARGB(75, 255, 255, 255)),
+              style: const TextStyle(color: Color.fromARGB(75, 255, 255, 255)),
               decoration: InputDecoration(
-                hintText: "Chercher",
-                hintStyle: TextStyle(color: Colors.white70),
+                hintText: 'principal.search'.tr(),
+                hintStyle: const TextStyle(color: Colors.white70),
                 border: InputBorder.none,
               ),
             ),
@@ -721,10 +893,10 @@ class MesNotes extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 14),
-              const Text(
-                "Mes \nNotes",
+              Text(
+                'principal.notes'.tr(),
                 textAlign: TextAlign.center,
-                style: TextStyle(
+                style: const TextStyle(
                   color: Colors.white,
                   fontSize: 14,
                   fontWeight: FontWeight.w700,

@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../models/modele_note.dart';
 import 'package:sqflite/sqflite.dart';
 import '../database/base_locale.dart';
+import '../models/modele_note.dart';
 
 class ServiceNote {
   final FirebaseAuth _authentification = FirebaseAuth.instance;
@@ -31,6 +31,7 @@ class ServiceNote {
 
   Future<List<ModeleNote>> _obtenirNotesLocales() async {
     final db = await _baseLocale.database;
+
     final resultat = await db.query(
       'notes',
       where: 'estSupprimee = ?',
@@ -43,6 +44,7 @@ class ServiceNote {
 
   Future<List<ModeleNote>> _obtenirNotesLocalesNonSynchronisees() async {
     final db = await _baseLocale.database;
+
     final resultat = await db.query(
       'notes',
       where: 'estSynchronisee = ?',
@@ -56,7 +58,11 @@ class ServiceNote {
     final locales = await _obtenirNotesLocales();
     yield locales;
 
-    await synchroniserDepuisFirebase();
+    try {
+      await synchroniserDepuisFirebase();
+    } catch (e) {
+      print(' Erreur synchronisation depuis Firebase: $e');
+    }
 
     final apresSync = await _obtenirNotesLocales();
     yield apresSync;
@@ -72,7 +78,9 @@ class ServiceNote {
     ) async {
       for (final doc in snapshot.docs) {
         final note = ModeleNote.fromFirestore(doc);
-        await _insererOuMajLocal(note.copyWith(estSynchronisee: true));
+        await _insererOuMajLocal(
+          note.copyWith(estSynchronisee: true, estSupprimee: false),
+        );
       }
 
       return await _obtenirNotesLocales();
@@ -81,30 +89,47 @@ class ServiceNote {
 
   Future<void> synchroniserDepuisFirebase() async {
     final ref = _notesRef;
-    if (ref == null) return;
+    if (ref == null) {
+      print(' utilisateur non connecté');
+      return;
+    }
 
     final snapshot = await ref.orderBy('date', descending: true).get();
 
     for (final doc in snapshot.docs) {
       final note = ModeleNote.fromFirestore(doc);
-      await _insererOuMajLocal(note.copyWith(estSynchronisee: true));
+      await _insererOuMajLocal(
+        note.copyWith(estSynchronisee: true, estSupprimee: false),
+      );
     }
   }
 
   Future<void> synchroniserVersFirebase() async {
     final ref = _notesRef;
-    if (ref == null) return;
+    if (ref == null) {
+      print('utilisateur non connecté');
+      return;
+    }
 
     final notesNonSync = await _obtenirNotesLocalesNonSynchronisees();
 
     for (final note in notesNonSync) {
-      if (note.estSupprimee) {
-        await ref.doc(note.id).delete();
-        final db = await _baseLocale.database;
-        await db.delete('notes', where: 'id = ?', whereArgs: [note.id]);
-      } else {
-        await ref.doc(note.id).set(note.toMap());
-        await _insererOuMajLocal(note.copyWith(estSynchronisee: true));
+      try {
+        if (note.estSupprimee) {
+          await ref.doc(note.id).delete().timeout(const Duration(seconds: 5));
+
+          final db = await _baseLocale.database;
+          await db.delete('notes', where: 'id = ?', whereArgs: [note.id]);
+        } else {
+          await ref
+              .doc(note.id)
+              .set(note.toMap())
+              .timeout(const Duration(seconds: 5));
+
+          await _insererOuMajLocal(note.copyWith(estSynchronisee: true));
+        }
+      } catch (e) {
+        print('Erreur sync note ${note.id}: $e');
       }
     }
   }
@@ -130,12 +155,18 @@ class ServiceNote {
 
     try {
       final ref = _notesRef;
-      if (ref != null) {
-        await ref.doc(id).set(note.toMap()).timeout(const Duration(seconds: 2));
 
-        await _insererOuMajLocal(note.copyWith(estSynchronisee: true));
+      if (ref == null) {
+        print('utilisateur non connecté');
+        return id;
       }
-    } catch (_) {}
+
+      await ref.doc(id).set(note.toMap()).timeout(const Duration(seconds: 5));
+
+      await _insererOuMajLocal(note.copyWith(estSynchronisee: true));
+    } catch (e) {
+      print(' Erreur ajout note cloud: $e');
+    }
 
     return id;
   }
@@ -160,15 +191,21 @@ class ServiceNote {
 
     try {
       final ref = _notesRef;
-      if (ref != null) {
-        await ref
-            .doc(idNote)
-            .set(note.toMap())
-            .timeout(const Duration(seconds: 2));
 
-        await _insererOuMajLocal(note.copyWith(estSynchronisee: true));
+      if (ref == null) {
+        print(' utilisateur non connecté');
+        return;
       }
-    } catch (_) {}
+
+      await ref
+          .doc(idNote)
+          .set(note.toMap())
+          .timeout(const Duration(seconds: 5));
+
+      await _insererOuMajLocal(note.copyWith(estSynchronisee: true));
+    } catch (e) {
+      print('Erreur update note cloud: $e');
+    }
   }
 
   Future<void> supprimerNote(String idNote) async {
@@ -183,11 +220,17 @@ class ServiceNote {
 
     try {
       final ref = _notesRef;
-      if (ref != null) {
-        await ref.doc(idNote).delete();
+
+      if (ref == null) {
+        print(' utilisateur non connecté');
+        return;
       }
 
+      await ref.doc(idNote).delete().timeout(const Duration(seconds: 5));
+
       await db.delete('notes', where: 'id = ?', whereArgs: [idNote]);
-    } catch (_) {}
+    } catch (e) {
+      print(' Erreur suppression note cloud: $e');
+    }
   }
 }

@@ -32,4 +32,8 @@ class ControleurAuthentification {
   Future<void> seDeconnecter() async {
     await _serviceAuthentification.seDeconnecter();
   }
+
+  Future<void> reinitialiserMotDePasse({required String email}) async {
+    await _serviceAuthentification.reinitialiserMotDePasse(email: email);
+  }
 }

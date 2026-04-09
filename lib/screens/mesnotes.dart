@@ -17,11 +17,6 @@ class _mesnotesState extends State<mesnotes> {
   final TextEditingController searchCtrl = TextEditingController();
   final ControleurNote _controleurNote = ControleurNote();
   final ControleurFavori _controleurFavori = ControleurFavori();
-  @override
-  void initState() {
-    super.initState();
-    _controleurNote.synchroniserNotes();
-  }
 
   @override
   void dispose() {

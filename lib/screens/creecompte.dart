@@ -329,7 +329,7 @@ class _creecompteState extends State<creecompte> {
                                 );
                               }
                             } on FirebaseAuthException catch (e) {
-                              String message = "Une erreur s'est produite";
+                              String message;
 
                               if (e.code == 'email-already-in-use') {
                                 message = "Cet email est déjà utilisé";
@@ -337,7 +337,27 @@ class _creecompteState extends State<creecompte> {
                                 message = "Email invalide";
                               } else if (e.code == 'weak-password') {
                                 message = "Mot de passe trop faible";
+                              } else if (e.code == 'operation-not-allowed') {
+                                message =
+                                    "L'inscription par email/mot de passe n'est pas activée sur Firebase";
+                              } else if (e.code == 'network-request-failed') {
+                                message = "Problème de connexion Internet";
+                              } else if (e.code == 'too-many-requests') {
+                                message =
+                                    "Trop de tentatives. Réessaie plus tard";
+                              } else {
+                                message = "Erreur Firebase : ${e.code}";
                               }
+
+                              print("FirebaseAuthException code: ${e.code}");
+                              print(
+                                "FirebaseAuthException message: ${e.message}",
+                              );
+
+                              if (!mounted) return;
+                              ScaffoldMessenger.of(
+                                context,
+                              ).showSnackBar(SnackBar(content: Text(message)));
 
                               ScaffoldMessenger.of(
                                 context,
