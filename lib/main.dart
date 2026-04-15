@@ -2,13 +2,11 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-
 import 'package:ora/screens/alarmes.dart';
 import 'package:ora/screens/calendrier.dart';
 import 'package:ora/screens/chat.dart';
 import 'package:ora/screens/connecter.dart';
 import 'package:ora/screens/creecompte.dart';
-
 import 'package:ora/screens/favorise.dart';
 import 'package:ora/screens/langue.dart';
 import 'package:ora/screens/maps.dart';
@@ -52,7 +50,7 @@ class MyApp extends StatelessWidget {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      initialRoute: principal.screenRoute,
+      initialRoute: rencontre.screenRoute,
       routes: {
         rencontre.screenRoute: (context) => const rencontre(),
         connecter.screenRoute: (context) => const connecter(),

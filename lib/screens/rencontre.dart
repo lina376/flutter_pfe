@@ -1,5 +1,7 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:ora/screens/connecter.dart';
+import 'package:ora/screens/principal.dart';
 
 class rencontre extends StatefulWidget {
   static const String screenRoute = 'pagerencontre';
@@ -10,6 +12,16 @@ class rencontre extends StatefulWidget {
 }
 
 class _rencontreState extends State<rencontre> {
+  void allerPageSuivante() {
+    final utilisateur = FirebaseAuth.instance.currentUser;
+
+    if (utilisateur != null) {
+      Navigator.pushReplacementNamed(context, principal.screenRoute);
+    } else {
+      Navigator.pushReplacementNamed(context, connecter.screenRoute);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -17,7 +29,7 @@ class _rencontreState extends State<rencontre> {
       body: Container(
         width: double.infinity,
         height: double.infinity,
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           image: DecorationImage(
             image: AssetImage("images/b4.png"),
             fit: BoxFit.cover,
@@ -28,7 +40,6 @@ class _rencontreState extends State<rencontre> {
             children: [
               Positioned.fill(
                 top: MediaQuery.of(context).size.height * 0.1,
-
                 bottom: MediaQuery.of(context).size.height * -0.1,
                 child: Opacity(
                   opacity: 1,
@@ -42,7 +53,7 @@ class _rencontreState extends State<rencontre> {
               Positioned(
                 top: MediaQuery.of(context).size.height * 0.025,
                 left: MediaQuery.of(context).size.height * 0.065,
-                child: Text(
+                child: const Text(
                   "Rencontrez",
                   style: TextStyle(
                     fontSize: 55,
@@ -54,7 +65,7 @@ class _rencontreState extends State<rencontre> {
               Positioned(
                 top: MediaQuery.of(context).size.height * 0.08,
                 left: MediaQuery.of(context).size.height * 0.15,
-                child: Text(
+                child: const Text(
                   "ORA",
                   style: TextStyle(
                     fontSize: 70,
@@ -86,11 +97,7 @@ class _rencontreState extends State<rencontre> {
                   ),
                 ),
               ),
-              _buttomcommencer(
-                onTap: () {
-                  Navigator.pushNamed(context, connecter.screenRoute);
-                },
-              ),
+              _buttomcommencer(onTap: allerPageSuivante),
               Stack(
                 children: [
                   Positioned(
@@ -161,7 +168,7 @@ class _buttomcommencerState extends State<_buttomcommencer> {
 
   void handleTap() {
     setState(() {
-      move = true; //tit7arak a droite
+      move = true;
     });
 
     Future.delayed(const Duration(milliseconds: 400), () {
@@ -197,7 +204,6 @@ class _buttomcommencerState extends State<_buttomcommencer> {
                   ),
                 ),
               ),
-
               AnimatedAlign(
                 duration: const Duration(milliseconds: 400),
                 curve: Curves.easeInOut,
