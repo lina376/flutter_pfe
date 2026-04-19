@@ -4,6 +4,7 @@ class ModeleTache {
   final String heure;
   final DateTime date;
   final bool terminee;
+  final String categorie;
   final bool estSynchronisee;
   final bool estSupprimee;
 
@@ -13,6 +14,7 @@ class ModeleTache {
     required this.heure,
     required this.date,
     required this.terminee,
+    required this.categorie,
     this.estSynchronisee = true,
     this.estSupprimee = false,
   });
@@ -23,6 +25,7 @@ class ModeleTache {
       'titre': titre,
       'heure': heure,
       'date': date.toIso8601String(),
+      'categorie': categorie,
       'terminee': terminee ? 1 : 0,
       'estSynchronisee': estSynchronisee ? 1 : 0,
       'estSupprimee': estSupprimee ? 1 : 0,
@@ -34,6 +37,7 @@ class ModeleTache {
       'titre': titre,
       'heure': heure,
       'date': date.toIso8601String(),
+      'categorie': categorie,
       'terminee': terminee,
     };
   }
@@ -44,6 +48,7 @@ class ModeleTache {
       titre: (map['titre'] ?? '').toString(),
       heure: (map['heure'] ?? '--:--').toString(),
       date: DateTime.parse(map['date']),
+      categorie: (map['categorie'] ?? 'Autre').toString(),
       terminee: (map['terminee'] ?? 0) == 1 || (map['terminee'] == true),
       estSynchronisee: (map['estSynchronisee'] ?? 1) == 1,
       estSupprimee: (map['estSupprimee'] ?? 0) == 1,
@@ -56,6 +61,7 @@ class ModeleTache {
     String? heure,
     DateTime? date,
     bool? terminee,
+    String? categorie,
     bool? estSynchronisee,
     bool? estSupprimee,
   }) {
@@ -65,6 +71,7 @@ class ModeleTache {
       heure: heure ?? this.heure,
       date: date ?? this.date,
       terminee: terminee ?? this.terminee,
+      categorie: categorie ?? this.categorie,
       estSynchronisee: estSynchronisee ?? this.estSynchronisee,
       estSupprimee: estSupprimee ?? this.estSupprimee,
     );

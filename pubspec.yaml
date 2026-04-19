@@ -30,6 +30,7 @@ dependencies:
   google_maps_flutter: ^2.17.0
   latlong2: ^0.9.1
   flutter_map: ^6.1.0
+  speech_to_text: ^7.0.0
 
 
 dev_dependencies:

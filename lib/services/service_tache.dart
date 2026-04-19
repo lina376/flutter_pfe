@@ -89,6 +89,7 @@ class ServiceTache {
     required String titre,
     required String heure,
     required DateTime date,
+    required String categorie,
   }) async {
     try {
       final dateSansHeure = DateTime(date.year, date.month, date.day);
@@ -99,6 +100,7 @@ class ServiceTache {
         titre: titre,
         heure: heure,
         date: dateSansHeure,
+        categorie: categorie,
         terminee: false,
         estSynchronisee: false,
         estSupprimee: false,
@@ -120,7 +122,7 @@ class ServiceTache {
 
       await _rafraichirFluxTaches();
     } catch (e) {
-      print('❌ Erreur ajout tâche: $e');
+      print('Erreur ajout tâche: $e');
     }
   }
 
@@ -146,7 +148,7 @@ class ServiceTache {
 
       await _rafraichirFluxTaches();
     } catch (e) {
-      print('❌ Erreur suppression tâche: $e');
+      print(' Erreur suppression tâche: $e');
     }
   }
 
@@ -185,7 +187,75 @@ class ServiceTache {
 
       await _rafraichirFluxTaches();
     } catch (e) {
-      print('❌ Erreur modification état tâche: $e');
+      print(' Erreur modification état tâche: $e');
+    }
+  }
+
+  Future<ModeleTache?> trouverTacheParTitre(String titreRecherche) async {
+    final taches = await recupererToutesLesTaches();
+
+    try {
+      return taches.firstWhere(
+        (tache) =>
+            tache.titre.toLowerCase().trim() ==
+            titreRecherche.toLowerCase().trim(),
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<List<ModeleTache>> rechercherTachesParTitre(
+    String titreRecherche,
+  ) async {
+    final taches = await recupererToutesLesTaches();
+
+    return taches.where((tache) {
+      return tache.titre.toLowerCase().contains(
+        titreRecherche.toLowerCase().trim(),
+      );
+    }).toList();
+  }
+
+  Future<void> mettreAJourTache({
+    required String idTache,
+    required String titre,
+    required String heure,
+    required DateTime date,
+    required String categorie,
+    required bool terminee,
+  }) async {
+    try {
+      final dateSansHeure = DateTime(date.year, date.month, date.day);
+
+      final tache = ModeleTache(
+        id: idTache,
+        titre: titre,
+        heure: heure,
+        date: dateSansHeure,
+        categorie: categorie,
+        terminee: terminee,
+        estSynchronisee: false,
+        estSupprimee: false,
+      );
+
+      await _insererOuMajLocal(tache);
+
+      try {
+        final ref = _tachesRef;
+        if (ref != null) {
+          await ref
+              .doc(idTache)
+              .set(tache.toCloudMap())
+              .timeout(const Duration(seconds: 2));
+
+          await _insererOuMajLocal(tache.copyWith(estSynchronisee: true));
+        }
+      } catch (_) {}
+
+      await _rafraichirFluxTaches();
+    } catch (e) {
+      print(' Erreur mise à jour tâche: $e');
     }
   }
 
@@ -204,6 +274,7 @@ class ServiceTache {
           titre: (data['titre'] ?? '').toString(),
           heure: (data['heure'] ?? '--:--').toString(),
           date: DateTime.parse(data['date']),
+          categorie: (data['categorie'] ?? 'Autre').toString(),
           terminee: (data['terminee'] ?? false) == true,
           estSynchronisee: true,
           estSupprimee: false,

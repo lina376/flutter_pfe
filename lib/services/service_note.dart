@@ -233,4 +233,30 @@ class ServiceNote {
       print(' Erreur suppression note cloud: $e');
     }
   }
+
+  Future<ModeleNote?> trouverNoteParTitre(String titreRecherche) async {
+    final notes = await _obtenirNotesLocales();
+
+    try {
+      return notes.firstWhere(
+        (note) =>
+            note.titre.toLowerCase().trim() ==
+            titreRecherche.toLowerCase().trim(),
+      );
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Future<List<ModeleNote>> rechercherNotesParTitre(
+    String titreRecherche,
+  ) async {
+    final notes = await _obtenirNotesLocales();
+
+    return notes.where((note) {
+      return note.titre.toLowerCase().contains(
+        titreRecherche.toLowerCase().trim(),
+      );
+    }).toList();
+  }
 }

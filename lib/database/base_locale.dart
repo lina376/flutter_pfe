@@ -19,7 +19,7 @@ class BaseLocale {
 
     return await openDatabase(
       path,
-      version: 7,
+      version: 8,
       onCreate: _createDB,
       onUpgrade: _onUpgrade,
     );
@@ -33,6 +33,7 @@ class BaseLocale {
         description TEXT,
         date TEXT,
         heure TEXT,
+        categorie TEXT NOT NULL DEFAULT 'Autre',
         terminee INTEGER NOT NULL DEFAULT 0,
         estSynchronisee INTEGER NOT NULL DEFAULT 1,
         estSupprimee INTEGER NOT NULL DEFAULT 0
@@ -89,6 +90,7 @@ class BaseLocale {
           description TEXT,
           date TEXT,
           heure TEXT,
+          categorie TEXT NOT NULL DEFAULT 'Autre',
           terminee INTEGER NOT NULL DEFAULT 0,
           estSynchronisee INTEGER NOT NULL DEFAULT 1,
           estSupprimee INTEGER NOT NULL DEFAULT 0
@@ -110,6 +112,13 @@ class BaseLocale {
           active INTEGER NOT NULL DEFAULT 1
         )
       ''');
+    }
+
+    if (oldVersion < 8) {
+      await db.execute("""
+        ALTER TABLE taches
+        ADD COLUMN categorie TEXT NOT NULL DEFAULT 'Autre'
+      """);
     }
   }
 

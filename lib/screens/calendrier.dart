@@ -15,13 +15,23 @@ class Calendrier extends StatefulWidget {
 }
 
 class _CalendrierState extends State<Calendrier> {
+  final ControleurTache _controleurTache = ControleurTache();
+
+  final List<String> _categories = const [
+    'Études',
+    'Travail',
+    'Personnel',
+    'Santé',
+    'Courses',
+    'Rendez-vous',
+    'Autre',
+  ];
+
   @override
   void initState() {
     super.initState();
     _controleurTache.synchroniserTaches();
   }
-
-  final ControleurTache _controleurTache = ControleurTache();
 
   DateTime _moisAffiche = DateTime.now();
   DateTime _dateSelectionnee = DateTime.now();
@@ -42,6 +52,7 @@ class _CalendrierState extends State<Calendrier> {
   void _afficherAjoutTache() {
     final titreCtrl = TextEditingController();
     String? heureChoisie;
+    String categorieChoisie = 'Autre';
 
     showDialog(
       context: context,
@@ -59,6 +70,24 @@ class _CalendrierState extends State<Calendrier> {
                       labelText: "Titre",
                       border: OutlineInputBorder(),
                     ),
+                  ),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<String>(
+                    value: categorieChoisie,
+                    decoration: const InputDecoration(
+                      labelText: "Catégorie",
+                      border: OutlineInputBorder(),
+                    ),
+                    items: _categories.map((categorie) {
+                      return DropdownMenuItem<String>(
+                        value: categorie,
+                        child: Text(categorie),
+                      );
+                    }).toList(),
+                    onChanged: (valeur) {
+                      if (valeur == null) return;
+                      setLocalState(() => categorieChoisie = valeur);
+                    },
                   ),
                   const SizedBox(height: 12),
                   InkWell(
@@ -104,6 +133,7 @@ class _CalendrierState extends State<Calendrier> {
                       titre: titre,
                       heure: heureChoisie ?? "--:--",
                       date: _dateSelectionnee,
+                      categorie: categorieChoisie,
                     );
 
                     if (mounted) {
@@ -121,6 +151,24 @@ class _CalendrierState extends State<Calendrier> {
     );
   }
 
+  Widget _buildCategorieBadge(String categorie) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Text(
+        categorie,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+
   Widget _buildTacheItem(ModeleTache t) {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
@@ -135,7 +183,7 @@ class _CalendrierState extends State<Calendrier> {
             value: t.terminee,
             onChanged: (v) async {
               await _controleurTache.changerEtatTache(
-                idTache: t.id!,
+                idTache: t.id,
                 terminee: v ?? false,
               );
               if (mounted) setState(() {});
@@ -145,22 +193,29 @@ class _CalendrierState extends State<Calendrier> {
             activeColor: const Color(0xFF2F7BFF),
           ),
           Expanded(
-            child: Text(
-              t.titre,
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-                decoration: t.terminee
-                    ? TextDecoration.lineThrough
-                    : TextDecoration.none,
-              ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  t.titre,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    decoration: t.terminee
+                        ? TextDecoration.lineThrough
+                        : TextDecoration.none,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                _buildCategorieBadge(t.categorie),
+              ],
             ),
           ),
           const SizedBox(width: 8),
           Text(t.heure, style: TextStyle(color: Colors.white.withOpacity(0.7))),
           IconButton(
             onPressed: () async {
-              await _controleurTache.supprimerTache(t.id!);
+              await _controleurTache.supprimerTache(t.id);
               if (mounted) setState(() {});
             },
             icon: const Icon(Icons.delete, color: Colors.white),

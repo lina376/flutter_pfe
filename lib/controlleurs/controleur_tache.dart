@@ -16,8 +16,14 @@ class ControleurTache {
     required String titre,
     required String heure,
     required DateTime date,
+    required String categorie,
   }) {
-    return _serviceTache.ajouterTache(titre: titre, heure: heure, date: date);
+    return _serviceTache.ajouterTache(
+      titre: titre,
+      heure: heure,
+      date: date,
+      categorie: categorie,
+    );
   }
 
   Future<void> supprimerTache(String idTache) {
