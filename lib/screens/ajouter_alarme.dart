@@ -1,9 +1,11 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:ora/controlleurs/controleur_alarme.dart';
 
 class AjouterAlarmePage extends StatefulWidget {
   const AjouterAlarmePage({super.key});
   static const String screenRoute = 'pageajouteralarme';
+
   @override
   State<AjouterAlarmePage> createState() => _AjouterAlarmePageState();
 }
@@ -28,7 +30,9 @@ class _AjouterAlarmePageState extends State<AjouterAlarmePage> {
 
   Future<void> _choisirHeure() async {
     final h = await showTimePicker(context: context, initialTime: _heure);
-    if (h != null) setState(() => _heure = h);
+    if (h != null) {
+      setState(() => _heure = h);
+    }
   }
 
   Future<void> _save() async {
@@ -57,7 +61,10 @@ class _AjouterAlarmePageState extends State<AjouterAlarmePage> {
           color: selected ? Colors.purple : Colors.white24,
           borderRadius: BorderRadius.circular(10),
         ),
-        child: Text(j, style: const TextStyle(color: Colors.white)),
+        child: Text(
+          "alarms.days.$j".tr(),
+          style: const TextStyle(color: Colors.white),
+        ),
       ),
     );
   }
@@ -66,13 +73,11 @@ class _AjouterAlarmePageState extends State<AjouterAlarmePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       extendBodyBehindAppBar: true,
-
       appBar: AppBar(
-        title: const Text("Ajouter alarme"),
+        title: Text("alarms.add_alarm".tr()),
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
-
       body: Container(
         width: double.infinity,
         height: double.infinity,
@@ -89,29 +94,25 @@ class _AjouterAlarmePageState extends State<AjouterAlarmePage> {
               children: [
                 TextField(
                   controller: _titre,
-                  decoration: const InputDecoration(hintText: "Titre"),
+                  decoration: InputDecoration(
+                    hintText: "alarms.alarm_label".tr(),
+                  ),
                 ),
                 TextField(
                   controller: _note,
-                  decoration: const InputDecoration(hintText: "Note"),
+                  decoration: InputDecoration(
+                    hintText: "notes.note_content".tr(),
+                  ),
                 ),
                 const SizedBox(height: 20),
-
                 ElevatedButton(
                   onPressed: _choisirHeure,
                   child: Text(_heure.format(context)),
                 ),
-
                 const SizedBox(height: 20),
-
                 Wrap(spacing: 8, children: joursList.map(chip).toList()),
-
                 const Spacer(),
-
-                ElevatedButton(
-                  onPressed: _save,
-                  child: const Text("Enregistrer"),
-                ),
+                ElevatedButton(onPressed: _save, child: Text("app.save".tr())),
               ],
             ),
           ),

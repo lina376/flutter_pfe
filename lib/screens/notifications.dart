@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:ora/controlleurs/controleur_notification.dart';
@@ -77,10 +78,10 @@ class _notificationsState extends State<notifications> {
                 const SizedBox(height: 10),
                 Row(
                   children: [
-                    const Expanded(
+                    Expanded(
                       child: Text(
-                        "Notifications",
-                        style: TextStyle(
+                        "notifications.title".tr(),
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 33,
                           fontWeight: FontWeight.w900,
@@ -103,10 +104,10 @@ class _notificationsState extends State<notifications> {
                       }
 
                       if (snapshot.hasError) {
-                        return const Center(
+                        return Center(
                           child: Text(
-                            "Erreur de chargement",
-                            style: TextStyle(color: Colors.white),
+                            "notifications.error".tr(),
+                            style: const TextStyle(color: Colors.white),
                           ),
                         );
                       }
@@ -114,10 +115,10 @@ class _notificationsState extends State<notifications> {
                       final notificationsList = snapshot.data ?? [];
 
                       if (notificationsList.isEmpty) {
-                        return const Center(
+                        return Center(
                           child: Text(
-                            "Aucune notification",
-                            style: TextStyle(
+                            "notifications.empty".tr(),
+                            style: const TextStyle(
                               color: Colors.white,
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
@@ -260,14 +261,23 @@ class NotificationDetailsPage extends StatelessWidget {
   String _inHowLong(DateTime target) {
     final diff = target.difference(DateTime.now());
 
-    if (diff.inSeconds <= 0) return "Maintenant";
+    if (diff.inSeconds <= 0) return "notifications.now".tr();
+
     if (diff.inMinutes < 60) {
-      return "Dans ${diff.inMinutes} minutes (${_timeHHmm(target)})";
+      return "notifications.in_minutes".tr(
+        args: ["${diff.inMinutes}", _timeHHmm(target)],
+      );
     }
+
     if (diff.inHours < 24) {
-      return "Dans ${diff.inHours} heures (${_timeHHmm(target)})";
+      return "notifications.in_hours".tr(
+        args: ["${diff.inHours}", _timeHHmm(target)],
+      );
     }
-    return "Le ${DateFormat('dd/MM/yyyy').format(target)} (${_timeHHmm(target)})";
+
+    return "notifications.on_date".tr(
+      args: [DateFormat('dd/MM/yyyy').format(target), _timeHHmm(target)],
+    );
   }
 
   @override

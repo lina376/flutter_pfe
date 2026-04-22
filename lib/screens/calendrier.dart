@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:ora/controlleurs/controleur_tache.dart';
@@ -60,23 +61,27 @@ class _CalendrierState extends State<Calendrier> {
         return StatefulBuilder(
           builder: (context, setLocalState) {
             return AlertDialog(
-              title: const Text("Nouvelle tâche"),
+              backgroundColor: const Color.fromARGB(255, 197, 179, 252),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(25),
+              ),
+              title: Text("tasks.add_task".tr()),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   TextField(
                     controller: titreCtrl,
-                    decoration: const InputDecoration(
-                      labelText: "Titre",
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      labelText: "tasks.task_title".tr(),
+                      border: const OutlineInputBorder(),
                     ),
                   ),
                   const SizedBox(height: 12),
                   DropdownButtonFormField<String>(
                     value: categorieChoisie,
-                    decoration: const InputDecoration(
-                      labelText: "Catégorie",
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      labelText: "tasks.category".tr(),
+                      border: const OutlineInputBorder(),
                     ),
                     items: _categories.map((categorie) {
                       return DropdownMenuItem<String>(
@@ -109,7 +114,7 @@ class _CalendrierState extends State<Calendrier> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            heureChoisie ?? "Choisir l'heure",
+                            heureChoisie ?? "tasks.choose_time".tr(),
                             style: const TextStyle(fontSize: 14),
                           ),
                           const Icon(Icons.access_time),
@@ -122,7 +127,7 @@ class _CalendrierState extends State<Calendrier> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: const Text("Annuler"),
+                  child: Text("app.cancel".tr()),
                 ),
                 ElevatedButton(
                   onPressed: () async {
@@ -141,7 +146,7 @@ class _CalendrierState extends State<Calendrier> {
                       setState(() {});
                     }
                   },
-                  child: const Text("Ajouter"),
+                  child: Text("app.add".tr()),
                 ),
               ],
             );
@@ -188,9 +193,6 @@ class _CalendrierState extends State<Calendrier> {
               );
               if (mounted) setState(() {});
             },
-            side: BorderSide(color: Colors.white.withOpacity(0.8)),
-            checkColor: Colors.white,
-            activeColor: const Color(0xFF2F7BFF),
           ),
           Expanded(
             child: Column(
@@ -248,9 +250,6 @@ class _CalendrierState extends State<Calendrier> {
           onPressed: () {
             Navigator.pushNamed(context, principal.screenRoute);
           },
-          tooltip: 'chevron',
-          iconSize: 40,
-          constraints: const BoxConstraints(minHeight: 50, minWidth: 50),
         ),
       ),
       floatingActionButton: FloatingActionButton(
@@ -263,7 +262,6 @@ class _CalendrierState extends State<Calendrier> {
         ).withOpacity(0.9),
         child: const Icon(Icons.add, color: Colors.black),
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       body: Container(
         width: double.infinity,
         height: double.infinity,
@@ -279,9 +277,9 @@ class _CalendrierState extends State<Calendrier> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  "Calendrier",
-                  style: TextStyle(
+                Text(
+                  "calendar.title".tr(),
+                  style: const TextStyle(
                     fontSize: 42,
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
@@ -298,7 +296,6 @@ class _CalendrierState extends State<Calendrier> {
                     firstDay: DateTime.utc(2016, 1, 1),
                     lastDay: DateTime.utc(2036, 12, 31),
                     focusedDay: _moisAffiche,
-                    startingDayOfWeek: StartingDayOfWeek.sunday,
                     selectedDayPredicate: (jour) =>
                         isSameDay(jour, _dateSelectionnee),
                     onDaySelected: (jourSelectionne, moisFocalise) {
@@ -307,80 +304,30 @@ class _CalendrierState extends State<Calendrier> {
                         _moisAffiche = moisFocalise;
                       });
                     },
-                    headerStyle: HeaderStyle(
-                      formatButtonVisible: false,
-                      titleCentered: true,
-                      titleTextFormatter: (date, locale) =>
-                          DateFormat('MMM yyyy', 'en_US').format(date),
-                      titleTextStyle: const TextStyle(
-                        color: Colors.black,
-                        fontWeight: FontWeight.w700,
-                      ),
-                      leftChevronIcon: const Icon(
-                        Icons.chevron_left,
-                        color: Colors.black,
-                      ),
-                      rightChevronIcon: const Icon(
-                        Icons.chevron_right,
-                        color: Colors.black,
-                      ),
-                    ),
-                    daysOfWeekStyle: DaysOfWeekStyle(
-                      weekdayStyle: TextStyle(
-                        color: Colors.black.withOpacity(0.70),
-                      ),
-                      weekendStyle: TextStyle(
-                        color: Colors.black.withOpacity(0.70),
-                      ),
-                    ),
-                    calendarStyle: CalendarStyle(
-                      outsideDaysVisible: false,
-                      defaultTextStyle: const TextStyle(color: Colors.black),
-                      weekendTextStyle: const TextStyle(color: Colors.black),
-                      todayDecoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.08),
-                        shape: BoxShape.circle,
-                      ),
-                      selectedDecoration: const BoxDecoration(
-                        color: Color(0xFF2F7BFF),
-                        shape: BoxShape.circle,
-                      ),
-                      selectedTextStyle: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
                   ),
                 ),
+
                 const SizedBox(height: 14),
+
                 Expanded(
                   child: Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       color: Colors.white.withOpacity(0.12),
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: Colors.white.withOpacity(0.18)),
                     ),
                     child: StreamBuilder<List<ModeleTache>>(
                       stream: _controleurTache.obtenirFluxTachesParDate(
                         _dateSelectionnee,
                       ),
                       builder: (context, snapshot) {
-                        if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return const Center(
-                            child: CircularProgressIndicator(),
-                          );
-                        }
-
                         if (!snapshot.hasData || snapshot.data!.isEmpty) {
                           return Center(
                             child: Text(
-                              "Aucune tâche",
+                              "tasks.no_tasks".tr(),
                               style: TextStyle(
                                 color: Colors.white.withOpacity(0.85),
                                 fontSize: 16,
-                                fontWeight: FontWeight.w600,
                               ),
                             ),
                           );
@@ -399,29 +346,12 @@ class _CalendrierState extends State<Calendrier> {
                         return ListView(
                           children: [
                             if (tachesEnCours.isNotEmpty) ...[
-                              const Text(
-                                "En cours",
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: 10),
-                              ...tachesEnCours.map((t) => _buildTacheItem(t)),
-                              const SizedBox(height: 20),
+                              Text("tasks.in_progress".tr()),
+                              ...tachesEnCours.map(_buildTacheItem),
                             ],
                             if (tachesTerminees.isNotEmpty) ...[
-                              const Text(
-                                "Terminées",
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: 10),
-                              ...tachesTerminees.map((t) => _buildTacheItem(t)),
+                              Text("tasks.completed".tr()),
+                              ...tachesTerminees.map(_buildTacheItem),
                             ],
                           ],
                         );

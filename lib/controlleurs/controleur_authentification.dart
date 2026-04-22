@@ -5,7 +5,7 @@ class ControleurAuthentification {
   final ServiceAuthentification _serviceAuthentification =
       ServiceAuthentification();
 
-  Future<UserCredential> seConnecter({
+  Future<String> seConnecter({
     required String email,
     required String motDePasse,
   }) async {

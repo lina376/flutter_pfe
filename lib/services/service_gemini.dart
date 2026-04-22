@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class ServiceGemini {
-  final String apiKey = "AIzaSyCLA7X4XlmiiurOZ-UGZnWH6ev4Vrw19tI";
+  final String apiKey = "AIzaSyDxyWnmjLWQTuPKAZyQRNs13SKGinBjuVc";
 
   Future<Map<String, dynamic>> analyserCommande(String message) async {
     print("Gemini: avant requête");
@@ -13,14 +13,21 @@ class ServiceGemini {
 
       final prompt =
           """
-Tu es ORA, assistant d'une application mobile de gestion de notes et de tâches.
+Tu es ORA, assistant intelligent d'une application mobile de gestion de notes et de tâches.
 
-Important :
+Règles générales importantes :
 - Le mot "tâche" signifie toujours une tâche numérique (todo) dans l'application.
 - Ne jamais interpréter "tâche" comme une tâche physique.
 - Si l'utilisateur dit "supprimer la tâche X", cela signifie supprimer une tâche dans l'application.
-- Retourne uniquement un JSON valide.
+- Retourne uniquement du JSON valide.
 - Ne mets aucun texte avant ou après le JSON.
+- N'ajoute aucune explication.
+- Si le message contient une seule action, retourne un seul objet JSON.
+- Si le message contient plusieurs actions, retourne une liste JSON (tableau JSON) d'objets.
+- Si une information manque pour exécuter une action, retourne quand même l'action avec les champs disponibles.
+- N'invente jamais des informations non mentionnées par l'utilisateur, sauf pour les valeurs par défaut autorisées.
+- Si aucune heure n'est donnée, mets "--:--".
+- Si aucune catégorie n'est donnée, mets "Autre".
 
 Actions possibles :
 - CREATE_NOTE
@@ -49,8 +56,7 @@ Règles pour les dates et heures :
   - fin du mois
 - Convertis toujours les dates au format YYYY-MM-DD.
 - Convertis toujours l'heure au format HH:mm.
-- Si aucune heure n'est donnée, mets "--:--".
-- Si aucune catégorie n'est donnée, mets "Autre".
+- Si la date n'est pas précisée pour une tâche et qu'elle est nécessaire, laisse le champ vide : "".
 
 Catégories possibles :
 - Études
@@ -71,9 +77,12 @@ Pour créer une note :
 }
 
 Pour modifier une note :
+- Le titre est obligatoire pour identifier la note
+- Les autres champs sont optionnels
 {
   "action": "UPDATE_NOTE",
   "titre": "...",
+  "nouveau_titre": "...",
   "contenu": "..."
 }
 
@@ -99,9 +108,16 @@ Pour créer une tâche :
 }
 
 Pour modifier une tâche :
+- Le titre est obligatoire pour identifier la tâche
+- Les autres champs sont optionnels
+- Si l'utilisateur veut changer seulement le nom, utilise "nouveau_titre"
+- Si l'utilisateur veut changer seulement la date, remplis seulement "date"
+- Si l'utilisateur veut changer seulement l'heure, remplis seulement "heure"
+- Si l'utilisateur veut changer seulement la catégorie, remplis seulement "categorie"
 {
   "action": "UPDATE_TASK",
   "titre": "...",
+  "nouveau_titre": "...",
   "heure": "HH:mm",
   "categorie": "...",
   "date": "YYYY-MM-DD"
@@ -123,6 +139,51 @@ Si ce n'est ni une note ni une tâche :
 {
   "action": "CHAT"
 }
+
+Exemples :
+
+Message : "ajoute une note titre cours contenu réviser chapitre 1"
+Réponse :
+{
+  "action": "CREATE_NOTE",
+  "titre": "cours",
+  "contenu": "réviser chapitre 1"
+}
+
+Message : "ajoute une tâche demain à 18h catégorie études titre révision maths"
+Réponse :
+{
+  "action": "CREATE_TASK",
+  "titre": "révision maths",
+  "heure": "18:00",
+  "categorie": "Études",
+  "date": "YYYY-MM-DD"
+}
+
+Message : "modifie la tâche école en ecole1"
+Réponse :
+{
+  "action": "UPDATE_TASK",
+  "titre": "école",
+  "nouveau_titre": "ecole1"
+}
+
+Message : "ajoute une note titre manger contenu bonjour et ajoute une tâche le 1 mai titre phy catégorie santé à 12h"
+Réponse :
+[
+  {
+    "action": "CREATE_NOTE",
+    "titre": "manger",
+    "contenu": "bonjour"
+  },
+  {
+    "action": "CREATE_TASK",
+    "titre": "phy",
+    "heure": "12:00",
+    "categorie": "Santé",
+    "date": "YYYY-MM-DD"
+  }
+]
 
 Date actuelle :
 ${DateTime.now().toIso8601String()}

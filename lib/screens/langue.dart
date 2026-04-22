@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:ora/screens/principal.dart';
+import 'package:ora/services/service_langue.dart';
 
 class LanguePage extends StatefulWidget {
   static const String screenRoute = 'pagelangue';
@@ -14,6 +15,9 @@ class LanguePage extends StatefulWidget {
 class _LanguePageState extends State<LanguePage> {
   Future<void> changerLangue(Locale locale) async {
     await context.setLocale(locale);
+
+    final serviceLangue = ServiceLangue();
+    await serviceLangue.sauvegarderLangue(locale.languageCode);
 
     if (!mounted) return;
     ScaffoldMessenger.of(

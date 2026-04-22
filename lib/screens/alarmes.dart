@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:ora/controlleurs/controleur_alarme.dart';
 import 'package:ora/models/modele_alarme.dart';
@@ -35,7 +36,7 @@ class _AlarmesPageState extends State<AlarmesPage> {
 
     ScaffoldMessenger.of(
       context,
-    ).showSnackBar(const SnackBar(content: Text("Alarme supprimée.")));
+    ).showSnackBar(SnackBar(content: Text("alarms.alarm_deleted".tr())));
   }
 
   Future<void> _basculerActivation(ModeleAlarme alarme, bool valeur) async {
@@ -54,36 +55,13 @@ class _AlarmesPageState extends State<AlarmesPage> {
   }
 
   String _formaterJours(String jours) {
-    if (jours.trim().isEmpty) {
-      return "Tous les jours";
-    }
-
-    if (jours.toLowerCase() == "quotidien") {
-      return "Tous les jours";
+    if (jours.trim().isEmpty || jours.toLowerCase() == "quotidien") {
+      return "alarms.daily".tr();
     }
 
     return jours
         .split(',')
-        .map((jour) {
-          switch (jour.trim().toLowerCase()) {
-            case 'lun':
-              return 'Lun';
-            case 'mar':
-              return 'Mar';
-            case 'mer':
-              return 'Mer';
-            case 'jeu':
-              return 'Jeu';
-            case 'ven':
-              return 'Ven';
-            case 'sam':
-              return 'Sam';
-            case 'dim':
-              return 'Dim';
-            default:
-              return jour;
-          }
-        })
+        .map((jour) => "alarms.days.${jour.trim()}".tr())
         .join('   ');
   }
 
@@ -208,16 +186,16 @@ class _AlarmesPageState extends State<AlarmesPage> {
           border: Border.all(color: Colors.white.withOpacity(0.12)),
         ),
         child: Column(
-          children: const [
-            CircleAvatar(
+          children: [
+            const CircleAvatar(
               radius: 20,
               backgroundColor: Color.fromARGB(191, 58, 12, 87),
               child: Icon(Icons.add, color: Colors.white),
             ),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             Text(
-              "Ajouter une alarme",
-              style: TextStyle(
+              "alarms.add_alarm".tr(),
+              style: const TextStyle(
                 color: Colors.white,
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
@@ -242,7 +220,7 @@ class _AlarmesPageState extends State<AlarmesPage> {
         if (snapshot.hasError) {
           return Center(
             child: Text(
-              "Erreur : ${snapshot.error}",
+              "${"app.error".tr()} : ${snapshot.error}",
               style: const TextStyle(color: Colors.white),
               textAlign: TextAlign.center,
             ),
@@ -263,10 +241,10 @@ class _AlarmesPageState extends State<AlarmesPage> {
                   borderRadius: BorderRadius.circular(22),
                   border: Border.all(color: Colors.white.withOpacity(0.12)),
                 ),
-                child: const Text(
-                  "Aucune alarme disponible",
+                child: Text(
+                  "alarms.no_alarms".tr(),
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.white, fontSize: 15),
+                  style: const TextStyle(color: Colors.white, fontSize: 15),
                 ),
               ),
 
@@ -303,9 +281,9 @@ class _AlarmesPageState extends State<AlarmesPage> {
             Navigator.pushReplacementNamed(context, principal.screenRoute);
           },
         ),
-        title: const Text(
-          "Alarmes",
-          style: TextStyle(
+        title: Text(
+          "alarms.title".tr(),
+          style: const TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.bold,
             fontSize: 22,

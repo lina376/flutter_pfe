@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:ora/controlleurs/controleur_favori.dart';
 import 'package:ora/controlleurs/controleur_note.dart';
@@ -40,9 +41,9 @@ class _mesnotesState extends State<mesnotes> {
       await _controleurNote.supprimerNote(noteId);
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Erreur suppression : $e")));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("app.error_delete".tr(args: ["$e"]))),
+      );
     }
   }
 
@@ -83,23 +84,11 @@ class _mesnotesState extends State<mesnotes> {
           child: Stack(
             children: [
               Positioned(
-                top: h * 0.04,
-                left: h * 0.01,
-                child: const Text(
-                  "Mes",
-                  style: TextStyle(
-                    fontSize: 46,
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              Positioned(
                 top: h * 0.09,
                 left: h * 0.01,
-                child: const Text(
-                  "Notes",
-                  style: TextStyle(
+                child: Text(
+                  "notes.title".tr(),
+                  style: const TextStyle(
                     fontSize: 46,
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
@@ -131,7 +120,7 @@ class _mesnotesState extends State<mesnotes> {
                     if (allNotes.isEmpty) {
                       return Center(
                         child: Text(
-                          "Aucune note",
+                          "notes.empty".tr(),
                           style: TextStyle(
                             color: Colors.white.withOpacity(0.8),
                           ),
@@ -149,7 +138,7 @@ class _mesnotesState extends State<mesnotes> {
                     if (notes.isEmpty) {
                       return Center(
                         child: Text(
-                          "Aucun résultat",
+                          "notes.no_result".tr(),
                           style: TextStyle(
                             color: Colors.white.withOpacity(0.8),
                           ),
@@ -352,9 +341,9 @@ class barederecherche extends StatelessWidget {
               controller: controller,
               onChanged: onChanged,
               style: const TextStyle(color: Colors.white),
-              decoration: const InputDecoration(
-                hintText: "Chercher",
-                hintStyle: TextStyle(color: Colors.white70),
+              decoration: InputDecoration(
+                hintText: "notes.search".tr(),
+                hintStyle: const TextStyle(color: Colors.white70),
                 border: InputBorder.none,
               ),
             ),

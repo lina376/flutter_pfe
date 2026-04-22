@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:ora/controlleurs/controleur_favori.dart';
@@ -79,15 +80,19 @@ class _FavoriseState extends State<Favorise> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 16),
-                const Text(
-                  "Favoriser",
-                  style: TextStyle(
+
+                /// 🔄 titre
+                Text(
+                  "favorites.title".tr(),
+                  style: const TextStyle(
                     color: Colors.white,
                     fontSize: 34,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
+
                 const SizedBox(height: 16),
+
                 Expanded(
                   child: StreamBuilder<List<ModeleFavori>>(
                     stream: _controleurFavori.obtenirFluxFavoris(),
@@ -99,7 +104,7 @@ class _FavoriseState extends State<Favorise> {
                       if (snapshot.hasError) {
                         return Center(
                           child: Text(
-                            "Erreur de chargement",
+                            "app.error_loading".tr(),
                             style: TextStyle(
                               color: Colors.white.withOpacity(0.8),
                             ),
@@ -112,7 +117,7 @@ class _FavoriseState extends State<Favorise> {
                       if (favoris.isEmpty) {
                         return Center(
                           child: Text(
-                            "Aucun favori",
+                            "favorites.empty".tr(),
                             style: TextStyle(
                               color: Colors.white.withOpacity(0.8),
                             ),

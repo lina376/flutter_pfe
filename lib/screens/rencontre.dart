@@ -1,5 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
+import 'package:ora/screens/admin_home.dart';
 import 'package:ora/screens/connecter.dart';
 import 'package:ora/screens/principal.dart';
 
@@ -12,12 +15,26 @@ class rencontre extends StatefulWidget {
 }
 
 class _rencontreState extends State<rencontre> {
-  void allerPageSuivante() {
+  Future<void> allerPageSuivante() async {
     final utilisateur = FirebaseAuth.instance.currentUser;
 
     if (utilisateur != null) {
-      Navigator.pushReplacementNamed(context, principal.screenRoute);
+      final doc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(utilisateur.uid)
+          .get();
+
+      final role = doc.data()?['role'] ?? 'user';
+
+      if (!mounted) return;
+
+      if (role == 'admin') {
+        Navigator.pushReplacementNamed(context, AdminHome.screenRoute);
+      } else {
+        Navigator.pushReplacementNamed(context, principal.screenRoute);
+      }
     } else {
+      if (!mounted) return;
       Navigator.pushReplacementNamed(context, connecter.screenRoute);
     }
   }
@@ -50,18 +67,22 @@ class _rencontreState extends State<rencontre> {
                   ),
                 ),
               ),
+
+              /// 🔹 TITLE
               Positioned(
                 top: MediaQuery.of(context).size.height * 0.025,
                 left: MediaQuery.of(context).size.height * 0.065,
-                child: const Text(
-                  "Rencontrez",
-                  style: TextStyle(
+                child: Text(
+                  "intro.title".tr(),
+                  style: const TextStyle(
                     fontSize: 55,
                     fontWeight: FontWeight.w800,
                     color: Colors.white,
                   ),
                 ),
               ),
+
+              /// 🔹 ORA (تبقى كيف ما هي)
               Positioned(
                 top: MediaQuery.of(context).size.height * 0.08,
                 left: MediaQuery.of(context).size.height * 0.15,
@@ -74,6 +95,8 @@ class _rencontreState extends State<rencontre> {
                   ),
                 ),
               ),
+
+              /// 🔹 HELP TEXT
               Positioned(
                 top: MediaQuery.of(context).size.height * 0.2,
                 left: MediaQuery.of(context).size.height * 0.02,
@@ -87,9 +110,9 @@ class _rencontreState extends State<rencontre> {
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(color: Colors.white.withOpacity(0.15)),
                   ),
-                  child: const Text(
-                    "Avez-vous besoin\nd'aide?",
-                    style: TextStyle(
+                  child: Text(
+                    "intro.help".tr(),
+                    style: const TextStyle(
                       color: Colors.white70,
                       fontSize: 14,
                       height: 1.2,
@@ -97,7 +120,10 @@ class _rencontreState extends State<rencontre> {
                   ),
                 ),
               ),
+
               _buttomcommencer(onTap: allerPageSuivante),
+
+              /// 🔹 BUBBLES DESIGN (ما تبدلش)
               Stack(
                 children: [
                   Positioned(
@@ -155,8 +181,9 @@ class _rencontreState extends State<rencontre> {
   }
 }
 
+/// 🔹 BUTTON
 class _buttomcommencer extends StatefulWidget {
-  final VoidCallback onTap;
+  final Future<void> Function() onTap;
   const _buttomcommencer({required this.onTap});
 
   @override
@@ -171,8 +198,8 @@ class _buttomcommencerState extends State<_buttomcommencer> {
       move = true;
     });
 
-    Future.delayed(const Duration(milliseconds: 400), () {
-      widget.onTap();
+    Future.delayed(const Duration(milliseconds: 400), () async {
+      await widget.onTap();
     });
   }
 
@@ -194,10 +221,10 @@ class _buttomcommencerState extends State<_buttomcommencer> {
           child: Stack(
             alignment: Alignment.center,
             children: [
-              const Center(
+              Center(
                 child: Text(
-                  "Commencer",
-                  style: TextStyle(
+                  "intro.start".tr(),
+                  style: const TextStyle(
                     color: Colors.white70,
                     fontSize: 16,
                     fontWeight: FontWeight.w600,

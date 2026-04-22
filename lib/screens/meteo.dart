@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:ora/controlleurs/contreleur_meteo.dart';
 import 'package:ora/models/modele_meteo.dart';
@@ -17,6 +18,39 @@ class _MeteoPageState extends State<MeteoPage> {
 
   bool _isLoading = false;
   String? _erreur;
+  Widget _detailItem({
+    required IconData icon,
+    required String titre,
+    required String valeur,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.10),
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Column(
+        children: [
+          Icon(icon, color: Colors.white, size: 28),
+          const SizedBox(height: 8),
+          Text(
+            titre,
+            style: const TextStyle(color: Colors.white70, fontSize: 14),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            valeur,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   MeteoActuelle? _meteoActuelle;
   List<PrevisionJour> _previsions = [];
@@ -47,7 +81,7 @@ class _MeteoPageState extends State<MeteoPage> {
       if (!mounted) return;
 
       setState(() {
-        _erreur = "Erreur lors du chargement de la météo";
+        _erreur = "meteo.error".tr();
       });
     } finally {
       if (!mounted) return;
@@ -61,18 +95,10 @@ class _MeteoPageState extends State<MeteoPage> {
   IconData _iconePrincipale(String description) {
     final texte = description.toLowerCase();
 
-    if (texte.contains("pluie")) {
-      return Icons.water_drop_outlined;
-    }
-    if (texte.contains("nuage")) {
-      return Icons.cloud_outlined;
-    }
-    if (texte.contains("orage")) {
-      return Icons.flash_on_outlined;
-    }
-    if (texte.contains("vent")) {
-      return Icons.air;
-    }
+    if (texte.contains("pluie")) return Icons.water_drop_outlined;
+    if (texte.contains("nuage")) return Icons.cloud_outlined;
+    if (texte.contains("orage")) return Icons.flash_on_outlined;
+    if (texte.contains("vent")) return Icons.air;
     if (texte.contains("soleil") || texte.contains("dégagé")) {
       return Icons.wb_sunny_outlined;
     }
@@ -138,9 +164,9 @@ class _MeteoPageState extends State<MeteoPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            "Détails",
-            style: TextStyle(
+          Text(
+            "meteo.details".tr(),
+            style: const TextStyle(
               color: Colors.white,
               fontSize: 21,
               fontWeight: FontWeight.bold,
@@ -152,7 +178,7 @@ class _MeteoPageState extends State<MeteoPage> {
               Expanded(
                 child: _detailItem(
                   icon: Icons.device_thermostat,
-                  titre: "Ressenti",
+                  titre: "meteo.feels_like".tr(),
                   valeur: "${meteo.ressenti}°C",
                 ),
               ),
@@ -160,7 +186,7 @@ class _MeteoPageState extends State<MeteoPage> {
               Expanded(
                 child: _detailItem(
                   icon: Icons.water_drop_outlined,
-                  titre: "Humidité",
+                  titre: "meteo.humidity".tr(),
                   valeur: "${meteo.humidite}%",
                 ),
               ),
@@ -172,7 +198,7 @@ class _MeteoPageState extends State<MeteoPage> {
               Expanded(
                 child: _detailItem(
                   icon: Icons.air,
-                  titre: "Vent",
+                  titre: "meteo.wind".tr(),
                   valeur: "${meteo.vent} km/h",
                 ),
               ),
@@ -180,7 +206,7 @@ class _MeteoPageState extends State<MeteoPage> {
               Expanded(
                 child: _detailItem(
                   icon: Icons.speed,
-                  titre: "Pression",
+                  titre: "meteo.pressure".tr(),
                   valeur: "${meteo.pression} hPa",
                 ),
               ),
@@ -191,43 +217,13 @@ class _MeteoPageState extends State<MeteoPage> {
     );
   }
 
-  Widget _detailItem({
-    required IconData icon,
-    required String titre,
-    required String valeur,
-  }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.10),
-        borderRadius: BorderRadius.circular(18),
-      ),
-      child: Column(
-        children: [
-          Icon(icon, color: Colors.white, size: 28),
-          const SizedBox(height: 8),
-          Text(
-            titre,
-            style: const TextStyle(color: Colors.white70, fontSize: 14),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            valeur,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _blocPrevisions() {
     if (_previsions.isEmpty) {
-      return const Center(
-        child: Text("Pas de prévisions", style: TextStyle(color: Colors.white)),
+      return Center(
+        child: Text(
+          "meteo.no_forecast".tr(),
+          style: const TextStyle(color: Colors.white),
+        ),
       );
     }
 
@@ -242,16 +238,15 @@ class _MeteoPageState extends State<MeteoPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            "Prévisions",
-            style: TextStyle(
+          Text(
+            "meteo.forecast".tr(),
+            style: const TextStyle(
               color: Colors.white,
               fontSize: 21,
               fontWeight: FontWeight.bold,
             ),
           ),
           const SizedBox(height: 14),
-
           ..._previsions
               .take(5)
               .map(
@@ -268,7 +263,6 @@ class _MeteoPageState extends State<MeteoPage> {
                   child: Row(
                     children: [
                       Expanded(
-                        flex: 2,
                         child: Text(
                           jour.jour,
                           style: const TextStyle(
@@ -278,21 +272,18 @@ class _MeteoPageState extends State<MeteoPage> {
                         ),
                       ),
                       Expanded(
-                        flex: 2,
                         child: Icon(
                           _iconePrincipale(jour.description),
                           color: Colors.white,
                         ),
                       ),
                       Expanded(
-                        flex: 4,
                         child: Text(
                           jour.description,
                           style: const TextStyle(color: Colors.white70),
                         ),
                       ),
                       Expanded(
-                        flex: 3,
                         child: Text(
                           "${jour.temperatureMax}° / ${jour.temperatureMin}°",
                           textAlign: TextAlign.end,
@@ -323,7 +314,6 @@ class _MeteoPageState extends State<MeteoPage> {
         border: Border.all(color: Colors.white.withOpacity(0.18)),
       ),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Icon(Icons.lightbulb_outline, color: Colors.white, size: 28),
           const SizedBox(width: 12),
@@ -331,9 +321,9 @@ class _MeteoPageState extends State<MeteoPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  "Conseil ORA",
-                  style: TextStyle(
+                Text(
+                  "meteo.tip".tr(),
+                  style: const TextStyle(
                     color: Colors.white,
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
@@ -364,14 +354,11 @@ class _MeteoPageState extends State<MeteoPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(
-              _erreur!,
-              style: const TextStyle(color: Colors.white, fontSize: 16),
-            ),
+            Text(_erreur!, style: const TextStyle(color: Colors.white)),
             const SizedBox(height: 14),
             ElevatedButton(
               onPressed: _chargerMeteo,
-              child: const Text("Réessayer"),
+              child: Text("app.retry".tr()),
             ),
           ],
         ),
@@ -379,10 +366,10 @@ class _MeteoPageState extends State<MeteoPage> {
     }
 
     if (_meteoActuelle == null) {
-      return const Center(
+      return Center(
         child: Text(
-          "Aucune donnée météo",
-          style: TextStyle(color: Colors.white),
+          "meteo.no_data".tr(),
+          style: const TextStyle(color: Colors.white),
         ),
       );
     }
@@ -412,19 +399,14 @@ class _MeteoPageState extends State<MeteoPage> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          style: const ButtonStyle(
-            backgroundColor: WidgetStatePropertyAll<Color>(
-              Color.fromARGB(194, 88, 70, 142),
-            ),
-          ),
           icon: const Icon(Icons.chevron_left, color: Colors.white),
           onPressed: () {
             Navigator.pushReplacementNamed(context, principal.screenRoute);
           },
         ),
-        title: const Text(
-          "Météo",
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        title: Text(
+          "meteo.title".tr(),
+          style: const TextStyle(color: Colors.white),
         ),
         centerTitle: true,
         actions: [
@@ -435,8 +417,6 @@ class _MeteoPageState extends State<MeteoPage> {
         ],
       ),
       body: Container(
-        width: double.infinity,
-        height: double.infinity,
         decoration: const BoxDecoration(
           image: DecorationImage(
             image: AssetImage("images/b5.png"),

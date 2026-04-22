@@ -28,6 +28,7 @@ Future<void> toggleFavori(Map<String, dynamic> item) async {
       .collection('favoris');
 
   final String idOriginal = (item['idOriginal'] ?? item['id'] ?? '').toString();
+
   if (idOriginal.isEmpty) return;
 
   final query = await ref.where('idOriginal', isEqualTo: idOriginal).get();

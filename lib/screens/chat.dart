@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:ora/controlleurs/controleur_chat.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
@@ -23,6 +24,7 @@ class _chatState extends State<chat> {
 
   bool _microDisponible = false;
   bool _estEnEcoute = false;
+  bool _isSending = false;
   String _texteEcoute = "";
 
   @override
@@ -77,7 +79,6 @@ class _chatState extends State<chat> {
     super.dispose();
   }
 
-  bool _isSending = false;
   Future<void> envoyerMessage() async {
     final texte = controleurMessage.text.trim();
 
@@ -85,26 +86,20 @@ class _chatState extends State<chat> {
 
     setState(() {
       _isSending = true;
+      _texteEcoute = "";
+      _estEnEcoute = false;
     });
 
     controleurMessage.clear();
 
-    try {
-      await _controleurChat.ajouterMessage(
-        conversationId: conversationId!,
-        texte: texte,
-      );
-    } finally {
-      if (!mounted) return;
-
-      setState(() {
-        _isSending = false;
-      });
-    }
+    _controleurChat.ajouterMessage(
+      conversationId: conversationId!,
+      texte: texte,
+    );
   }
 
   Future<void> demarrerEcoute() async {
-    if (!_microDisponible) return;
+    if (!_microDisponible || _isSending) return;
 
     if (_speech.isListening) {
       await _speech.stop();
@@ -121,15 +116,14 @@ class _chatState extends State<chat> {
 
         setState(() {
           if (result.finalResult) {
-            setState(() {
-              _texteEcoute += " ${result.recognizedWords}";
-              controleurMessage.text = _texteEcoute.trim();
+            _texteEcoute += " ${result.recognizedWords}";
+            controleurMessage.text = _texteEcoute.trim();
 
-              controleurMessage.selection = TextSelection.fromPosition(
-                TextPosition(offset: controleurMessage.text.length),
-              );
-            });
+            controleurMessage.selection = TextSelection.fromPosition(
+              TextPosition(offset: controleurMessage.text.length),
+            );
           }
+
           controleurMessage.selection = TextSelection.fromPosition(
             TextPosition(offset: controleurMessage.text.length),
           );
@@ -165,6 +159,103 @@ class _chatState extends State<chat> {
   Future<void> passerEnModeVocal() async {
     FocusScope.of(context).unfocus();
     await basculerEcoute();
+  }
+
+  Widget _buildAvatarOra() {
+    return Container(
+      width: 45,
+      height: 45,
+      decoration: const BoxDecoration(
+        shape: BoxShape.circle,
+        image: DecorationImage(
+          image: AssetImage("images/robot3.png"),
+          fit: BoxFit.cover,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMessageBubble({
+    required bool isUser,
+    required String texte,
+    required String heure,
+  }) {
+    final bubble = Container(
+      constraints: const BoxConstraints(maxWidth: 260),
+      margin: const EdgeInsets.symmetric(vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: const Color.fromARGB(232, 24, 2, 48).withOpacity(0.5),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white.withOpacity(0.15)),
+      ),
+      child: Column(
+        crossAxisAlignment: isUser
+            ? CrossAxisAlignment.end
+            : CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            texte,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 14,
+              height: 1.3,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            heure,
+            style: TextStyle(
+              color: Colors.white.withOpacity(0.7),
+              fontSize: 10,
+              height: 1.2,
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (isUser) {
+      return Align(alignment: Alignment.centerRight, child: bubble);
+    }
+
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _buildAvatarOra(),
+          const SizedBox(width: 8),
+          Flexible(child: bubble),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTypingBubble() {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _buildAvatarOra(),
+          const SizedBox(width: 8),
+          Container(
+            margin: const EdgeInsets.symmetric(vertical: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            decoration: BoxDecoration(
+              color: const Color.fromARGB(232, 24, 2, 48).withOpacity(0.5),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: Colors.white.withOpacity(0.15)),
+            ),
+            child: const _TypingDots(),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -214,17 +305,16 @@ class _chatState extends State<chat> {
                   child: Image.asset("images/robot1.png", fit: BoxFit.cover),
                 ),
               ),
-
               Positioned(
                 top: hauteur * 0.12,
                 left: 12,
                 right: 12,
                 bottom: clavier + 90,
                 child: conversationId == null || user == null
-                    ? const Center(
+                    ? Center(
                         child: Text(
-                          "Chargement...",
-                          style: TextStyle(
+                          "app.loading".tr(),
+                          style: const TextStyle(
                             color: Color.fromARGB(152, 65, 24, 106),
                           ),
                         ),
@@ -236,22 +326,21 @@ class _chatState extends State<chat> {
                         builder: (context, snapshot) {
                           if (snapshot.connectionState ==
                               ConnectionState.waiting) {
-                            return const Center(
+                            return Center(
                               child: Text(
-                                "Chargement...",
-                                style: TextStyle(
+                                "app.loading".tr(),
+                                style: const TextStyle(
                                   color: Color.fromARGB(179, 65, 24, 106),
                                 ),
                               ),
                             );
                           }
 
-                          if (!snapshot.hasData ||
-                              snapshot.data!.docs.isEmpty) {
-                            return const Center(
+                          if (!snapshot.hasData || snapshot.data == null) {
+                            return Center(
                               child: Text(
-                                "Aucun message",
-                                style: TextStyle(
+                                "chat.no_messages".tr(),
+                                style: const TextStyle(
                                   color: Color.fromARGB(179, 65, 24, 106),
                                   fontSize: 20,
                                 ),
@@ -261,6 +350,35 @@ class _chatState extends State<chat> {
 
                           final messages = snapshot.data!.docs;
 
+                          if (_isSending && messages.isNotEmpty) {
+                            final dernierMessage = messages.first.data();
+                            final dernierSender =
+                                (dernierMessage['sender'] ?? 'user')
+                                    .toString()
+                                    .toLowerCase();
+
+                            if (dernierSender == 'ora') {
+                              WidgetsBinding.instance.addPostFrameCallback((_) {
+                                if (!mounted) return;
+                                setState(() {
+                                  _isSending = false;
+                                });
+                              });
+                            }
+                          }
+
+                          if (messages.isEmpty && !_isSending) {
+                            return Center(
+                              child: Text(
+                                "chat.no_messages".tr(),
+                                style: const TextStyle(
+                                  color: Color.fromARGB(179, 65, 24, 106),
+                                  fontSize: 20,
+                                ),
+                              ),
+                            );
+                          }
+
                           return ListView.builder(
                             reverse: true,
                             keyboardDismissBehavior:
@@ -269,45 +387,16 @@ class _chatState extends State<chat> {
                             itemCount: messages.length + (_isSending ? 1 : 0),
                             itemBuilder: (context, index) {
                               if (_isSending && index == 0) {
-                                return Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: Container(
-                                    margin: const EdgeInsets.symmetric(
-                                      vertical: 6,
-                                    ),
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 14,
-                                      vertical: 12,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: const Color.fromARGB(
-                                        232,
-                                        24,
-                                        2,
-                                        48,
-                                      ).withOpacity(0.5),
-                                      borderRadius: BorderRadius.circular(16),
-                                      border: Border.all(
-                                        color: Colors.white.withOpacity(0.15),
-                                      ),
-                                    ),
-                                    child: const Text(
-                                      "...",
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 20,
-                                        height: 1.2,
-                                      ),
-                                    ),
-                                  ),
-                                );
+                                return _buildTypingBubble();
                               }
+
                               final vraiIndex = _isSending ? index - 1 : index;
                               final data = messages[vraiIndex].data();
 
                               final texte = (data['texte'] ?? '').toString();
                               final sender = (data['sender'] ?? 'user')
-                                  .toString();
+                                  .toString()
+                                  .toLowerCase();
                               final isUser = sender == 'user';
                               final Timestamp? dateMessage =
                                   data['date'] as Timestamp?;
@@ -315,63 +404,16 @@ class _chatState extends State<chat> {
                                 dateMessage,
                               );
 
-                              return Align(
-                                alignment: isUser
-                                    ? Alignment.centerRight
-                                    : Alignment.centerLeft,
-                                child: Container(
-                                  margin: const EdgeInsets.symmetric(
-                                    vertical: 6,
-                                  ),
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 14,
-                                    vertical: 12,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: const Color.fromARGB(
-                                      232,
-                                      24,
-                                      2,
-                                      48,
-                                    ).withOpacity(0.5),
-                                    borderRadius: BorderRadius.circular(16),
-                                    border: Border.all(
-                                      color: Colors.white.withOpacity(0.15),
-                                    ),
-                                  ),
-                                  child: Column(
-                                    crossAxisAlignment: isUser
-                                        ? CrossAxisAlignment.end
-                                        : CrossAxisAlignment.start,
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Text(
-                                        texte,
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 14,
-                                          height: 1.3,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 6),
-                                      Text(
-                                        heure,
-                                        style: TextStyle(
-                                          color: Colors.white.withOpacity(0.7),
-                                          fontSize: 10,
-                                          height: 1.2,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
+                              return _buildMessageBubble(
+                                isUser: isUser,
+                                texte: texte,
+                                heure: heure,
                               );
                             },
                           );
                         },
                       ),
               ),
-
               if (_estEnEcoute || _texteEcoute.isNotEmpty)
                 Positioned(
                   left: 20,
@@ -388,14 +430,13 @@ class _chatState extends State<chat> {
                     ),
                     child: Text(
                       _texteEcoute.isEmpty
-                          ? "ORA est en train d'écouter..."
+                          ? "chat.listening".tr()
                           : _texteEcoute,
                       textAlign: TextAlign.center,
                       style: const TextStyle(color: Colors.white, fontSize: 13),
                     ),
                   ),
                 ),
-
               Positioned(
                 left: 10,
                 right: 10,
@@ -403,7 +444,7 @@ class _chatState extends State<chat> {
                 child: Row(
                   children: [
                     GestureDetector(
-                      onTap: passerEnModeVocal,
+                      onTap: _isSending ? null : passerEnModeVocal,
                       child: Container(
                         width: 50,
                         height: 50,
@@ -437,10 +478,11 @@ class _chatState extends State<chat> {
                           focusNode: focusTexte,
                           controller: controleurMessage,
                           textInputAction: TextInputAction.send,
+                          enabled: !_isSending,
                           style: const TextStyle(color: Colors.white),
-                          decoration: const InputDecoration(
-                            hintText: "Écrire...",
-                            hintStyle: TextStyle(color: Colors.white70),
+                          decoration: InputDecoration(
+                            hintText: "chat.type_message".tr(),
+                            hintStyle: const TextStyle(color: Colors.white70),
                             border: InputBorder.none,
                           ),
                           onSubmitted: (_) => envoyerMessage(),
@@ -457,7 +499,10 @@ class _chatState extends State<chat> {
                           shape: BoxShape.circle,
                           color: Colors.white.withOpacity(0.25),
                         ),
-                        child: const Icon(Icons.send, color: Colors.white),
+                        child: Icon(
+                          Icons.send,
+                          color: _isSending ? Colors.white54 : Colors.white,
+                        ),
                       ),
                     ),
                   ],
@@ -467,6 +512,68 @@ class _chatState extends State<chat> {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _TypingDots extends StatefulWidget {
+  const _TypingDots();
+
+  @override
+  State<_TypingDots> createState() => _TypingDotsState();
+}
+
+class _TypingDotsState extends State<_TypingDots>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  double _opacityForDot(int index) {
+    final value = _controller.value;
+    final shifted = (value - index * 0.2) % 1.0;
+    if (shifted < 0) return 0.3;
+    return 0.3 + (0.7 * (1 - shifted)).clamp(0.0, 1.0);
+  }
+
+  Widget _buildDot(int index) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        return Opacity(
+          opacity: _opacityForDot(index),
+          child: Container(
+            width: 8,
+            height: 8,
+            margin: const EdgeInsets.symmetric(horizontal: 2),
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [_buildDot(0), _buildDot(1), _buildDot(2)],
     );
   }
 }

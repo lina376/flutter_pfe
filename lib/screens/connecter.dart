@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:ora/controlleurs/controleur_authentification.dart';
 import 'package:ora/screens/creecompte.dart';
 import 'package:ora/screens/principal.dart';
+import 'package:ora/screens/admin_home.dart';
 
 class connecter extends StatefulWidget {
   static const String screenRoute = 'pageconnecter';
@@ -20,6 +21,7 @@ class _connecterState extends State<connecter> {
   bool isLoading = false;
   String email = '';
   String motdepasse = '';
+
   Future<void> _motDePasseOublie() async {
     final emailControleur = TextEditingController(text: email);
 
@@ -27,6 +29,10 @@ class _connecterState extends State<connecter> {
       context: context,
       builder: (context) {
         return AlertDialog(
+          backgroundColor: const Color.fromARGB(255, 197, 179, 252),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(25),
+          ),
           title: const Text("Mot de passe oublié"),
           content: TextField(
             controller: emailControleur,
@@ -249,23 +255,24 @@ class _connecterState extends State<connecter> {
                                 });
 
                                 try {
-                                  final userCredential =
-                                      await _controleurAuthentification
-                                          .seConnecter(
-                                            email: email.trim(),
-                                            motDePasse: motdepasse.trim(),
-                                          );
+                                  final role = await _controleurAuthentification
+                                      .seConnecter(
+                                        email: email.trim(),
+                                        motDePasse: motdepasse.trim(),
+                                      );
 
                                   if (!mounted) return;
 
-                                  final user = userCredential.user;
+                                  final user =
+                                      FirebaseAuth.instance.currentUser;
 
                                   if (user != null) {
                                     await user.reload();
                                     final userMisAJour =
                                         FirebaseAuth.instance.currentUser;
 
-                                    if (userMisAJour != null &&
+                                    if (role != 'admin' &&
+                                        userMisAJour != null &&
                                         !userMisAJour.emailVerified) {
                                       await FirebaseAuth.instance.signOut();
                                       ScaffoldMessenger.of(
@@ -280,10 +287,17 @@ class _connecterState extends State<connecter> {
                                       return;
                                     }
 
-                                    Navigator.pushReplacementNamed(
-                                      context,
-                                      principal.screenRoute,
-                                    );
+                                    if (role == 'admin') {
+                                      Navigator.pushReplacementNamed(
+                                        context,
+                                        AdminHome.screenRoute,
+                                      );
+                                    } else {
+                                      Navigator.pushReplacementNamed(
+                                        context,
+                                        principal.screenRoute,
+                                      );
+                                    }
                                   }
                                 } on FirebaseAuthException catch (e) {
                                   String message;
@@ -304,6 +318,13 @@ class _connecterState extends State<connecter> {
                                   } else if (e.code == 'too-many-requests') {
                                     message =
                                         "Trop de tentatives. Réessaie plus tard";
+                                  } else if (e.code == 'user-not-found') {
+                                    message =
+                                        "Aucun compte trouvé avec cet email";
+                                  } else if (e.code == 'wrong-password') {
+                                    message = "Mot de passe incorrect";
+                                  } else if (e.code == 'invalid-credential') {
+                                    message = "Email ou mot de passe incorrect";
                                   } else {
                                     message = "Erreur Firebase : ${e.code}";
                                   }

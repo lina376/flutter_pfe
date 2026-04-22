@@ -5,14 +5,34 @@ class ServiceAuthentification {
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  Future<UserCredential> seConnecter({
+  Future<String> seConnecter({
     required String email,
     required String motDePasse,
-  }) {
-    return _firebaseAuth.signInWithEmailAndPassword(
+  }) async {
+    final credential = await _firebaseAuth.signInWithEmailAndPassword(
       email: email,
       password: motDePasse,
     );
+
+    final utilisateur = credential.user;
+
+    if (utilisateur == null) {
+      throw Exception("Utilisateur introuvable");
+    }
+
+    final docUtilisateur = await _firestore
+        .collection('users')
+        .doc(utilisateur.uid)
+        .get();
+
+    if (!docUtilisateur.exists) {
+      throw Exception("Document utilisateur introuvable dans Firestore");
+    }
+
+    final data = docUtilisateur.data();
+    final role = data?['role'] ?? 'user';
+
+    return role;
   }
 
   Future<UserCredential> creerCompte({
@@ -35,6 +55,7 @@ class ServiceAuthentification {
         'nom': nom,
         'prenom': prenom,
         'email': email,
+        'role': 'user',
         'dateCreation': Timestamp.now(),
       });
     }

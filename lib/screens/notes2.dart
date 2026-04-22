@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:ora/controlleurs/controleur_note.dart';
@@ -70,9 +71,9 @@ class _notes2State extends State<notes2> {
       Navigator.pop(context, true);
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Erreur: $e")));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("app.error_with_value".tr(args: ["$e"]))),
+      );
     } finally {
       if (mounted) {
         setState(() {
@@ -182,9 +183,9 @@ class _notes2State extends State<notes2> {
                           color: Colors.white,
                           fontSize: 14,
                         ),
-                        decoration: const InputDecoration(
-                          hintText: "Titre",
-                          hintStyle: TextStyle(color: Colors.white70),
+                        decoration: InputDecoration(
+                          hintText: "notes.title_hint".tr(),
+                          hintStyle: const TextStyle(color: Colors.white70),
                           border: InputBorder.none,
                         ),
                       ),
@@ -216,9 +217,9 @@ class _notes2State extends State<notes2> {
                                 : FontStyle.normal,
                             height: 1.3,
                           ),
-                          decoration: const InputDecoration(
-                            hintText: "Écrivez ici...",
-                            hintStyle: TextStyle(color: Colors.white70),
+                          decoration: InputDecoration(
+                            hintText: "notes.write_here".tr(),
+                            hintStyle: const TextStyle(color: Colors.white70),
                             border: InputBorder.none,
                           ),
                         ),
@@ -258,12 +259,7 @@ class _notes2State extends State<notes2> {
                         onTap: () => setState(() => liked = !liked),
                       ),
                       _Btn(
-                        icon: _isSaving
-                            ? Icons.hourglass_top
-                            : const IconData(
-                                0xe156,
-                                fontFamily: 'MaterialIcons',
-                              ),
+                        icon: _isSaving ? Icons.hourglass_top : Icons.check,
                         onTap: _isSaving ? () {} : _save,
                       ),
                     ],

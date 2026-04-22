@@ -2,7 +2,9 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
-
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:ora/screens/admin_home.dart';
 import 'package:ora/controlleurs/controleur_principal.dart';
 import 'package:ora/models/modele_principale.dart';
 import 'package:ora/screens/calendrier.dart';
@@ -25,7 +27,7 @@ class principal extends StatefulWidget {
 
 class _principalState extends State<principal> {
   final ControleurPrincipal _controleurPrincipal = ControleurPrincipal();
-
+  bool isAdmin = false;
   DateTime _moisAffiche = DateTime.now();
   DateTime _dateSelectionnee = DateTime.now();
   bool _notif = true;
@@ -34,6 +36,31 @@ class _principalState extends State<principal> {
     await _controleurPrincipal.seDeconnecter();
     if (!mounted) return;
     Navigator.pushReplacementNamed(context, 'pageconnecter');
+  }
+
+  Future<void> verifierRole() async {
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user == null) return;
+
+    final doc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .get();
+
+    final role = doc.data()?['role'] ?? 'user';
+
+    if (role == 'admin') {
+      setState(() {
+        isAdmin = true;
+      });
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    verifierRole();
   }
 
   Future<String> creerConversation(String premierMessage) async {
@@ -512,6 +539,24 @@ class _principalState extends State<principal> {
           constraints: const BoxConstraints(minHeight: 25, minWidth: 25),
         ),
         actions: [
+          if (isAdmin)
+            Positioned(
+              top: 50,
+              right: 30,
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.pushNamed(context, AdminHome.screenRoute);
+                },
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: const BoxDecoration(
+                    color: Color.fromARGB(92, 88, 70, 142),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(Icons.admin_panel_settings, color: Colors.white),
+                ),
+              ),
+            ),
           _buildPhotoProfil(),
           IconButton(
             style: const ButtonStyle(

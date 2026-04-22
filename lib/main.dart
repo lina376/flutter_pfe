@@ -17,6 +17,7 @@ import 'package:ora/screens/principal.dart';
 import 'package:ora/screens/profil.dart';
 import 'package:ora/screens/rencontre.dart';
 import 'package:ora/screens/ajouter_alarme.dart';
+import 'package:ora/screens/admin_home.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -68,6 +69,7 @@ class MyApp extends StatelessWidget {
         MapsPage.screenRoute: (context) => const MapsPage(),
         LanguePage.screenRoute: (context) => const LanguePage(),
         AjouterAlarmePage.screenRoute: (context) => const AjouterAlarmePage(),
+        AdminHome.screenRoute: (context) => const AdminHome(),
       },
       theme: ThemeData(primaryColor: Colors.blue, fontFamily: 'Jomhuria'),
     );

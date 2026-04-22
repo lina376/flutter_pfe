@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
@@ -59,8 +60,7 @@ class _MapsPageState extends State<MapsPage> {
         _position = position;
 
         if (position == null) {
-          _erreur =
-              "Impossible d'obtenir la position.\nVérifie le GPS et les permissions.";
+          _erreur = "maps.error_position".tr();
         }
       });
 
@@ -77,7 +77,7 @@ class _MapsPageState extends State<MapsPage> {
       if (!mounted) return;
 
       setState(() {
-        _erreur = "Erreur lors du chargement de la localisation.";
+        _erreur = "maps.error_loading".tr();
       });
     } finally {
       if (!mounted) return;
@@ -107,7 +107,7 @@ class _MapsPageState extends State<MapsPage> {
 
       if (destination == null) {
         setState(() {
-          _erreur = "Destination introuvable.";
+          _erreur = "maps.destination_not_found".tr();
           _destination = null;
           _distanceMetres = null;
           _tempsTrajetMinutes = null;
@@ -154,7 +154,7 @@ class _MapsPageState extends State<MapsPage> {
       if (!mounted) return;
 
       setState(() {
-        _erreur = "Erreur lors de la recherche de la destination.";
+        _erreur = "maps.error_search".tr();
       });
     } finally {
       if (!mounted) return;
@@ -220,9 +220,9 @@ class _MapsPageState extends State<MapsPage> {
       ),
       child: Column(
         children: [
-          const Text(
-            "Ma position actuelle",
-            style: TextStyle(
+          Text(
+            "maps.current_position".tr(),
+            style: const TextStyle(
               color: Colors.white,
               fontSize: 24,
               fontWeight: FontWeight.bold,
@@ -243,7 +243,9 @@ class _MapsPageState extends State<MapsPage> {
           ),
           const SizedBox(height: 8),
           Text(
-            position.adresse.isEmpty ? "Adresse inconnue" : position.adresse,
+            position.adresse.isEmpty
+                ? "maps.unknown_address".tr()
+                : position.adresse,
             textAlign: TextAlign.center,
             style: const TextStyle(color: Colors.white70, fontSize: 16),
           ),
@@ -264,9 +266,9 @@ class _MapsPageState extends State<MapsPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            "Destination",
-            style: TextStyle(
+          Text(
+            "maps.destination".tr(),
+            style: const TextStyle(
               color: Colors.white,
               fontSize: 21,
               fontWeight: FontWeight.bold,
@@ -277,7 +279,7 @@ class _MapsPageState extends State<MapsPage> {
             controller: _destinationController,
             style: const TextStyle(color: Colors.white),
             decoration: InputDecoration(
-              hintText: "Destination",
+              hintText: "maps.destination".tr(),
               hintStyle: const TextStyle(color: Colors.white70),
               filled: true,
               fillColor: Colors.white.withOpacity(0.10),
@@ -405,9 +407,9 @@ class _MapsPageState extends State<MapsPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            "Coordonnées",
-            style: TextStyle(
+          Text(
+            "maps.coordinates".tr(),
+            style: const TextStyle(
               color: Colors.white,
               fontSize: 21,
               fontWeight: FontWeight.bold,
@@ -419,7 +421,7 @@ class _MapsPageState extends State<MapsPage> {
               Expanded(
                 child: _detailItem(
                   icon: Icons.my_location,
-                  titre: "Latitude",
+                  titre: "maps.latitude".tr(),
                   valeur: position.latitude.toStringAsFixed(6),
                 ),
               ),
@@ -427,7 +429,7 @@ class _MapsPageState extends State<MapsPage> {
               Expanded(
                 child: _detailItem(
                   icon: Icons.explore_outlined,
-                  titre: "Longitude",
+                  titre: "maps.longitude".tr(),
                   valeur: position.longitude.toStringAsFixed(6),
                 ),
               ),
@@ -450,9 +452,9 @@ class _MapsPageState extends State<MapsPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            "Trajet",
-            style: TextStyle(
+          Text(
+            "maps.route".tr(),
+            style: const TextStyle(
               color: Colors.white,
               fontSize: 21,
               fontWeight: FontWeight.bold,
@@ -464,7 +466,7 @@ class _MapsPageState extends State<MapsPage> {
               Expanded(
                 child: _detailItem(
                   icon: Icons.straighten,
-                  titre: "Distance",
+                  titre: "maps.distance".tr(),
                   valeur: _distanceMetres != null
                       ? _formatDistance(_distanceMetres!)
                       : "--",
@@ -474,7 +476,7 @@ class _MapsPageState extends State<MapsPage> {
               Expanded(
                 child: _detailItem(
                   icon: Icons.access_time,
-                  titre: "Temps",
+                  titre: "maps.time".tr(),
                   valeur: _tempsTrajetMinutes != null
                       ? "${_tempsTrajetMinutes!} min"
                       : "--",
@@ -486,20 +488,20 @@ class _MapsPageState extends State<MapsPage> {
           ElevatedButton.icon(
             onPressed: _choisirHeureArrivee,
             icon: const Icon(Icons.schedule),
-            label: const Text("Choisir l'heure d'arrivée"),
+            label: Text("maps.choose_arrival".tr()),
           ),
           const SizedBox(height: 12),
           Text(
             _heureArrivee != null
-                ? "Heure d'arrivée : ${_formatHeure(_heureArrivee!)}"
-                : "Heure d'arrivée : --",
+                ? "maps.arrival_time".tr(args: [_formatHeure(_heureArrivee!)])
+                : "maps.arrival_time".tr(args: ["--"]),
             style: const TextStyle(color: Colors.white, fontSize: 15),
           ),
           const SizedBox(height: 6),
           Text(
             _heureSortie != null
-                ? "Heure idéale de sortie : ${_formatHeure(_heureSortie!)}"
-                : "Heure idéale de sortie : --",
+                ? "maps.departure_time".tr(args: [_formatHeure(_heureSortie!)])
+                : "maps.departure_time".tr(args: ["--"]),
             style: const TextStyle(
               color: Colors.white,
               fontSize: 16,
@@ -520,27 +522,27 @@ class _MapsPageState extends State<MapsPage> {
         borderRadius: BorderRadius.circular(22),
         border: Border.all(color: Colors.white.withOpacity(0.18)),
       ),
-      child: const Row(
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.info_outline, color: Colors.white, size: 28),
-          SizedBox(width: 12),
+          const Icon(Icons.info_outline, color: Colors.white, size: 28),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  "Information ORA",
-                  style: TextStyle(
+                  "maps.info_title".tr(),
+                  style: const TextStyle(
                     color: Colors.white,
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                SizedBox(height: 6),
+                const SizedBox(height: 6),
                 Text(
-                  "Cette page récupère la position actuelle, recherche une destination, calcule la distance, estime le temps de trajet et propose une heure idéale de sortie.",
-                  style: TextStyle(color: Colors.white70, fontSize: 15),
+                  "maps.info_desc".tr(),
+                  style: const TextStyle(color: Colors.white70, fontSize: 15),
                 ),
               ],
             ),
@@ -606,7 +608,7 @@ class _MapsPageState extends State<MapsPage> {
               const SizedBox(height: 14),
               ElevatedButton(
                 onPressed: _chargerPosition,
-                child: const Text("Réessayer"),
+                child: Text("app.retry".tr()),
               ),
             ],
           ),
@@ -615,10 +617,10 @@ class _MapsPageState extends State<MapsPage> {
     }
 
     if (_position == null) {
-      return const Center(
+      return Center(
         child: Text(
-          "Aucune position disponible",
-          style: TextStyle(color: Colors.white),
+          "maps.no_position".tr(),
+          style: const TextStyle(color: Colors.white),
         ),
       );
     }
@@ -662,9 +664,12 @@ class _MapsPageState extends State<MapsPage> {
             Navigator.pushReplacementNamed(context, principal.screenRoute);
           },
         ),
-        title: const Text(
-          "Maps",
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        title: Text(
+          "maps.title".tr(),
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         centerTitle: true,
         actions: [

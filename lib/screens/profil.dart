@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:ora/controlleurs/controleur_profil.dart';
@@ -85,9 +86,9 @@ class _ProfilState extends State<Profil> {
       }
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Erreur chargement profil : $e")));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("profile.load_error".tr(args: ["$e"]))),
+      );
     } finally {
       if (mounted) {
         setState(() {
@@ -137,14 +138,14 @@ class _ProfilState extends State<Profil> {
       });
 
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Photo supprimée avec succès")),
-      );
-    } catch (e) {
-      if (!mounted) return;
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text("Erreur suppression photo : $e")));
+      ).showSnackBar(SnackBar(content: Text("profile.photo_deleted".tr())));
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("profile.delete_error".tr(args: ["$e"]))),
+      );
     } finally {
       if (mounted) {
         setState(() {
@@ -162,13 +163,9 @@ class _ProfilState extends State<Profil> {
 
     if ((emailChanged || wantsPasswordChange) &&
         _currentPasswordCtrl.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            "Entre le mot de passe actuel pour valider les changements sensibles",
-          ),
-        ),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("profile.need_password".tr())));
       return;
     }
 
@@ -217,10 +214,9 @@ class _ProfilState extends State<Profil> {
 
       if (!mounted) return;
 
-      String message = "Profil mis à jour avec succès";
+      String message = "profile.updated".tr();
       if (emailChanged) {
-        message =
-            "Profil mis à jour. Vérifie aussi ta boîte mail pour confirmer le nouvel email.";
+        message = "profile.updated_email".tr();
       }
 
       ScaffoldMessenger.of(
@@ -230,9 +226,9 @@ class _ProfilState extends State<Profil> {
       Navigator.pushReplacementNamed(context, principal.screenRoute);
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Erreur sauvegarde : $e")));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("profile.save_error".tr(args: ["$e"]))),
+      );
     } finally {
       if (mounted) {
         setState(() {
@@ -284,7 +280,7 @@ class _ProfilState extends State<Profil> {
                 foregroundColor: Colors.white,
                 side: const BorderSide(color: Colors.white),
               ),
-              child: const Text("Changer photo"),
+              child: Text("profile.change_photo".tr()),
             ),
             if (_photoUrl.isNotEmpty || _imageFile != null)
               OutlinedButton(
@@ -293,7 +289,7 @@ class _ProfilState extends State<Profil> {
                   foregroundColor: Colors.white,
                   side: const BorderSide(color: Colors.white),
                 ),
-                child: const Text("Supprimer photo"),
+                child: Text("profile.delete_photo".tr()),
               ),
           ],
         ),
@@ -347,9 +343,9 @@ class _ProfilState extends State<Profil> {
                     child: Column(
                       children: [
                         const SizedBox(height: 10),
-                        const Text(
-                          "Profil",
-                          style: TextStyle(
+                        Text(
+                          "profile.title".tr(),
+                          style: const TextStyle(
                             fontSize: 42,
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
@@ -359,81 +355,93 @@ class _ProfilState extends State<Profil> {
                         _buildAvatar(),
                         const SizedBox(height: 24),
 
-                        const Align(
+                        Align(
                           alignment: Alignment.centerLeft,
                           child: Text(
-                            "Nom",
-                            style: TextStyle(color: Colors.white, fontSize: 15),
+                            "profile.nom".tr(),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 15,
+                            ),
                           ),
                         ),
                         const SizedBox(height: 6),
                         TextFormField(
                           controller: _nomCtrl,
-                          decoration: _inputDecoration("Nom"),
+                          decoration: _inputDecoration("profile.nom".tr()),
                           validator: (value) {
                             if (value == null || value.trim().isEmpty) {
-                              return "Nom obligatoire";
+                              return "profile.nom_required".tr();
                             }
                             if (value.trim().length < 2) {
-                              return "Nom trop court";
+                              return "profile.nom_short".tr();
                             }
                             return null;
                           },
                         ),
                         const SizedBox(height: 16),
 
-                        const Align(
+                        Align(
                           alignment: Alignment.centerLeft,
                           child: Text(
-                            "Prénom",
-                            style: TextStyle(color: Colors.white, fontSize: 15),
+                            "profile.prenom".tr(),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 15,
+                            ),
                           ),
                         ),
                         const SizedBox(height: 6),
                         TextFormField(
                           controller: _prenomCtrl,
-                          decoration: _inputDecoration("Prénom"),
+                          decoration: _inputDecoration("profile.prenom".tr()),
                           validator: (value) {
                             if (value == null || value.trim().isEmpty) {
-                              return "Prénom obligatoire";
+                              return "profile.prenom_required".tr();
                             }
                             if (value.trim().length < 2) {
-                              return "Prénom trop court";
+                              return "profile.prenom_short".tr();
                             }
                             return null;
                           },
                         ),
                         const SizedBox(height: 16),
 
-                        const Align(
+                        Align(
                           alignment: Alignment.centerLeft,
                           child: Text(
-                            "Email",
-                            style: TextStyle(color: Colors.white, fontSize: 15),
+                            "profile.email".tr(),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 15,
+                            ),
                           ),
                         ),
                         const SizedBox(height: 6),
                         TextFormField(
                           controller: _emailCtrl,
                           keyboardType: TextInputType.emailAddress,
-                          decoration: _inputDecoration("Email"),
+                          decoration: _inputDecoration("profile.email".tr()),
                           validator: (value) {
                             if (value == null || value.trim().isEmpty) {
-                              return "Email obligatoire";
+                              return "profile.email_required".tr();
                             }
                             if (!_controleur.emailValide(value)) {
-                              return "Format email invalide";
+                              return "profile.email_invalid".tr();
                             }
                             return null;
                           },
                         ),
                         const SizedBox(height: 16),
 
-                        const Align(
+                        Align(
                           alignment: Alignment.centerLeft,
                           child: Text(
-                            "Date de naissance",
-                            style: TextStyle(color: Colors.white, fontSize: 15),
+                            "profile.birth".tr(),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 15,
+                            ),
                           ),
                         ),
                         const SizedBox(height: 6),
@@ -442,7 +450,7 @@ class _ProfilState extends State<Profil> {
                           readOnly: true,
                           onTap: _selectBirthDate,
                           decoration: _inputDecoration(
-                            "JJ/MM/AAAA",
+                            "profile.birth_hint".tr(),
                             suffixIcon: const Icon(
                               Icons.calendar_today,
                               color: Colors.black54,
@@ -451,11 +459,14 @@ class _ProfilState extends State<Profil> {
                         ),
                         const SizedBox(height: 24),
 
-                        const Align(
+                        Align(
                           alignment: Alignment.centerLeft,
                           child: Text(
-                            "Mot de passe actuel",
-                            style: TextStyle(color: Colors.white, fontSize: 15),
+                            "profile.current_password".tr(),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 15,
+                            ),
                           ),
                         ),
                         const SizedBox(height: 6),
@@ -463,7 +474,7 @@ class _ProfilState extends State<Profil> {
                           controller: _currentPasswordCtrl,
                           obscureText: _obscureCurrentPassword,
                           decoration: _inputDecoration(
-                            "Mot de passe actuel",
+                            "profile.current_password".tr(),
                             suffixIcon: IconButton(
                               icon: Icon(
                                 _obscureCurrentPassword
@@ -481,11 +492,14 @@ class _ProfilState extends State<Profil> {
                         ),
                         const SizedBox(height: 16),
 
-                        const Align(
+                        Align(
                           alignment: Alignment.centerLeft,
                           child: Text(
-                            "Nouveau mot de passe",
-                            style: TextStyle(color: Colors.white, fontSize: 15),
+                            "profile.new_password".tr(),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 15,
+                            ),
                           ),
                         ),
                         const SizedBox(height: 6),
@@ -493,7 +507,7 @@ class _ProfilState extends State<Profil> {
                           controller: _newPasswordCtrl,
                           obscureText: _obscureNewPassword,
                           decoration: _inputDecoration(
-                            "Nouveau mot de passe",
+                            "profile.new_password".tr(),
                             suffixIcon: IconButton(
                               icon: Icon(
                                 _obscureNewPassword
@@ -510,18 +524,21 @@ class _ProfilState extends State<Profil> {
                           validator: (value) {
                             if (value == null || value.isEmpty) return null;
                             if (!_controleur.motDePasseValide(value)) {
-                              return "Le mot de passe doit contenir au moins 6 caractères";
+                              return "profile.password_invalid".tr();
                             }
                             return null;
                           },
                         ),
                         const SizedBox(height: 16),
 
-                        const Align(
+                        Align(
                           alignment: Alignment.centerLeft,
                           child: Text(
-                            "Confirmer le mot de passe",
-                            style: TextStyle(color: Colors.white, fontSize: 15),
+                            "profile.confirm_password".tr(),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 15,
+                            ),
                           ),
                         ),
                         const SizedBox(height: 6),
@@ -529,7 +546,7 @@ class _ProfilState extends State<Profil> {
                           controller: _confirmPasswordCtrl,
                           obscureText: _obscureConfirmPassword,
                           decoration: _inputDecoration(
-                            "Confirmer le mot de passe",
+                            "profile.confirm_password".tr(),
                             suffixIcon: IconButton(
                               icon: Icon(
                                 _obscureConfirmPassword
@@ -550,7 +567,7 @@ class _ProfilState extends State<Profil> {
                               return null;
                             }
                             if (value != _newPasswordCtrl.text) {
-                              return "Les mots de passe ne correspondent pas";
+                              return "profile.password_not_match".tr();
                             }
                             return null;
                           },
@@ -572,9 +589,9 @@ class _ProfilState extends State<Profil> {
                               ),
                               elevation: 1,
                             ),
-                            child: const Text(
-                              "Sauvegarder",
-                              style: TextStyle(
+                            child: Text(
+                              "profile.save".tr(),
+                              style: const TextStyle(
                                 color: Color.fromARGB(136, 10, 11, 22),
                                 fontWeight: FontWeight.bold,
                               ),
