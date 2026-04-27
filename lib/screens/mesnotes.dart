@@ -31,11 +31,13 @@ class _mesnotesState extends State<mesnotes> {
   Future<void> ouvrirChatPourNote(ModeleNote note) async {
     final conversationId = await _controleurPrincipal.creerConversation(
       premierMessage: note.titre.isEmpty ? "Nouvelle discussion" : note.titre,
+      contexteType: "note",
+      contexteId: note.id,
     );
 
     if (!mounted) return;
 
-    Navigator.pushNamed(
+    final resultat = await Navigator.pushNamed(
       context,
       chat.screenRoute,
       arguments: {
@@ -49,6 +51,10 @@ class _mesnotesState extends State<mesnotes> {
         },
       },
     );
+
+    if (resultat == true && mounted) {
+      setState(() {});
+    }
   }
 
   Future<void> _addNote() async {

@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:ora/controlleurs/controleur_note.dart';
 import 'package:ora/screens/principal.dart';
+import 'package:ora/models/modele_contexte.dart';
+import 'package:ora/screens/chat.dart';
+import 'package:ora/controlleurs/controleur_principal.dart';
 
 class notes2 extends StatefulWidget {
   static const String screenRoute = 'pagenotes2';
@@ -19,7 +22,7 @@ class _notes2State extends State<notes2> {
   final TextEditingController titreCtrl = TextEditingController();
   final TextEditingController contenuCtrl = TextEditingController();
   final ControleurNote _controleurNote = ControleurNote();
-
+  final ControleurPrincipal _controleurPrincipal = ControleurPrincipal();
   bool bold = false;
   bool italic = false;
   bool liked = false;
@@ -41,6 +44,37 @@ class _notes2State extends State<notes2> {
     titreCtrl.dispose();
     contenuCtrl.dispose();
     super.dispose();
+  }
+
+  Future<void> ouvrirChatDepuisNote() async {
+    final conversationId = await _controleurPrincipal.creerConversation(
+      premierMessage: titreCtrl.text.trim().isEmpty
+          ? "Discussion note"
+          : titreCtrl.text.trim(),
+      contexteType: "note",
+      contexteId: widget.initial?["id"]?.toString() ?? "",
+    );
+
+    if (!mounted) return;
+
+    final resultat = await Navigator.pushNamed(
+      context,
+      chat.screenRoute,
+      arguments: {
+        "conversationId": conversationId,
+        "contexte": {
+          "type": "note",
+          "id": widget.initial?["id"]?.toString() ?? "",
+          "titre": titreCtrl.text.trim(),
+          "contenu": contenuCtrl.text.trim(),
+          "source": "notes2",
+        },
+      },
+    );
+
+    if (resultat == true && mounted) {
+      Navigator.pop(context, true);
+    }
   }
 
   Future<void> _save() async {
@@ -257,6 +291,10 @@ class _notes2State extends State<notes2> {
                         icon: liked ? Icons.favorite : Icons.favorite_border,
                         isActive: liked,
                         onTap: () => setState(() => liked = !liked),
+                      ),
+                      _Btn(
+                        icon: Icons.chat_bubble_outline,
+                        onTap: ouvrirChatDepuisNote,
                       ),
                       _Btn(
                         icon: _isSaving ? Icons.hourglass_top : Icons.check,

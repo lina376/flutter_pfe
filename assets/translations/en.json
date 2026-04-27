@@ -311,6 +311,7 @@
     "notes": "My Notes"
   },
   "alarms": {
+    
     "title": "Alarms",
     "add_alarm": "Add alarm",
     "edit_alarm": "Edit alarm",
@@ -324,6 +325,8 @@
     "alarm_deleted": "Alarm deleted",
     "no_alarms": "No alarms",
     "days": {
+      "unique": "One time",
+      "quotidien": "Every day",
       "lun": "Monday",
       "mar": "Tuesday",
       "mer": "Wednesday",

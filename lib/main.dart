@@ -18,11 +18,19 @@ import 'package:ora/screens/profil.dart';
 import 'package:ora/screens/rencontre.dart';
 import 'package:ora/screens/ajouter_alarme.dart';
 import 'package:ora/screens/admin_home.dart';
+import 'package:timezone/data/latest.dart' as tz;
+import 'package:ora/services/service_notification_locale.dart';
+import 'package:timezone/timezone.dart' as tz;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
   await EasyLocalization.ensureInitialized();
   await Firebase.initializeApp();
+
+  tz.initializeTimeZones();
+  tz.setLocalLocation(tz.getLocation('Africa/Tunis'));
+  await ServiceNotificationLocale.instance.initialiser();
 
   runApp(
     EasyLocalization(

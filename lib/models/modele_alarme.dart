@@ -6,6 +6,7 @@ class ModeleAlarme {
   final int minute;
   final String jours;
   final bool active;
+  final String? date;
 
   ModeleAlarme({
     this.id,
@@ -15,6 +16,7 @@ class ModeleAlarme {
     required this.minute,
     required this.jours,
     required this.active,
+    this.date,
   });
 
   Map<String, dynamic> toMap() {
@@ -26,7 +28,30 @@ class ModeleAlarme {
       'minute': minute,
       'jours': jours,
       'active': active ? 1 : 0,
+      'date': date,
     };
+  }
+
+  ModeleAlarme copyWith({
+    int? id,
+    String? titre,
+    String? note,
+    int? heure,
+    int? minute,
+    String? jours,
+    bool? active,
+    String? date,
+  }) {
+    return ModeleAlarme(
+      id: id ?? this.id,
+      titre: titre ?? this.titre,
+      note: note ?? this.note,
+      heure: heure ?? this.heure,
+      minute: minute ?? this.minute,
+      jours: jours ?? this.jours,
+      active: active ?? this.active,
+      date: date ?? this.date,
+    );
   }
 
   factory ModeleAlarme.fromMap(Map<String, dynamic> map) {
@@ -38,6 +63,7 @@ class ModeleAlarme {
       minute: map['minute'],
       jours: map['jours'],
       active: map['active'] == 1,
+      date: map['date'],
     );
   }
 }

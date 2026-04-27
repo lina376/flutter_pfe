@@ -19,7 +19,7 @@ class BaseLocale {
 
     return await openDatabase(
       path,
-      version: 8,
+      version: 9,
       onCreate: _createDB,
       onUpgrade: _onUpgrade,
     );
@@ -66,6 +66,12 @@ class BaseLocale {
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 9) {
+      await db.execute("""
+    ALTER TABLE alarmes
+    ADD COLUMN date TEXT
+  """);
+    }
     if (oldVersion < 3) {
       await db.execute('''
         CREATE TABLE IF NOT EXISTS notes(

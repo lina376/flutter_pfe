@@ -36,18 +36,26 @@ class _AjouterAlarmePageState extends State<AjouterAlarmePage> {
   }
 
   Future<void> _save() async {
-    if (_titre.text.isEmpty) return;
+    if (_titre.text.trim().isEmpty) return;
 
-    await _controleur.ajouterAlarme(
-      titre: _titre.text,
-      note: _note.text,
-      heure: _heure.hour,
-      minute: _heure.minute,
-      jours: jours.isEmpty ? "quotidien" : jours.join(","),
-    );
+    try {
+      await _controleur.ajouterAlarme(
+        titre: _titre.text.trim(),
+        note: _note.text.trim(),
+        heure: _heure.hour,
+        minute: _heure.minute,
+        jours: jours.isEmpty ? "quotidien" : jours.join(","),
+      );
 
-    if (!mounted) return;
-    Navigator.pop(context, true);
+      if (!mounted) return;
+      Navigator.pop(context, true);
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Erreur alarme : $e")));
+    }
   }
 
   Widget chip(String j) {

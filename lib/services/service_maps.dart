@@ -14,6 +14,11 @@ class ServiceMaps {
       permission = await Geolocator.requestPermission();
     }
 
+    if (permission == LocationPermission.deniedForever) {
+      await Geolocator.openAppSettings();
+      return false;
+    }
+
     return permission == LocationPermission.always ||
         permission == LocationPermission.whileInUse;
   }
@@ -25,9 +30,18 @@ class ServiceMaps {
     final permissionOk = await verifierPermission();
     if (!permissionOk) return null;
 
-    return await Geolocator.getCurrentPosition(
-      desiredAccuracy: LocationAccuracy.high,
-    );
+    try {
+      return await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+        timeLimit: const Duration(seconds: 12),
+      );
+    } catch (_) {
+      try {
+        return await Geolocator.getLastKnownPosition();
+      } catch (_) {
+        return null;
+      }
+    }
   }
 
   Future<String> obtenirAdresse(double latitude, double longitude) async {

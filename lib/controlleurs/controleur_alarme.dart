@@ -8,7 +8,7 @@ class ControleurAlarme {
     return _service.recupererToutesLesAlarmes();
   }
 
-  Future<void> ajouterAlarme({
+  Future<int> ajouterAlarme({
     required String titre,
     String? note,
     required int heure,

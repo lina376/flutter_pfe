@@ -21,8 +21,16 @@ class ControleurPrincipal {
     return _servicePrincipal.seDeconnecter();
   }
 
-  Future<String> creerConversation({required String premierMessage}) {
-    return _servicePrincipal.creerConversation(premierMessage: premierMessage);
+  Future<String> creerConversation({
+    required String premierMessage,
+    String? contexteType,
+    String? contexteId,
+  }) {
+    return _servicePrincipal.creerConversation(
+      premierMessage: premierMessage,
+      contexteType: contexteType,
+      contexteId: contexteId,
+    );
   }
 
   String obtenirNomAffichageSelonLangue(

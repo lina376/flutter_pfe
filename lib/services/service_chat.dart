@@ -1,9 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+
 import 'package:ora/services/service_gemini.dart';
 import 'service_note.dart';
 import 'service_tache.dart';
+import 'service_alarme.dart';
+
 import '../models/modele_contexte.dart';
+import '../models/modele_alarme.dart';
 
 class ServiceChat {
   final ServiceTache _serviceTache = ServiceTache();
@@ -11,6 +15,7 @@ class ServiceChat {
   final FirebaseAuth _authentification = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final ServiceNote _serviceNote = ServiceNote();
+  final ServiceAlarme _serviceAlarme = ServiceAlarme();
 
   User? obtenirUtilisateurActuel() {
     return _authentification.currentUser;
@@ -20,9 +25,7 @@ class ServiceChat {
     required String conversationId,
   }) {
     final utilisateur = _authentification.currentUser;
-    if (utilisateur == null) {
-      return const Stream.empty();
-    }
+    if (utilisateur == null) return const Stream.empty();
 
     return _firestore
         .collection('users')
@@ -32,6 +35,24 @@ class ServiceChat {
         .collection('messages')
         .orderBy('date', descending: true)
         .snapshots();
+  }
+
+  int _extraireHeure(String heureTexte, int valeurDefaut) {
+    try {
+      if (!heureTexte.contains(":")) return valeurDefaut;
+      return int.parse(heureTexte.split(":")[0]);
+    } catch (_) {
+      return valeurDefaut;
+    }
+  }
+
+  int _extraireMinute(String heureTexte, int valeurDefaut) {
+    try {
+      if (!heureTexte.contains(":")) return valeurDefaut;
+      return int.parse(heureTexte.split(":")[1]);
+    } catch (_) {
+      return valeurDefaut;
+    }
   }
 
   Future<void> ajouterMessage({
@@ -53,16 +74,32 @@ class ServiceChat {
       'sender': 'user',
       'date': Timestamp.now(),
     });
-    print("Message user: $texte");
-    print("Avant analyse Gemini");
+
+    if (contexte == null) {
+      final conversationDoc = await conversationRef.get();
+      final data = conversationDoc.data();
+
+      if (data != null &&
+          (data['contexteType'] ?? '').toString().isNotEmpty &&
+          (data['contexteId'] ?? '').toString().isNotEmpty) {
+        contexte = ModeleContexte(
+          type: (data['contexteType'] ?? '').toString(),
+          id: (data['contexteId'] ?? '').toString(),
+          titre: (data['contexteTitre'] ?? '').toString(),
+          contenu: (data['contexteContenu'] ?? '').toString(),
+          source: (data['contexteSource'] ?? '').toString(),
+        );
+      }
+    }
+
     final resultat = await _gemini.analyserCommande(texte, contexte: contexte);
-    print("Résultat Gemini: $resultat");
     String reponseOra = "";
     final action = (resultat["action"] ?? "CHAT").toString();
 
     if (action == "CREATE_NOTE") {
       final titre = (resultat["titre"] ?? "Sans titre").toString();
       final contenu = (resultat["contenu"] ?? "").toString();
+
       final nouvelId = await _serviceNote.ajouterNote(
         titre: titre,
         contenu: contenu,
@@ -76,6 +113,14 @@ class ServiceChat {
         contenu: contenu,
         source: "chat",
       );
+
+      await conversationRef.set({
+        'contexteType': 'note',
+        'contexteId': nouvelId,
+        'contexteTitre': titre,
+        'contexteContenu': contenu,
+        'contexteSource': 'chat',
+      }, SetOptions(merge: true));
 
       reponseOra = "La note a été ajoutée avec succès.";
     } else if (action == "UPDATE_NOTE") {
@@ -114,6 +159,15 @@ class ServiceChat {
           contexte.type == "note" &&
           contexte.id.isNotEmpty) {
         await _serviceNote.supprimerNote(contexte.id);
+
+        await conversationRef.set({
+          'contexteType': '',
+          'contexteId': '',
+          'contexteTitre': '',
+          'contexteContenu': '',
+          'contexteSource': '',
+        }, SetOptions(merge: true));
+
         reponseOra = "La note actuelle a été supprimée avec succès.";
       } else {
         final titre = (resultat["titre"] ?? "").toString();
@@ -128,7 +182,6 @@ class ServiceChat {
       }
     } else if (action == "SEARCH_NOTE") {
       final titre = (resultat["titre"] ?? "").toString();
-
       final notes = await _serviceNote.rechercherNotesParTitre(titre);
 
       if (notes.isEmpty) {
@@ -152,6 +205,7 @@ class ServiceChat {
       } catch (_) {
         dateTache = DateTime.now();
       }
+
       await _serviceTache.ajouterTache(
         titre: titre,
         heure: heure,
@@ -191,7 +245,6 @@ class ServiceChat {
       }
     } else if (action == "DELETE_TASK") {
       final titre = (resultat["titre"] ?? "").toString();
-
       final tache = await _serviceTache.trouverTacheParTitre(titre);
 
       if (tache != null) {
@@ -202,7 +255,6 @@ class ServiceChat {
       }
     } else if (action == "SEARCH_TASK") {
       final titre = (resultat["titre"] ?? "").toString();
-
       final taches = await _serviceTache.rechercherTachesParTitre(titre);
 
       if (taches.isEmpty) {
@@ -214,6 +266,80 @@ class ServiceChat {
       } else {
         final titres = taches.map((t) => t.titre).join(", ");
         reponseOra = "J'ai trouvé plusieurs tâches : $titres";
+      }
+    } else if (action == "CREATE_ALARME") {
+      final dateTexte = (resultat["date"] ?? "").toString();
+      final titre = (resultat["titre"] ?? "Alarme").toString();
+      final heureTexte = (resultat["heure"] ?? "--:--").toString();
+      final jours = (resultat["jours"] ?? "quotidien").toString();
+
+      final heure = _extraireHeure(heureTexte, DateTime.now().hour);
+      final minute = _extraireMinute(heureTexte, DateTime.now().minute);
+
+      await _serviceAlarme.ajouterAlarme(
+        ModeleAlarme(
+          titre: titre,
+          note: dateTexte.isEmpty ? "Ajoutée par ORA" : "Date: $dateTexte",
+          heure: heure,
+          minute: minute,
+          jours: jours,
+          active: true,
+        ),
+      );
+
+      reponseOra = "L’alarme a été ajoutée avec succès.";
+    } else if (action == "UPDATE_ALARME") {
+      final titre = (resultat["titre"] ?? "").toString();
+      final nouveauTitre = (resultat["nouveau_titre"] ?? "").toString();
+      final heureTexte = (resultat["heure"] ?? "").toString();
+      final jours = (resultat["jours"] ?? "").toString();
+
+      final alarme = await _serviceAlarme.trouverAlarmeParTitre(titre);
+
+      if (alarme != null) {
+        final heure = _extraireHeure(heureTexte, alarme.heure);
+        final minute = _extraireMinute(heureTexte, alarme.minute);
+
+        await _serviceAlarme.modifierAlarme(
+          ModeleAlarme(
+            id: alarme.id,
+            titre: nouveauTitre.isEmpty ? alarme.titre : nouveauTitre,
+            note: alarme.note,
+            heure: heure,
+            minute: minute,
+            jours: jours.isEmpty ? alarme.jours : jours,
+            active: alarme.active,
+          ),
+        );
+
+        reponseOra = "L’alarme a été modifiée avec succès.";
+      } else {
+        reponseOra = "Je n’ai pas trouvé l’alarme à modifier.";
+      }
+    } else if (action == "DELETE_ALARME") {
+      final titre = (resultat["titre"] ?? "").toString();
+      final alarme = await _serviceAlarme.trouverAlarmeParTitre(titre);
+
+      if (alarme != null && alarme.id != null) {
+        await _serviceAlarme.supprimerAlarme(alarme.id!);
+        reponseOra = "L’alarme a été supprimée avec succès.";
+      } else {
+        reponseOra = "Je n’ai pas trouvé l’alarme à supprimer.";
+      }
+    } else if (action == "TOGGLE_ALARME") {
+      final titre = (resultat["titre"] ?? "").toString();
+      final active = (resultat["active"] ?? true) == true;
+
+      final alarme = await _serviceAlarme.trouverAlarmeParTitre(titre);
+
+      if (alarme != null && alarme.id != null) {
+        await _serviceAlarme.basculerActivation(alarme.id!, active);
+
+        reponseOra = active
+            ? "L’alarme a été activée avec succès."
+            : "L’alarme a été désactivée avec succès.";
+      } else {
+        reponseOra = "Je n’ai pas trouvé l’alarme.";
       }
     } else {
       reponseOra = await _gemini.envoyerMessageChat(texte, contexte: contexte);

@@ -49,22 +49,44 @@ class ServicePrincipal {
         );
   }
 
-  Future<String> creerConversation({required String premierMessage}) async {
+  Future<String> creerConversation({
+    required String premierMessage,
+    String? contexteType,
+    String? contexteId,
+  }) async {
     final utilisateur = _authentification.currentUser;
     if (utilisateur == null) return '';
 
-    final maintenant = Timestamp.now();
-
-    final document = await _firestore
+    final conversationsRef = _firestore
         .collection('users')
         .doc(utilisateur.uid)
-        .collection('conversations')
-        .add({
-          'titre': premierMessage,
-          'dernierMessage': premierMessage,
-          'dateCreation': maintenant,
-          'dateMaj': maintenant,
-        });
+        .collection('conversations');
+
+    if (contexteType != null &&
+        contexteType.isNotEmpty &&
+        contexteId != null &&
+        contexteId.isNotEmpty) {
+      final existe = await conversationsRef
+          .where('contexteType', isEqualTo: contexteType)
+          .where('contexteId', isEqualTo: contexteId)
+          .limit(1)
+          .get();
+
+      if (existe.docs.isNotEmpty) {
+        return existe.docs.first.id;
+      }
+    }
+
+    final maintenant = Timestamp.now();
+
+    final document = await conversationsRef.add({
+      'titre': premierMessage,
+      'dernierMessage': premierMessage,
+      'dateCreation': maintenant,
+      'dateMaj': maintenant,
+      'contexteType': contexteType ?? '',
+      'contexteId': contexteId ?? '',
+    });
 
     return document.id;
   }

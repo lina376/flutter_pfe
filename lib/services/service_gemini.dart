@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:ora/models/modele_contexte.dart';
 
 class ServiceGemini {
-  final String apiKey = "AIzaSyA4xA2fAclBbpIqJKo0tOG7TM60_eQrrW0";
+  final String apiKey = "AIzaSyBlNSWEP9fP6i3-RhYxPKeyLLTpXxPN0Dg";
 
   Future<Map<String, dynamic>> analyserCommande(
     String message, {
@@ -51,6 +51,10 @@ Actions possibles :
 - UPDATE_TASK
 - DELETE_TASK
 - SEARCH_TASK
+- CREATE_ALARME
+- UPDATE_ALARME
+- DELETE_ALARME
+- TOGGLE_ALARME
 - CHAT
 
 Règles pour les dates et heures :
@@ -71,6 +75,132 @@ Règles pour les dates et heures :
 - Convertis toujours l'heure au format HH:mm.
 - Si la date n'est pas précisée pour une tâche et qu'elle est nécessaire, laisse le champ vide : "".
 
+Pour modifier une alarme :
+- Le titre est obligatoire pour identifier l'alarme.
+- Si l'utilisateur change seulement l'heure, remplis seulement "heure".
+- Si l'utilisateur change seulement les jours, remplis seulement "jours".
+- Si l'utilisateur change seulement le nom, utilise "nouveau_titre".
+- Si l'utilisateur dit demain, aujourd'hui, après-demain, une date précise, ou une seule fois :
+  utilise "jours": "unique" et remplis "date".
+- Si l'utilisateur dit dans X minutes ou dans X heures :
+  calcule la date et l'heure exacte puis utilise "jours": "unique".
+- Si l'utilisateur dit chaque jour / tous les jours / quotidiennement :
+  utilise "jours": "quotidien".
+- Si l'utilisateur donne des jours précis comme lundi, mardi, mercredi :
+  utilise "jours": "lun,mar,mer".
+- Si aucun titre n'est donné, mets "alarme".
+- Convertis toujours l'heure au format HH:mm.
+- Convertis toujours la date au format YYYY-MM-DD.
+{
+  "action": "UPDATE_ALARME",
+  "titre": "...",
+  "nouveau_titre": "...",
+  "heure": "HH:mm",
+  "date": "YYYY-MM-DD",
+  "jours": "unique"
+}
+
+Pour supprimer une alarme :
+{
+  "action": "DELETE_ALARME",
+  "titre": "..."
+}
+
+Pour activer ou désactiver une alarme :
+{
+  "action": "TOGGLE_ALARME",
+  "titre": "...",
+  "active": true
+}
+
+Exemples alarmes :
+
+Message : "mets une alarme demain à 08h"
+Réponse :
+{
+  "action": "CREATE_ALARME",
+  "titre": "alarme",
+  "heure": "08:00",
+  "date": "2026-04-28",
+  "jours": "unique"
+}
+
+Message : "mets une alarme après-demain à 09h30"
+Réponse :
+{
+  "action": "CREATE_ALARME",
+  "titre": "alarme",
+  "heure": "09:30",
+  "date": "2026-04-29",
+  "jours": "unique"
+}
+
+Message : "mets une alarme dans 2 minutes"
+Réponse :
+{
+  "action": "CREATE_ALARME",
+  "titre": "alarme",
+  "heure": "HH:mm",
+  "date": "YYYY-MM-DD",
+  "jours": "unique"
+}
+
+Message : "mets une alarme tous les jours à 07h"
+Réponse :
+{
+  "action": "CREATE_ALARME",
+  "titre": "alarme",
+  "heure": "07:00",
+  "jours": "quotidien"
+}
+
+Message : "mets une alarme lundi et mardi à 09h"
+Réponse :
+{
+  "action": "CREATE_ALARME",
+  "titre": "alarme",
+  "heure": "09:00",
+  "jours": "lun,mar"
+}
+
+Message : "modifie l'alarme réveil à 08h"
+Réponse :
+{
+  "action": "UPDATE_ALARME",
+  "titre": "réveil",
+  "heure": "08:00"
+}
+
+Message : "modifie l'alarme réveil en alarme cours"
+Réponse :
+{
+  "action": "UPDATE_ALARME",
+  "titre": "réveil",
+  "nouveau_titre": "alarme cours"
+}
+
+Message : "supprime l'alarme réveil"
+Réponse :
+{
+  "action": "DELETE_ALARME",
+  "titre": "réveil"
+}
+
+Message : "désactive l'alarme réveil"
+Réponse :
+{
+  "action": "TOGGLE_ALARME",
+  "titre": "réveil",
+  "active": false
+}
+
+Message : "active l'alarme réveil"
+Réponse :
+{
+  "action": "TOGGLE_ALARME",
+  "titre": "réveil",
+  "active": true
+}
 Catégories possibles :
 - Études
 - Travail
@@ -196,6 +326,35 @@ Réponse :
     "categorie": "Santé",
     "date": "YYYY-MM-DD"
   }
+  Pour créer une alarme :
+{
+  "action": "CREATE_ALARME",
+  "titre": "...",
+  "heure": "HH:mm",
+  "jours": "quotidien"
+}
+
+Pour modifier une alarme :
+{
+  "action": "UPDATE_ALARME",
+  "titre": "...",
+  "nouveau_titre": "...",
+  "heure": "HH:mm",
+  "jours": "quotidien"
+}
+
+Pour supprimer une alarme :
+{
+  "action": "DELETE_ALARME",
+  "titre": "..."
+}
+
+Pour activer ou désactiver une alarme :
+{
+  "action": "TOGGLE_ALARME",
+  "titre": "...",
+  "active": true
+}
 ]
 
 Date actuelle :
