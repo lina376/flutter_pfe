@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/service_chat.dart';
+import '../models/modele_contexte.dart';
 
 class ControleurChat {
   final ServiceChat _serviceChat = ServiceChat();
@@ -18,10 +19,12 @@ class ControleurChat {
   Future<void> ajouterMessage({
     required String conversationId,
     required String texte,
+    ModeleContexte? contexte,
   }) {
     return _serviceChat.ajouterMessage(
       conversationId: conversationId,
       texte: texte,
+      contexte: contexte,
     );
   }
 

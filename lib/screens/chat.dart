@@ -3,6 +3,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:ora/controlleurs/controleur_chat.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
+import 'package:ora/models/modele_contexte.dart';
 
 class chat extends StatefulWidget {
   static const String screenRoute = 'pagechat';
@@ -16,7 +17,7 @@ class chat extends StatefulWidget {
 class _chatState extends State<chat> {
   final ControleurChat _controleurChat = ControleurChat();
   final stt.SpeechToText _speech = stt.SpeechToText();
-
+  ModeleContexte? contexteActuel;
   String? conversationId;
 
   final TextEditingController controleurMessage = TextEditingController();
@@ -66,8 +67,22 @@ class _chatState extends State<chat> {
     super.didChangeDependencies();
 
     final args = ModalRoute.of(context)?.settings.arguments;
+
     if (args is String) {
       conversationId ??= args;
+    } else if (args is Map<String, dynamic>) {
+      final idConversation = args['conversationId'];
+      final contexte = args['contexte'];
+
+      if (idConversation is String) {
+        conversationId ??= idConversation;
+      }
+
+      if (contexte is ModeleContexte) {
+        contexteActuel = contexte;
+      } else if (contexte is Map<String, dynamic>) {
+        contexteActuel = ModeleContexte.fromMap(contexte);
+      }
     }
   }
 
@@ -92,9 +107,10 @@ class _chatState extends State<chat> {
 
     controleurMessage.clear();
 
-    _controleurChat.ajouterMessage(
+    await _controleurChat.ajouterMessage(
       conversationId: conversationId!,
       texte: texte,
+      contexte: contexteActuel,
     );
   }
 

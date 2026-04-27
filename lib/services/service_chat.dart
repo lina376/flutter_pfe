@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:ora/services/service_gemini.dart';
 import 'service_note.dart';
 import 'service_tache.dart';
+import '../models/modele_contexte.dart';
 
 class ServiceChat {
   final ServiceTache _serviceTache = ServiceTache();
@@ -36,6 +37,7 @@ class ServiceChat {
   Future<void> ajouterMessage({
     required String conversationId,
     required String texte,
+    ModeleContexte? contexte,
   }) async {
     final utilisateur = _authentification.currentUser;
     if (utilisateur == null) return;
@@ -53,7 +55,7 @@ class ServiceChat {
     });
     print("Message user: $texte");
     print("Avant analyse Gemini");
-    final resultat = await _gemini.analyserCommande(texte);
+    final resultat = await _gemini.analyserCommande(texte, contexte: contexte);
     print("Résultat Gemini: $resultat");
     String reponseOra = "";
     final action = (resultat["action"] ?? "CHAT").toString();
@@ -61,11 +63,18 @@ class ServiceChat {
     if (action == "CREATE_NOTE") {
       final titre = (resultat["titre"] ?? "Sans titre").toString();
       final contenu = (resultat["contenu"] ?? "").toString();
-
-      await _serviceNote.ajouterNote(
+      final nouvelId = await _serviceNote.ajouterNote(
         titre: titre,
         contenu: contenu,
         aimee: false,
+      );
+
+      contexte = ModeleContexte(
+        type: "note",
+        id: nouvelId,
+        titre: titre,
+        contenu: contenu,
+        source: "chat",
       );
 
       reponseOra = "La note a été ajoutée avec succès.";
@@ -73,32 +82,49 @@ class ServiceChat {
       final titre = (resultat["titre"] ?? "").toString();
       final contenu = (resultat["contenu"] ?? "").toString();
 
-      final note = await _serviceNote.trouverNoteParTitre(titre);
-
-      if (note != null) {
+      if (contexte != null &&
+          contexte.type == "note" &&
+          contexte.id.isNotEmpty) {
         await _serviceNote.mettreAJourNote(
-          idNote: note.id,
-          titre: note.titre,
-          contenu: contenu,
-          aimee: note.liked,
+          idNote: contexte.id,
+          titre: (resultat["nouveau_titre"] ?? contexte.titre).toString(),
+          contenu: contenu.isEmpty ? contexte.contenu : contenu,
+          aimee: false,
         );
-        print("ACTION GEMINI: $action");
-        print("RESULTAT GEMINI: $resultat");
-        print("REPONSE ORA: $reponseOra");
-        reponseOra = "La note a été modifiée avec succès.";
+
+        reponseOra = "La note actuelle a été modifiée avec succès.";
       } else {
-        reponseOra = "Je n'ai pas trouvé la note à modifier.";
+        final note = await _serviceNote.trouverNoteParTitre(titre);
+
+        if (note != null) {
+          await _serviceNote.mettreAJourNote(
+            idNote: note.id,
+            titre: (resultat["nouveau_titre"] ?? note.titre).toString(),
+            contenu: contenu.isEmpty ? note.contenu : contenu,
+            aimee: note.liked,
+          );
+
+          reponseOra = "La note a été modifiée avec succès.";
+        } else {
+          reponseOra = "Je n'ai pas trouvé la note à modifier.";
+        }
       }
     } else if (action == "DELETE_NOTE") {
-      final titre = (resultat["titre"] ?? "").toString();
-
-      final note = await _serviceNote.trouverNoteParTitre(titre);
-
-      if (note != null) {
-        await _serviceNote.supprimerNote(note.id);
-        reponseOra = "La note a été supprimée avec succès.";
+      if (contexte != null &&
+          contexte.type == "note" &&
+          contexte.id.isNotEmpty) {
+        await _serviceNote.supprimerNote(contexte.id);
+        reponseOra = "La note actuelle a été supprimée avec succès.";
       } else {
-        reponseOra = "Je n'ai pas trouvé la note à supprimer.";
+        final titre = (resultat["titre"] ?? "").toString();
+        final note = await _serviceNote.trouverNoteParTitre(titre);
+
+        if (note != null) {
+          await _serviceNote.supprimerNote(note.id);
+          reponseOra = "La note a été supprimée avec succès.";
+        } else {
+          reponseOra = "Je n'ai pas trouvé la note à supprimer.";
+        }
       }
     } else if (action == "SEARCH_NOTE") {
       final titre = (resultat["titre"] ?? "").toString();
@@ -190,7 +216,7 @@ class ServiceChat {
         reponseOra = "J'ai trouvé plusieurs tâches : $titres";
       }
     } else {
-      reponseOra = await _gemini.envoyerMessageChat(texte);
+      reponseOra = await _gemini.envoyerMessageChat(texte, contexte: contexte);
     }
 
     await conversationRef.collection('messages').add({

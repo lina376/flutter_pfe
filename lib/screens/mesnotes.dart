@@ -5,6 +5,9 @@ import 'package:ora/controlleurs/controleur_favori.dart';
 import 'package:ora/controlleurs/controleur_note.dart';
 import 'package:ora/models/modele_note.dart';
 import 'package:ora/screens/notes2.dart';
+import 'package:ora/controlleurs/controleur_principal.dart';
+import 'package:ora/models/modele_contexte.dart';
+import 'package:ora/screens/chat.dart';
 
 class mesnotes extends StatefulWidget {
   static const String screenRoute = 'pagemesnotes';
@@ -18,11 +21,34 @@ class _mesnotesState extends State<mesnotes> {
   final TextEditingController searchCtrl = TextEditingController();
   final ControleurNote _controleurNote = ControleurNote();
   final ControleurFavori _controleurFavori = ControleurFavori();
-
+  final ControleurPrincipal _controleurPrincipal = ControleurPrincipal();
   @override
   void dispose() {
     searchCtrl.dispose();
     super.dispose();
+  }
+
+  Future<void> ouvrirChatPourNote(ModeleNote note) async {
+    final conversationId = await _controleurPrincipal.creerConversation(
+      premierMessage: note.titre.isEmpty ? "Nouvelle discussion" : note.titre,
+    );
+
+    if (!mounted) return;
+
+    Navigator.pushNamed(
+      context,
+      chat.screenRoute,
+      arguments: {
+        "conversationId": conversationId,
+        "contexte": {
+          "type": "note",
+          "id": note.id,
+          "titre": note.titre,
+          "contenu": note.contenu,
+          "source": "mesnotes",
+        },
+      },
+    );
   }
 
   Future<void> _addNote() async {
@@ -257,6 +283,17 @@ class _mesnotesState extends State<mesnotes> {
                                           ),
                                         );
                                       },
+                                    ),
+                                    const SizedBox(width: 8),
+                                    GestureDetector(
+                                      onTap: () async {
+                                        await ouvrirChatPourNote(note);
+                                      },
+                                      child: const Icon(
+                                        Icons.chat_bubble_outline,
+                                        color: Colors.white,
+                                        size: 18,
+                                      ),
                                     ),
                                     const SizedBox(width: 8),
                                     GestureDetector(

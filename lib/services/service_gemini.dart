@@ -1,20 +1,33 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:ora/models/modele_contexte.dart';
 
 class ServiceGemini {
-  final String apiKey = "AIzaSyDxyWnmjLWQTuPKAZyQRNs13SKGinBjuVc";
+  final String apiKey = "AIzaSyA4xA2fAclBbpIqJKo0tOG7TM60_eQrrW0";
 
-  Future<Map<String, dynamic>> analyserCommande(String message) async {
+  Future<Map<String, dynamic>> analyserCommande(
+    String message, {
+    ModeleContexte? contexte,
+  }) async {
     print("Gemini: avant requête");
     try {
       final url = Uri.parse(
         "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=$apiKey",
       );
-
+      final texteContexte = contexte == null || contexte.estVide
+          ? "Aucun contexte actif"
+          : """
+Type: ${contexte.type}
+Id: ${contexte.id}
+Titre: ${contexte.titre}
+Contenu: ${contexte.contenu}
+Source: ${contexte.source}
+""";
       final prompt =
           """
 Tu es ORA, assistant intelligent d'une application mobile de gestion de notes et de tâches.
-
+Contexte actuel :
+$texteContexte
 Règles générales importantes :
 - Le mot "tâche" signifie toujours une tâche numérique (todo) dans l'application.
 - Ne jamais interpréter "tâche" comme une tâche physique.
@@ -229,7 +242,10 @@ $message
     }
   }
 
-  Future<String> envoyerMessageChat(String message) async {
+  Future<String> envoyerMessageChat(
+    String message, {
+    ModeleContexte? contexte,
+  }) async {
     try {
       final url = Uri.parse(
         "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=$apiKey",
