@@ -4,7 +4,6 @@ import 'package:ora/models/modele_contexte.dart';
 
 class ServiceGemini {
   final String apiKey = "AIzaSyCigPEKu6Ydj412nc-L4Ix4Mu6SA43WJhM";
-
   Future<Map<String, dynamic>> analyserCommande(
     String message, {
     ModeleContexte? contexte,
