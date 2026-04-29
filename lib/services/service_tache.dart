@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sqflite/sqflite.dart';
 import '../database/base_locale.dart';
 import '../models/modele_tache.dart';
+import 'service_notification_locale.dart';
 
 class ServiceTache {
   final BaseLocale _baseLocale = BaseLocale.instance;
@@ -107,7 +108,13 @@ class ServiceTache {
       );
 
       await _insererOuMajLocal(tache);
-
+      await ServiceNotificationLocale.instance.programmerNotificationTache(
+        idTache: tache.id,
+        titre: tache.titre,
+        categorie: tache.categorie,
+        date: tache.date,
+        heure: tache.heure,
+      );
       try {
         final ref = _tachesRef;
         if (ref != null) {
@@ -127,6 +134,7 @@ class ServiceTache {
   }
 
   Future<void> supprimerTache(String idTache) async {
+    await ServiceNotificationLocale.instance.annulerNotificationTache(idTache);
     try {
       final db = await _baseLocale.database;
 
@@ -172,7 +180,19 @@ class ServiceTache {
       final maj = ancienne.copyWith(terminee: terminee, estSynchronisee: false);
 
       await _insererOuMajLocal(maj);
-
+      if (terminee) {
+        await ServiceNotificationLocale.instance.annulerNotificationTache(
+          idTache,
+        );
+      } else {
+        await ServiceNotificationLocale.instance.programmerNotificationTache(
+          idTache: maj.id,
+          titre: maj.titre,
+          categorie: maj.categorie,
+          date: maj.date,
+          heure: maj.heure,
+        );
+      }
       try {
         final ref = _tachesRef;
         if (ref != null) {
@@ -240,7 +260,19 @@ class ServiceTache {
       );
 
       await _insererOuMajLocal(tache);
+      await ServiceNotificationLocale.instance.annulerNotificationTache(
+        idTache,
+      );
 
+      if (!terminee) {
+        await ServiceNotificationLocale.instance.programmerNotificationTache(
+          idTache: tache.id,
+          titre: tache.titre,
+          categorie: tache.categorie,
+          date: tache.date,
+          heure: tache.heure,
+        );
+      }
       try {
         final ref = _tachesRef;
         if (ref != null) {

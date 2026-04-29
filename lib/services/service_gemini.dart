@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:ora/models/modele_contexte.dart';
 
 class ServiceGemini {
-  final String apiKey = "AIzaSyBlNSWEP9fP6i3-RhYxPKeyLLTpXxPN0Dg";
+  final String apiKey = "AIzaSyCigPEKu6Ydj412nc-L4Ix4Mu6SA43WJhM";
 
   Future<Map<String, dynamic>> analyserCommande(
     String message, {

@@ -18,23 +18,6 @@ class notifications extends StatefulWidget {
 class _notificationsState extends State<notifications> {
   final ControleurNotification _controleurNotification =
       ControleurNotification();
-
-  final ServiceNotification _serviceNotification = ServiceNotification();
-
-  Future<void> _addTestNotifications() async {
-    await _serviceNotification.sendWaterReminder(waterMl: 400);
-
-    await _serviceNotification.sendDoctorAppointmentReminder(
-      doctorName: 'Dr. Ahmed',
-      appointmentDate: DateTime.now().add(const Duration(hours: 2)),
-    );
-
-    await _serviceNotification.sendMedicineReminder(
-      medicineName: 'Vitamine D',
-      reminderTime: DateTime.now().add(const Duration(minutes: 30)),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -53,12 +36,6 @@ class _notificationsState extends State<notifications> {
           iconSize: 40,
           constraints: const BoxConstraints(minHeight: 50, minWidth: 50),
         ),
-        actions: [
-          IconButton(
-            onPressed: _addTestNotifications,
-            icon: const Icon(Icons.add_alert, color: Colors.white),
-          ),
-        ],
       ),
       body: Container(
         width: double.infinity,

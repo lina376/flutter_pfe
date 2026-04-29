@@ -10,6 +10,76 @@ class ServiceNotificationLocale {
 
   final FlutterLocalNotificationsPlugin _plugin =
       FlutterLocalNotificationsPlugin();
+  String messageTacheParCategorie(String categorie, String titre) {
+    switch (categorie.toLowerCase()) {
+      case "sport":
+        return "Prépare-toi pour ton activité sportive : $titre.";
+      case "études":
+        return "C’est bientôt le moment de réviser : $titre.";
+      case "travail":
+        return "Rappel travail : $titre commence bientôt.";
+      case "santé":
+        return "Rappel santé : n’oublie pas $titre.";
+      case "rendez-vous":
+        return "Tu as bientôt un rendez-vous : $titre.";
+      case "courses":
+        return "N’oublie pas tes courses : $titre.";
+      default:
+        return "Rappel : $titre commence bientôt.";
+    }
+  }
+
+  Future<void> programmerNotificationTache({
+    required String idTache,
+    required String titre,
+    required String categorie,
+    required DateTime date,
+    required String heure,
+  }) async {
+    if (heure == "--:--" || !heure.contains(":")) return;
+
+    final parts = heure.split(":");
+    final h = int.tryParse(parts[0]);
+    final m = int.tryParse(parts[1]);
+
+    if (h == null || m == null) return;
+
+    final dateTache = DateTime(date.year, date.month, date.day, h, m);
+
+    // notification 10 minutes avant
+    final dateNotification = dateTache.subtract(const Duration(seconds: 10));
+
+    if (dateNotification.isBefore(DateTime.now())) return;
+
+    final idNotification = idTache.hashCode.abs();
+
+    const androidDetails = AndroidNotificationDetails(
+      'ora_task_channel',
+      'Rappels des tâches ORA',
+      channelDescription: 'Notifications intelligentes des tâches ORA',
+      importance: Importance.max,
+      priority: Priority.high,
+      playSound: true,
+      sound: RawResourceAndroidNotificationSound('alarm.mp3'),
+      enableVibration: true,
+    );
+
+    const details = NotificationDetails(android: androidDetails);
+
+    await _plugin.zonedSchedule(
+      idNotification,
+      "Rappel tâche",
+      messageTacheParCategorie(categorie, titre),
+      tz.TZDateTime.from(dateNotification, tz.local),
+      details,
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+    );
+  }
+
+  Future<void> annulerNotificationTache(String idTache) async {
+    final idNotification = idTache.hashCode.abs();
+    await _plugin.cancel(idNotification);
+  }
 
   Future<void> initialiser() async {
     const android = AndroidInitializationSettings('@mipmap/ic_launcher');
