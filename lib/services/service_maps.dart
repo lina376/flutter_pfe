@@ -24,24 +24,26 @@ class ServiceMaps {
   }
 
   Future<Position?> obtenirPositionActuelle() async {
-    final gpsActif = await verifierServiceGPS();
-    if (!gpsActif) return null;
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
 
-    final permissionOk = await verifierPermission();
-    if (!permissionOk) return null;
-
-    try {
-      return await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
-        timeLimit: const Duration(seconds: 12),
-      );
-    } catch (_) {
-      try {
-        return await Geolocator.getLastKnownPosition();
-      } catch (_) {
-        return null;
-      }
+    if (!serviceEnabled) {
+      return null;
     }
+
+    LocationPermission permission = await Geolocator.checkPermission();
+
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+    }
+
+    if (permission == LocationPermission.denied ||
+        permission == LocationPermission.deniedForever) {
+      return null;
+    }
+
+    return await Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.high,
+    );
   }
 
   Future<String> obtenirAdresse(double latitude, double longitude) async {

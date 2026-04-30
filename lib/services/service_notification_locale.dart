@@ -131,6 +131,43 @@ class ServiceNotificationLocale {
     await _plugin.cancel(id);
   }
 
+  Future<void> programmerNotificationTrajet({
+    required String idTrajet,
+    required String destination,
+    required DateTime dateSortie,
+    required String message,
+  }) async {
+    if (dateSortie.isBefore(DateTime.now())) return;
+
+    final idNotification = idTrajet.hashCode.abs();
+
+    const androidDetails = AndroidNotificationDetails(
+      'ora_trip_channel',
+      'Rappels trajet ORA',
+      channelDescription: 'Notifications météo et sortie pour les trajets ORA',
+      importance: Importance.max,
+      priority: Priority.high,
+      playSound: true,
+      sound: RawResourceAndroidNotificationSound('alarm'),
+      enableVibration: true,
+    );
+
+    const details = NotificationDetails(android: androidDetails);
+
+    await _plugin.zonedSchedule(
+      idNotification,
+      "ORA trajet vers $destination",
+      message,
+      tz.TZDateTime.from(dateSortie, tz.local),
+      details,
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+    );
+  }
+
+  Future<void> annulerNotificationTrajet(String idTrajet) async {
+    await _plugin.cancel(idTrajet.hashCode.abs());
+  }
+
   Future<void> testerNotification() async {
     const androidDetails = AndroidNotificationDetails(
       'ora_alarm_channel',

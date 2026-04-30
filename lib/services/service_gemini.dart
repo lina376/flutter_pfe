@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:ora/models/modele_contexte.dart';
 
 class ServiceGemini {
-  final String apiKey = "AIzaSyC-dyI1OS-iNzLgl3V4rMEyfSYd7POzqMU";
+  final String apiKey = "AIzaSyCmtAzMQUrCAW3vge3yBkdd0yYu7X4leP0";
 
   Uri get _url => Uri.parse(
     "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=$apiKey",
@@ -85,7 +85,7 @@ Actions possibles :
 CREATE_NOTE, UPDATE_NOTE, DELETE_NOTE, SEARCH_NOTE,
 CREATE_TASK, UPDATE_TASK, DELETE_TASK, SEARCH_TASK, GET_TASKS_BY_DATE,
 CREATE_ALARME, UPDATE_ALARME, DELETE_ALARME, TOGGLE_ALARME,
-RECOMMENDATION, CHAT.
+CREATE_TRIP_REMINDER, RECOMMENDATION, CHAT.
 
 Règles générales :
 - Retourne seulement un objet JSON ou une liste JSON.
@@ -151,6 +151,15 @@ Supprimer alarme :
 
 Activer/désactiver alarme :
 {"action":"TOGGLE_ALARME","titre":"...","active":true}
+
+Créer rappel trajet météo :
+{"action":"CREATE_TRIP_REMINDER","destination":"Sousse","date":"YYYY-MM-DD","heure_arrivee":"HH:mm"}
+
+Règles trajet :
+- Si l’utilisateur dit "je vais à", "je pars à", "machya l", "نمشي", "عندي مشية" avec une ville et une heure, retourne CREATE_TRIP_REMINDER.
+- destination = ville ou lieu mentionné.
+- heure_arrivee = heure où l’utilisateur veut arriver.
+- Convertis demain, aujourd’hui, vendredi... en YYYY-MM-DD.
 
 Recommandation :
 {"action":"RECOMMENDATION"}

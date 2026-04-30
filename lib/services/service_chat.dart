@@ -5,6 +5,9 @@ import 'package:ora/services/service_gemini.dart';
 import 'service_note.dart';
 import 'service_tache.dart';
 import 'service_alarme.dart';
+import 'service_meteo.dart';
+import 'service_maps.dart';
+import 'service_notification_locale.dart';
 
 import '../models/modele_contexte.dart';
 import '../models/modele_alarme.dart';
@@ -16,6 +19,20 @@ class ServiceChat {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final ServiceNote _serviceNote = ServiceNote();
   final ServiceAlarme _serviceAlarme = ServiceAlarme();
+  final ServiceMeteo _serviceMeteo = ServiceMeteo();
+  final ServiceMaps _serviceMaps = ServiceMaps();
+  int _scorePriorite(String p) {
+    switch (p.toLowerCase()) {
+      case "haute":
+        return 3;
+      case "moyenne":
+        return 2;
+      case "basse":
+        return 1;
+      default:
+        return 0;
+    }
+  }
 
   User? obtenirUtilisateurActuel() => _authentification.currentUser;
 
@@ -72,6 +89,17 @@ class ServiceChat {
   String _formaterDate(DateTime date) {
     String deux(int v) => v.toString().padLeft(2, '0');
     return '${deux(date.day)}/${deux(date.month)}/${date.year}';
+  }
+
+  String _formaterHeure(DateTime date) {
+    String deux(int v) => v.toString().padLeft(2, '0');
+    return '${deux(date.hour)}:${deux(date.minute)}';
+  }
+
+  DateTime _dateAvecHeure(DateTime date, String heureTexte) {
+    final heure = _extraireHeure(heureTexte, 8);
+    final minute = _extraireMinute(heureTexte, 0);
+    return DateTime(date.year, date.month, date.day, heure, minute);
   }
 
   String _iconePriorite(String priorite) {
@@ -165,13 +193,17 @@ class ServiceChat {
       'sender': 'user',
       'date': Timestamp.now(),
     });
-
     contexte = await _chargerContexte(conversationRef, contexte);
 
-    final commandes = await _gemini.analyserCommandes(
-      texte,
-      contexte: contexte,
-    );
+    List<Map<String, dynamic>> commandes;
+    try {
+      commandes = await _gemini.analyserCommandes(texte, contexte: contexte);
+    } catch (e) {
+      commandes = [
+        {"action": "RECOMMENDATION"},
+      ];
+    }
+
     final reponses = <String>[];
 
     for (final commande in commandes) {
@@ -187,13 +219,11 @@ class ServiceChat {
     }
 
     final reponseOra = reponses.where((e) => e.trim().isNotEmpty).join("\n");
-
     await conversationRef.collection('messages').add({
       'texte': reponseOra.isEmpty ? "Je n'ai pas bien compris." : reponseOra,
       'sender': 'ora',
       'date': Timestamp.now(),
     });
-
     await conversationRef.set({
       'dernierMessage': reponseOra,
       'dateMaj': Timestamp.now(),
@@ -564,6 +594,61 @@ class ServiceChat {
       );
     }
 
+    if (action == "CREATE_TRIP_REMINDER") {
+      final destination = _valeur(resultat, "destination", "Sousse");
+      final dateTexte = _valeur(resultat, "date", "");
+      final heureArriveeTexte = _valeur(resultat, "heure_arrivee", "--:--");
+      final dateDemandee = _dateDepuisTexte(dateTexte, DateTime.now());
+      final heureArrivee = _dateAvecHeure(dateDemandee, heureArriveeTexte);
+
+      final positionActuelle = await _serviceMaps.obtenirPositionActuelle();
+      final destinationMaps = await _serviceMaps.obtenirDestinationDepuisNom(
+        destination,
+      );
+      final meteo = await _serviceMeteo.obtenirMeteoPourVille(destination);
+      final margeMeteo = _serviceMeteo.margeTrajetSelonMeteo(meteo);
+
+      if (positionActuelle == null || destinationMaps == null) {
+        return _ResultatExecution(
+          "J’ai compris le trajet vers $destination, mais je n’ai pas pu calculer la position ou la destination. Vérifie GPS et internet.",
+          contexte,
+        );
+      }
+
+      final distanceMetres = _serviceMaps.calculerDistance(
+        positionActuelle.latitude,
+        positionActuelle.longitude,
+        destinationMaps.latitude,
+        destinationMaps.longitude,
+      );
+      final distanceKm = (distanceMetres / 1000).toStringAsFixed(1);
+      final tempsTrajet = _serviceMaps.calculerTempsTrajet(distanceMetres);
+      final heureSortie = heureArrivee.subtract(
+        Duration(minutes: tempsTrajet + margeMeteo),
+      );
+
+      final messageNotification =
+          "Météo à ${meteo.ville}: ${meteo.description}, ${meteo.temperature}°. Pars maintenant pour arriver à ${_formaterHeure(heureArrivee)}.";
+
+      await ServiceNotificationLocale.instance.programmerNotificationTrajet(
+        idTrajet:
+            "${destination}_${heureArrivee.toIso8601String()}_${DateTime.now().millisecondsSinceEpoch}",
+        destination: destination,
+        dateSortie: heureSortie,
+        message: messageNotification,
+      );
+
+      final texteReponse =
+          "Trajet vers $destination préparé.\n"
+          "📍 Distance estimée : $distanceKm km\n"
+          "🕒 Temps trajet estimé : $tempsTrajet min\n"
+          "🌦️ Météo à ${meteo.ville} : ${meteo.description}, ${meteo.temperature}°\n"
+          "⏱️ Marge météo : $margeMeteo min\n"
+          "🚶 Sors vers ${_formaterHeure(heureSortie)} pour arriver à ${_formaterHeure(heureArrivee)}.";
+
+      return _ResultatExecution(texteReponse, contexte);
+    }
+
     if (action == "CREATE_ALARME") {
       final dateTexte = _valeur(resultat, "date", "");
       final titre = _valeur(resultat, "titre", "Alarme");
@@ -664,29 +749,100 @@ class ServiceChat {
       }
       return _ResultatExecution("Je n’ai pas trouvé l’alarme.", contexte);
     }
+    if (action == "RECOMMENDATION") {
+      final maintenant = DateTime.now();
+
+      final taches = await _serviceTache.recupererToutesLesTaches();
+
+      final nonTerminees = taches.where((t) => !t.terminee).toList();
+
+      if (nonTerminees.isEmpty) {
+        return _ResultatExecution(
+          "🚀 Ajoute une tâche pour commencer ta journée !",
+          contexte,
+        );
+      }
+
+      // 🟢 فقط tâches اليوم أو المستقبل
+      final valides = nonTerminees.where((t) {
+        return t.date.isAfter(maintenant.subtract(const Duration(days: 1)));
+      }).toList();
+
+      // 🟢 ترتيب حسب priorité
+      valides.sort((a, b) {
+        int scoreA = _scorePriorite(a.priorite);
+        int scoreB = _scorePriorite(b.priorite);
+        return scoreB.compareTo(scoreA);
+      });
+
+      final t = valides.first;
+
+      final heure = t.heure == "--:--" ? "sans heure" : "à ${t.heure}";
+
+      return _ResultatExecution("""
+🎯 Je te conseille de commencer par :
+
+📌 ${t.titre}
+🔥 Priorité : ${t.priorite}
+📂 Catégorie : ${t.categorie}
+📅 ${_formaterDate(t.date)}, $heure
+
+💪 Bonne chance !
+""", contexte);
+    }
 
     if (action == "RECOMMENDATION") {
+      final maintenant = DateTime.now();
       final taches = await _serviceTache.recupererToutesLesTaches();
       final nonTerminees = taches.where((t) => !t.terminee).toList();
 
       if (nonTerminees.isEmpty) {
         return _ResultatExecution(
-          "Bravo, tu n’as pas de tâches en attente. Tu peux ajouter une nouvelle tâche ou réviser tes notes.",
+          "✅ Bravo, tu n’as aucune tâche en attente. Tu peux ajouter une petite tâche utile ou réviser une note importante.",
           contexte,
         );
       }
 
-      final triees = _serviceTache.trierParPriorite(nonTerminees);
+      final aujourdhui = nonTerminees.where((t) {
+        return t.date.year == maintenant.year &&
+            t.date.month == maintenant.month &&
+            t.date.day == maintenant.day;
+      }).toList();
+
+      final base = aujourdhui.isNotEmpty ? aujourdhui : nonTerminees;
+      final triees = _serviceTache.trierParPriorite(base);
       triees.sort((a, b) {
-        final comparaisonDate = a.date.compareTo(b.date);
-        if (comparaisonDate != 0) return comparaisonDate;
+        final dateCompare = a.date.compareTo(b.date);
+        if (dateCompare != 0) return dateCompare;
         return _serviceTache.trierParPriorite([a, b]).first.id == a.id ? -1 : 1;
       });
+
       final prochaine = triees.first;
-      return _ResultatExecution(
-        "Je te conseille de commencer par : ${prochaine.titre} (${prochaine.categorie}, priorité ${prochaine.priorite}) à ${prochaine.heure}.",
-        contexte,
-      );
+      final nombreHaute = nonTerminees
+          .where((t) => t.priorite.toLowerCase().trim() == 'haute')
+          .length;
+      final heure = prochaine.heure == "--:--"
+          ? "sans heure précise"
+          : "à ${prochaine.heure}";
+      final dateTexte = _formaterDate(prochaine.date);
+
+      var conseil =
+          "🎯 Je te conseille de commencer par : ${prochaine.titre}\n"
+          "${_iconePriorite(prochaine.priorite)} Priorité : ${prochaine.priorite}\n"
+          "📂 Catégorie : ${prochaine.categorie}\n"
+          "📅 Date : $dateTexte, $heure";
+
+      if (nombreHaute >= 2) {
+        conseil +=
+            "\n\n⚠️ Tu as $nombreHaute tâches de priorité haute. Commence par une seule, puis passe à la suivante.";
+      } else if (aujourdhui.length >= 3) {
+        conseil +=
+            "\n\n⏳ Tu as plusieurs tâches aujourd’hui. Essaie de les faire par petites sessions.";
+      } else {
+        conseil += "\n\n✅ C’est le meilleur choix pour avancer sans stress.";
+      }
+
+      return _ResultatExecution(conseil, contexte);
     }
 
     final reponse = await _gemini.envoyerMessageChat(
