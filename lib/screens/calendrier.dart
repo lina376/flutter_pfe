@@ -1,6 +1,5 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:ora/controlleurs/controleur_tache.dart';
 import 'package:ora/models/modele_tache.dart';
 import 'package:ora/screens/principal.dart';

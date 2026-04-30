@@ -47,7 +47,7 @@ class ServiceNotificationLocale {
     final dateTache = DateTime(date.year, date.month, date.day, h, m);
 
     // notification 10 minutes avant
-    final dateNotification = dateTache.subtract(const Duration(seconds: 10));
+    final dateNotification = dateTache.subtract(const Duration(minutes: 10));
 
     if (dateNotification.isBefore(DateTime.now())) return;
 
@@ -60,7 +60,7 @@ class ServiceNotificationLocale {
       importance: Importance.max,
       priority: Priority.high,
       playSound: true,
-      sound: RawResourceAndroidNotificationSound('alarm.mp3'),
+      sound: RawResourceAndroidNotificationSound('alarm'),
       enableVibration: true,
     );
 
@@ -110,7 +110,7 @@ class ServiceNotificationLocale {
       importance: Importance.max,
       priority: Priority.high,
       playSound: true,
-      sound: RawResourceAndroidNotificationSound('alarm.mp3'),
+      sound: RawResourceAndroidNotificationSound('alarm'),
       enableVibration: true,
       fullScreenIntent: true,
     );

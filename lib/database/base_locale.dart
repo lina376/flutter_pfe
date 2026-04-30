@@ -19,7 +19,7 @@ class BaseLocale {
 
     return await openDatabase(
       path,
-      version: 9,
+      version: 10,
       onCreate: _createDB,
       onUpgrade: _onUpgrade,
     );
@@ -34,6 +34,7 @@ class BaseLocale {
         date TEXT,
         heure TEXT,
         categorie TEXT NOT NULL DEFAULT 'Autre',
+        priorite TEXT NOT NULL DEFAULT 'moyenne',
         terminee INTEGER NOT NULL DEFAULT 0,
         estSynchronisee INTEGER NOT NULL DEFAULT 1,
         estSupprimee INTEGER NOT NULL DEFAULT 0
@@ -60,18 +61,13 @@ class BaseLocale {
         heure INTEGER NOT NULL,
         minute INTEGER NOT NULL,
         jours TEXT NOT NULL,
-        active INTEGER NOT NULL DEFAULT 1
+        active INTEGER NOT NULL DEFAULT 1,
+        date TEXT
       )
     ''');
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
-    if (oldVersion < 9) {
-      await db.execute("""
-    ALTER TABLE alarmes
-    ADD COLUMN date TEXT
-  """);
-    }
     if (oldVersion < 3) {
       await db.execute('''
         CREATE TABLE IF NOT EXISTS notes(
@@ -88,7 +84,6 @@ class BaseLocale {
 
     if (oldVersion < 4) {
       await db.execute('DROP TABLE IF EXISTS taches');
-
       await db.execute('''
         CREATE TABLE taches (
           id TEXT PRIMARY KEY,
@@ -97,6 +92,7 @@ class BaseLocale {
           date TEXT,
           heure TEXT,
           categorie TEXT NOT NULL DEFAULT 'Autre',
+          priorite TEXT NOT NULL DEFAULT 'moyenne',
           terminee INTEGER NOT NULL DEFAULT 0,
           estSynchronisee INTEGER NOT NULL DEFAULT 1,
           estSupprimee INTEGER NOT NULL DEFAULT 0
@@ -106,7 +102,6 @@ class BaseLocale {
 
     if (oldVersion < 7) {
       await db.execute('DROP TABLE IF EXISTS alarmes');
-
       await db.execute('''
         CREATE TABLE alarmes(
           id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -115,16 +110,38 @@ class BaseLocale {
           heure INTEGER NOT NULL,
           minute INTEGER NOT NULL,
           jours TEXT NOT NULL,
-          active INTEGER NOT NULL DEFAULT 1
+          active INTEGER NOT NULL DEFAULT 1,
+          date TEXT
         )
       ''');
     }
 
+    if (oldVersion >= 7 && oldVersion < 9) {
+      final colonnes = await db.rawQuery('PRAGMA table_info(alarmes)');
+      final existe = colonnes.any((c) => c['name'] == 'date');
+      if (!existe) {
+        await db.execute('ALTER TABLE alarmes ADD COLUMN date TEXT');
+      }
+    }
+
     if (oldVersion < 8) {
-      await db.execute("""
-        ALTER TABLE taches
-        ADD COLUMN categorie TEXT NOT NULL DEFAULT 'Autre'
-      """);
+      final colonnes = await db.rawQuery('PRAGMA table_info(taches)');
+      final existe = colonnes.any((c) => c['name'] == 'categorie');
+      if (!existe) {
+        await db.execute(
+          "ALTER TABLE taches ADD COLUMN categorie TEXT NOT NULL DEFAULT 'Autre'",
+        );
+      }
+    }
+
+    if (oldVersion < 10) {
+      final colonnes = await db.rawQuery('PRAGMA table_info(taches)');
+      final existe = colonnes.any((c) => c['name'] == 'priorite');
+      if (!existe) {
+        await db.execute(
+          "ALTER TABLE taches ADD COLUMN priorite TEXT NOT NULL DEFAULT 'moyenne'",
+        );
+      }
     }
   }
 

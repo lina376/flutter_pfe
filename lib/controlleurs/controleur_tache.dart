@@ -17,12 +17,14 @@ class ControleurTache {
     required String heure,
     required DateTime date,
     required String categorie,
+    String priorite = 'moyenne',
   }) {
     return _serviceTache.ajouterTache(
       titre: titre,
       heure: heure,
       date: date,
       categorie: categorie,
+      priorite: priorite,
     );
   }
 
@@ -40,6 +42,14 @@ class ControleurTache {
   Future<void> synchroniserTaches() async {
     await _serviceTache.synchroniserVersFirebase();
     await _serviceTache.synchroniserDepuisFirebase();
+  }
+
+  Future<List<ModeleTache>> recupererTachesParDateTriees(DateTime date) {
+    return _serviceTache.recupererTachesParDateTriees(date);
+  }
+
+  List<ModeleTache> trierParPriorite(List<ModeleTache> taches) {
+    return _serviceTache.trierParPriorite(taches);
   }
 
   List<ModeleTache> filtrerParDate(List<ModeleTache> taches, DateTime date) {

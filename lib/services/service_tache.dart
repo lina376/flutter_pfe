@@ -48,7 +48,8 @@ class ServiceTache {
       'taches',
       where: 'estSupprimee = ?',
       whereArgs: [0],
-      orderBy: 'date ASC, heure ASC',
+      orderBy:
+          "date ASC, CASE priorite WHEN 'haute' THEN 1 WHEN 'moyenne' THEN 2 ELSE 3 END ASC, heure ASC",
     );
 
     return result.map((e) => ModeleTache.fromMap(e)).toList();
@@ -91,6 +92,7 @@ class ServiceTache {
     required String heure,
     required DateTime date,
     required String categorie,
+    String priorite = 'moyenne',
   }) async {
     try {
       final dateSansHeure = DateTime(date.year, date.month, date.day);
@@ -102,6 +104,7 @@ class ServiceTache {
         heure: heure,
         date: dateSansHeure,
         categorie: categorie,
+        priorite: priorite,
         terminee: false,
         estSynchronisee: false,
         estSupprimee: false,
@@ -211,6 +214,43 @@ class ServiceTache {
     }
   }
 
+  int _rangPriorite(String priorite) {
+    switch (priorite.toLowerCase().trim()) {
+      case 'haute':
+      case 'élevée':
+      case 'elevee':
+      case 'urgent':
+        return 0;
+      case 'moyenne':
+      case 'normal':
+        return 1;
+      case 'basse':
+      case 'faible':
+        return 2;
+      default:
+        return 1;
+    }
+  }
+
+  List<ModeleTache> trierParPriorite(List<ModeleTache> taches) {
+    final copie = List<ModeleTache>.from(taches);
+    copie.sort((a, b) {
+      final priorite = _rangPriorite(
+        a.priorite,
+      ).compareTo(_rangPriorite(b.priorite));
+      if (priorite != 0) return priorite;
+      if (a.heure == '--:--' && b.heure != '--:--') return 1;
+      if (a.heure != '--:--' && b.heure == '--:--') return -1;
+      return a.heure.compareTo(b.heure);
+    });
+    return copie;
+  }
+
+  Future<List<ModeleTache>> recupererTachesParDateTriees(DateTime date) async {
+    final taches = await recupererTachesParDate(date);
+    return trierParPriorite(taches);
+  }
+
   Future<ModeleTache?> trouverTacheParTitre(String titreRecherche) async {
     final taches = await recupererToutesLesTaches();
 
@@ -244,6 +284,7 @@ class ServiceTache {
     required DateTime date,
     required String categorie,
     required bool terminee,
+    String? priorite,
   }) async {
     try {
       final dateSansHeure = DateTime(date.year, date.month, date.day);
@@ -254,6 +295,7 @@ class ServiceTache {
         heure: heure,
         date: dateSansHeure,
         categorie: categorie,
+        priorite: priorite ?? 'moyenne',
         terminee: terminee,
         estSynchronisee: false,
         estSupprimee: false,
@@ -307,6 +349,7 @@ class ServiceTache {
           heure: (data['heure'] ?? '--:--').toString(),
           date: DateTime.parse(data['date']),
           categorie: (data['categorie'] ?? 'Autre').toString(),
+          priorite: (data['priorite'] ?? 'moyenne').toString(),
           terminee: (data['terminee'] ?? false) == true,
           estSynchronisee: true,
           estSupprimee: false,
