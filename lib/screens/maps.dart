@@ -648,6 +648,8 @@ class _MapsPageState extends State<MapsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final args = ModalRoute.of(context)!.settings.arguments as Map?;
+    final destination = args?['destination'] ?? "";
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(

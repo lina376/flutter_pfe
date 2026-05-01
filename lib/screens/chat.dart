@@ -34,6 +34,17 @@ class _chatState extends State<chat> {
     _initialiserMicro();
   }
 
+  String extractDestination(String message) {
+    final regex = RegExp(r"vers (.+)", caseSensitive: false);
+    final match = regex.firstMatch(message);
+
+    if (match != null) {
+      return match.group(1)!.trim();
+    }
+
+    return ""; // fallback
+  }
+
   Future<void> _initialiserMicro() async {
     final disponible = await _speech.initialize(
       onStatus: (status) {
@@ -420,11 +431,48 @@ class _chatState extends State<chat> {
                                 dateMessage,
                               );
 
-                              return _buildMessageBubble(
+                              Widget messageWidget = _buildMessageBubble(
                                 isUser: isUser,
                                 texte: texte,
                                 heure: heure,
                               );
+                              if (!isUser &&
+                                  texte.toLowerCase().contains(
+                                    "voir le trajet",
+                                  )) {
+                                final destination = extractDestination(texte);
+
+                                return Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    messageWidget,
+
+                                    if (destination.isNotEmpty)
+                                      Padding(
+                                        padding: const EdgeInsets.only(
+                                          left: 55,
+                                        ),
+                                        child: TextButton.icon(
+                                          onPressed: () {
+                                            Navigator.pushNamed(
+                                              context,
+                                              'MapsPage.screenRoute',
+                                              arguments: {
+                                                'destination': destination,
+                                              },
+                                            );
+                                          },
+                                          icon: const Icon(Icons.map),
+                                          label: Text(
+                                            "Voir trajet vers $destination",
+                                          ),
+                                        ),
+                                      ),
+                                  ],
+                                );
+                              }
+
+                              return messageWidget;
                             },
                           );
                         },

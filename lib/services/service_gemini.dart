@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:ora/models/modele_contexte.dart';
 
 class ServiceGemini {
-  final String apiKey = "AIzaSyCmtAzMQUrCAW3vge3yBkdd0yYu7X4leP0";
+  final String apiKey = "AIzaSyC7LSQkPsfPq8bC3s8GKrU6Y9ocWbp9s_U";
 
   Uri get _url => Uri.parse(
     "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=$apiKey",
@@ -85,7 +85,7 @@ Actions possibles :
 CREATE_NOTE, UPDATE_NOTE, DELETE_NOTE, SEARCH_NOTE,
 CREATE_TASK, UPDATE_TASK, DELETE_TASK, SEARCH_TASK, GET_TASKS_BY_DATE,
 CREATE_ALARME, UPDATE_ALARME, DELETE_ALARME, TOGGLE_ALARME,
-CREATE_TRIP_REMINDER, RECOMMENDATION, CHAT.
+CREATE_TRIP_REMINDER, RECOMMENDATION, OPEN_MAP_ROUTE, CHAT.
 
 Règles générales :
 - Retourne seulement un objet JSON ou une liste JSON.
@@ -99,7 +99,12 @@ Règles générales :
 - Priorités autorisées : haute, moyenne, basse.
 - Convertis les dates naturelles en YYYY-MM-DD selon la date actuelle.
 - Convertis les heures en HH:mm.
+Si l'utilisateur dit:
+- montre moi le trajet
+- ouvre la carte
 
+→ retourne:
+{ "action": "OPEN_MAP_ROUTE" }
 Formats :
 
 Créer note :
@@ -156,10 +161,10 @@ Créer rappel trajet météo :
 {"action":"CREATE_TRIP_REMINDER","destination":"Sousse","date":"YYYY-MM-DD","heure_arrivee":"HH:mm"}
 
 Règles trajet :
-- Si l’utilisateur dit "je vais à", "je pars à", "machya l", "نمشي", "عندي مشية" avec une ville et une heure, retourne CREATE_TRIP_REMINDER.
+- Si l'utilisateur dit "je vais à", "je pars à", "machya l", "نمشي", "عندي مشية" avec une ville et une heure, retourne CREATE_TRIP_REMINDER.
 - destination = ville ou lieu mentionné.
-- heure_arrivee = heure où l’utilisateur veut arriver.
-- Convertis demain, aujourd’hui, vendredi... en YYYY-MM-DD.
+- heure_arrivee = heure où l'utilisateur veut arriver.
+- Convertis demain, aujourd'hui, vendredi... en YYYY-MM-DD.
 
 Recommandation :
 {"action":"RECOMMENDATION"}

@@ -21,18 +21,6 @@ class ServiceChat {
   final ServiceAlarme _serviceAlarme = ServiceAlarme();
   final ServiceMeteo _serviceMeteo = ServiceMeteo();
   final ServiceMaps _serviceMaps = ServiceMaps();
-  int _scorePriorite(String p) {
-    switch (p.toLowerCase()) {
-      case "haute":
-        return 3;
-      case "moyenne":
-        return 2;
-      case "basse":
-        return 1;
-      default:
-        return 0;
-    }
-  }
 
   User? obtenirUtilisateurActuel() => _authentification.currentUser;
 
@@ -238,7 +226,19 @@ class ServiceChat {
     required ModeleContexte? contexte,
   }) async {
     final action = _valeur(resultat, "action", "CHAT").toUpperCase();
+    if (action == "OPEN_MAP_ROUTE") {
+      if (contexte == null || contexte.type != "trajet") {
+        return _ResultatExecution(
+          " Dis-moi d'abord ta destination (ex: je vais à Sousse)",
+          contexte,
+        );
+      }
 
+      return _ResultatExecution(
+        "Clique pour voir le trajet vers ${contexte.id}",
+        contexte,
+      );
+    }
     if (action == "CREATE_NOTE") {
       final titre = _valeur(resultat, "titre", "Sans titre");
       final contenu = _valeur(resultat, "contenu", "");
@@ -610,7 +610,7 @@ class ServiceChat {
 
       if (positionActuelle == null || destinationMaps == null) {
         return _ResultatExecution(
-          "J’ai compris le trajet vers $destination, mais je n’ai pas pu calculer la position ou la destination. Vérifie GPS et internet.",
+          "J'ai compris le trajet vers $destination, mais je n'ai pas pu calculer la position ou la destination. Vérifie GPS et internet.",
           contexte,
         );
       }
@@ -645,8 +645,23 @@ class ServiceChat {
           "🌦️ Météo à ${meteo.ville} : ${meteo.description}, ${meteo.temperature}°\n"
           "⏱️ Marge météo : $margeMeteo min\n"
           "🚶 Sors vers ${_formaterHeure(heureSortie)} pour arriver à ${_formaterHeure(heureArrivee)}.";
+      final nouveauContexte = ModeleContexte(
+        type: "trajet",
+        id: destination,
+        titre: "Trajet vers $destination",
+        contenu:
+            "destination=$destination;"
+            "lat=${destinationMaps.latitude};"
+            "lng=${destinationMaps.longitude};"
+            "distance=$distanceKm;"
+            "temps=$tempsTrajet;"
+            "sortie=${_formaterHeure(heureSortie)};",
+        source: "chat",
+      );
 
-      return _ResultatExecution(texteReponse, contexte);
+      await _enregistrerContexte(conversationRef, nouveauContexte);
+
+      return _ResultatExecution(texteReponse, nouveauContexte);
     }
 
     if (action == "CREATE_ALARME") {
@@ -748,47 +763,6 @@ class ServiceChat {
         );
       }
       return _ResultatExecution("Je n’ai pas trouvé l’alarme.", contexte);
-    }
-    if (action == "RECOMMENDATION") {
-      final maintenant = DateTime.now();
-
-      final taches = await _serviceTache.recupererToutesLesTaches();
-
-      final nonTerminees = taches.where((t) => !t.terminee).toList();
-
-      if (nonTerminees.isEmpty) {
-        return _ResultatExecution(
-          "🚀 Ajoute une tâche pour commencer ta journée !",
-          contexte,
-        );
-      }
-
-      // 🟢 فقط tâches اليوم أو المستقبل
-      final valides = nonTerminees.where((t) {
-        return t.date.isAfter(maintenant.subtract(const Duration(days: 1)));
-      }).toList();
-
-      // 🟢 ترتيب حسب priorité
-      valides.sort((a, b) {
-        int scoreA = _scorePriorite(a.priorite);
-        int scoreB = _scorePriorite(b.priorite);
-        return scoreB.compareTo(scoreA);
-      });
-
-      final t = valides.first;
-
-      final heure = t.heure == "--:--" ? "sans heure" : "à ${t.heure}";
-
-      return _ResultatExecution("""
-🎯 Je te conseille de commencer par :
-
-📌 ${t.titre}
-🔥 Priorité : ${t.priorite}
-📂 Catégorie : ${t.categorie}
-📅 ${_formaterDate(t.date)}, $heure
-
-💪 Bonne chance !
-""", contexte);
     }
 
     if (action == "RECOMMENDATION") {
