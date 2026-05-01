@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:ora/controlleurs/controleur_chat.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:ora/models/modele_contexte.dart';
+import 'maps.dart';
 
 class chat extends StatefulWidget {
   static const String screenRoute = 'pagechat';
@@ -456,7 +457,7 @@ class _chatState extends State<chat> {
                                           onPressed: () {
                                             Navigator.pushNamed(
                                               context,
-                                              'MapsPage.screenRoute',
+                                              MapsPage.screenRoute,
                                               arguments: {
                                                 'destination': destination,
                                               },
