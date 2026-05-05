@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:ora/models/modele_contexte.dart';
 
 class ServiceGemini {
-  final String apiKey = "AIzaSyC7LSQkPsfPq8bC3s8GKrU6Y9ocWbp9s_U";
+  final String apiKey = "AIzaSyDrqp5CJLtnj2_PEr3MqgHktDVihQlzrOU";
 
   Uri get _url => Uri.parse(
     "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=$apiKey",
