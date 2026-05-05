@@ -3,11 +3,21 @@ import 'package:http/http.dart' as http;
 import 'package:ora/models/modele_contexte.dart';
 
 class ServiceGemini {
-  final String apiKey = "AIzaSyDrqp5CJLtnj2_PEr3MqgHktDVihQlzrOU";
+  static const String apiKey = String.fromEnvironment(
+    'GEMINI_API_KEY',
+    defaultValue: 'AIzaSyBTI2GeRbIFLrcjtX6lkwKAXaXyyecRLYA',
+  );
 
   Uri get _url => Uri.parse(
     "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=$apiKey",
   );
+
+  String _historiqueTexte(List<Map<String, dynamic>> historique) {
+    if (historique.isEmpty) return "Aucun historique";
+    return historique
+        .map((m) => "${m['sender'] ?? 'user'}: ${m['texte'] ?? ''}")
+        .join("\n");
+  }
 
   String _contexteTexte(ModeleContexte? contexte) {
     if (contexte == null || contexte.estVide) return "Aucun contexte actif";
@@ -62,6 +72,7 @@ Source: ${contexte.source}
   Future<List<Map<String, dynamic>>> analyserCommandes(
     String message, {
     ModeleContexte? contexte,
+    List<Map<String, dynamic>> historique = const [],
   }) async {
     if (apiKey.trim().isEmpty || apiKey == "REMPLACE_PAR_TA_CLE_GEMINI") {
       return [
@@ -75,8 +86,11 @@ Source: ${contexte.source}
 Tu es ORA, assistant intelligent d'une application Flutter de notes, tâches et alarmes.
 
 Date actuelle exacte : ${DateTime.now().toIso8601String()}
-Contexte actuel :
+Contexte actif :
 ${_contexteTexte(contexte)}
+
+Historique des 5 derniers échanges :
+${_historiqueTexte(historique)}
 
 Ta mission : transformer le message utilisateur en JSON valide uniquement.
 Ne réponds jamais avec une explication dans cette fonction.
@@ -218,17 +232,35 @@ $message
   Future<Map<String, dynamic>> analyserCommande(
     String message, {
     ModeleContexte? contexte,
+    List<Map<String, dynamic>> historique = const [],
   }) async {
-    final commandes = await analyserCommandes(message, contexte: contexte);
+    final commandes = await analyserCommandes(
+      message,
+      contexte: contexte,
+      historique: historique,
+    );
     return commandes.isEmpty ? {"action": "CHAT"} : commandes.first;
+  }
+
+  String messageErreurOra() {
+    final messages = [
+      "Je n'ai pas bien compris cette demande.",
+      "ORA n'arrive pas à traiter ça pour le moment.",
+      "Cette action n'est pas encore supportée par ORA.",
+      "Peux-tu reformuler ta demande autrement ?",
+      "ORA n'est pas connectée à Internet pour le moment.",
+    ];
+    messages.shuffle();
+    return messages.first;
   }
 
   Future<String> envoyerMessageChat(
     String message, {
     ModeleContexte? contexte,
+    List<Map<String, dynamic>> historique = const [],
   }) async {
     if (apiKey.trim().isEmpty || apiKey == "REMPLACE_PAR_TA_CLE_GEMINI") {
-      return "Je suis prête, mais il faut ajouter la clé Gemini dans ServiceGemini.";
+      return "ORA n'est pas encore configurée correctement.";
     }
 
     try {
@@ -236,7 +268,9 @@ $message
           """
 Tu es ORA, assistant intelligent d'une application mobile.
 Réponds brièvement, clairement et en français simple/Tunisien si l'utilisateur écrit en Tunisien.
-Contexte : ${_contexteTexte(contexte)}
+Contexte actif : ${_contexteTexte(contexte)}
+Historique récent :
+${_historiqueTexte(historique)}
 Message : $message
 """;
 
@@ -264,9 +298,9 @@ Message : $message
             .trim();
       }
 
-      return "Je n'arrive pas à contacter Gemini maintenant.";
+      return messageErreurOra();
     } catch (e) {
-      return "Erreur de connexion Gemini.";
+      return messageErreurOra();
     }
   }
 }

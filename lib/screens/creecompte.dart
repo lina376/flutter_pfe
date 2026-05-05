@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:ora/controlleurs/controleur_authentification.dart';
 import 'package:ora/screens/connecter.dart';
-import 'package:ora/screens/principal.dart';
 
 class creecompte extends StatefulWidget {
   static const String screenRoute = 'pagecreecompte';
@@ -323,9 +322,18 @@ class _creecompteState extends State<creecompte> {
                               if (!mounted) return;
 
                               if (newUser.user != null) {
+                                await FirebaseAuth.instance.signOut();
+                                if (!mounted) return;
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      "Compte créé. Vérifiez votre email avant de vous connecter.",
+                                    ),
+                                  ),
+                                );
                                 Navigator.pushReplacementNamed(
                                   context,
-                                  principal.screenRoute,
+                                  connecter.screenRoute,
                                 );
                               }
                             } on FirebaseAuthException catch (e) {
@@ -355,10 +363,6 @@ class _creecompteState extends State<creecompte> {
                               );
 
                               if (!mounted) return;
-                              ScaffoldMessenger.of(
-                                context,
-                              ).showSnackBar(SnackBar(content: Text(message)));
-
                               ScaffoldMessenger.of(
                                 context,
                               ).showSnackBar(SnackBar(content: Text(message)));

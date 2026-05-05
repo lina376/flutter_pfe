@@ -162,6 +162,76 @@ class ServiceChat {
     }, SetOptions(merge: true));
   }
 
+  Future<List<Map<String, dynamic>>> _chargerHistoriqueMessages(
+    DocumentReference<Map<String, dynamic>> conversationRef,
+  ) async {
+    final snapshot = await conversationRef
+        .collection('messages')
+        .orderBy('date', descending: true)
+        .limit(10)
+        .get();
+
+    return snapshot.docs.reversed.map((doc) {
+      final data = doc.data();
+      return {
+        'sender': (data['sender'] ?? '').toString(),
+        'texte': (data['texte'] ?? '').toString(),
+      };
+    }).toList();
+  }
+
+  bool _commandeValide(Map<String, dynamic> commande) {
+    final action = _valeur(commande, 'action', 'CHAT').toUpperCase();
+
+    final actionsAutorisees = {
+      'CREATE_NOTE',
+      'UPDATE_NOTE',
+      'DELETE_NOTE',
+      'SEARCH_NOTE',
+      'CREATE_TASK',
+      'UPDATE_TASK',
+      'DELETE_TASK',
+      'SEARCH_TASK',
+      'GET_TASKS_BY_DATE',
+      'CREATE_ALARME',
+      'UPDATE_ALARME',
+      'DELETE_ALARME',
+      'TOGGLE_ALARME',
+      'CREATE_TRIP_REMINDER',
+      'RECOMMENDATION',
+      'OPEN_MAP_ROUTE',
+      'CHAT',
+    };
+
+    if (!actionsAutorisees.contains(action)) return false;
+
+    final titreObligatoire = {
+      'CREATE_NOTE',
+      'UPDATE_NOTE',
+      'DELETE_NOTE',
+      'SEARCH_NOTE',
+      'CREATE_TASK',
+      'UPDATE_TASK',
+      'DELETE_TASK',
+      'SEARCH_TASK',
+      'CREATE_ALARME',
+      'UPDATE_ALARME',
+      'DELETE_ALARME',
+      'TOGGLE_ALARME',
+    };
+
+    if (titreObligatoire.contains(action)) {
+      final titre = _valeur(commande, 'titre', '');
+      if (titre.isEmpty && action.startsWith('CREATE')) return false;
+    }
+
+    if (action == 'CREATE_TRIP_REMINDER') {
+      return _valeur(commande, 'destination', '').isNotEmpty;
+    }
+
+    return true;
+  }
+
   Future<void> ajouterMessage({
     required String conversationId,
     required String texte,
@@ -182,10 +252,20 @@ class ServiceChat {
       'date': Timestamp.now(),
     });
     contexte = await _chargerContexte(conversationRef, contexte);
+    final historique = await _chargerHistoriqueMessages(conversationRef);
 
     List<Map<String, dynamic>> commandes;
     try {
-      commandes = await _gemini.analyserCommandes(texte, contexte: contexte);
+      commandes = await _gemini.analyserCommandes(
+        texte,
+        contexte: contexte,
+        historique: historique,
+      );
+      commandes = commandes.where(_commandeValide).toList();
+      if (commandes.isEmpty)
+        commandes = [
+          {"action": "CHAT"},
+        ];
     } catch (e) {
       commandes = [
         {"action": "RECOMMENDATION"},
@@ -225,6 +305,7 @@ class ServiceChat {
     required DocumentReference<Map<String, dynamic>> conversationRef,
     required ModeleContexte? contexte,
   }) async {
+    final historique = await _chargerHistoriqueMessages(conversationRef);
     final action = _valeur(resultat, "action", "CHAT").toUpperCase();
     if (action == "OPEN_MAP_ROUTE") {
       if (contexte == null || contexte.type != "trajet") {
@@ -350,6 +431,7 @@ class ServiceChat {
         );
 
       await _serviceNote.supprimerNote(note.id);
+      await _serviceNote.synchroniserVersFirebase();
       return _ResultatExecution(
         "La note a été supprimée avec succès.",
         contexte,
@@ -822,6 +904,7 @@ class ServiceChat {
     final reponse = await _gemini.envoyerMessageChat(
       texteOriginal,
       contexte: contexte,
+      historique: historique,
     );
     return _ResultatExecution(reponse, contexte);
   }
