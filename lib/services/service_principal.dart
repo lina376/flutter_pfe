@@ -30,16 +30,27 @@ class ServicePrincipal {
   }
 
   Stream<List<ModeleConversation>> obtenirFluxConversations() {
+    return obtenirFluxConversationsParDate(DateTime.now());
+  }
+
+  Stream<List<ModeleConversation>> obtenirFluxConversationsParDate(
+    DateTime date,
+  ) {
     final utilisateur = _authentification.currentUser;
 
     if (utilisateur == null) {
       return Stream.value([]);
     }
 
+    final debutJour = DateTime(date.year, date.month, date.day);
+    final finJour = debutJour.add(const Duration(days: 1));
+
     return _firestore
         .collection('users')
         .doc(utilisateur.uid)
         .collection('conversations')
+        .where('dateMaj', isGreaterThanOrEqualTo: Timestamp.fromDate(debutJour))
+        .where('dateMaj', isLessThan: Timestamp.fromDate(finJour))
         .orderBy('dateMaj', descending: true)
         .snapshots()
         .map(

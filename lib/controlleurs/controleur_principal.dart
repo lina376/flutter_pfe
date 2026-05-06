@@ -17,6 +17,12 @@ class ControleurPrincipal {
     return _servicePrincipal.obtenirFluxConversations();
   }
 
+  Stream<List<ModeleConversation>> obtenirFluxConversationsParDate(
+    DateTime date,
+  ) {
+    return _servicePrincipal.obtenirFluxConversationsParDate(date);
+  }
+
   Future<void> seDeconnecter() {
     return _servicePrincipal.seDeconnecter();
   }

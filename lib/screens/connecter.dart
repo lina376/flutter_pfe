@@ -267,26 +267,6 @@ class _connecterState extends State<connecter> {
                                       FirebaseAuth.instance.currentUser;
 
                                   if (user != null) {
-                                    await user.reload();
-                                    final userMisAJour =
-                                        FirebaseAuth.instance.currentUser;
-
-                                    if (role != 'admin' &&
-                                        userMisAJour != null &&
-                                        !userMisAJour.emailVerified) {
-                                      await FirebaseAuth.instance.signOut();
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        const SnackBar(
-                                          content: Text(
-                                            "Vérifiez votre email avant de vous connecter",
-                                          ),
-                                        ),
-                                      );
-                                      return;
-                                    }
-
                                     if (role == 'admin') {
                                       Navigator.pushReplacementNamed(
                                         context,

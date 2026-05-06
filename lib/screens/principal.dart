@@ -15,6 +15,9 @@ import 'package:ora/screens/meteo.dart';
 import 'package:ora/screens/alarmes.dart';
 import 'package:ora/screens/maps.dart';
 import 'package:ora/screens/langue.dart';
+import 'package:ora/screens/eau_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:ora/screens/eau1.dart';
 
 class principal extends StatefulWidget {
   static const String screenRoute = 'pageprincipal';
@@ -31,6 +34,11 @@ class _principalState extends State<principal> {
   DateTime _moisAffiche = DateTime.now();
   DateTime _dateSelectionnee = DateTime.now();
   bool _notif = true;
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
 
   Future<void> _logout() async {
     await _controleurPrincipal.seDeconnecter();
@@ -206,28 +214,6 @@ class _principalState extends State<principal> {
                                   height: 18,
                                 ),
                                 _list(
-                                  icon: Icons.cloud_outlined,
-                                  title: 'menu.weather'.tr(),
-                                  onTap: () {
-                                    Navigator.pop(context);
-                                    Navigator.pushNamed(
-                                      context,
-                                      MeteoPage.screenRoute,
-                                    );
-                                  },
-                                ),
-                                _list(
-                                  icon: Icons.alarm,
-                                  title: 'menu.alarms'.tr(),
-                                  onTap: () {
-                                    Navigator.pop(context);
-                                    Navigator.pushNamed(
-                                      context,
-                                      AlarmesPage.screenRoute,
-                                    );
-                                  },
-                                ),
-                                _list(
                                   icon: Icons.map_outlined,
                                   title: 'menu.maps'.tr(),
                                   onTap: () {
@@ -386,17 +372,32 @@ class _principalState extends State<principal> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'principal.history'.tr(),
-            style: const TextStyle(
-              color: Colors.black87,
-              fontWeight: FontWeight.w800,
-              fontSize: 14,
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'principal.history'.tr(),
+                style: const TextStyle(
+                  color: Colors.black87,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 14,
+                ),
+              ),
+              Text(
+                DateFormat('dd/MM/yyyy').format(_dateSelectionnee),
+                style: TextStyle(
+                  color: Colors.white.withOpacity(0.78),
+                  fontWeight: FontWeight.w700,
+                  fontSize: 11,
+                ),
+              ),
+            ],
           ),
           Expanded(
             child: StreamBuilder<List<ModeleConversation>>(
-              stream: _controleurPrincipal.obtenirFluxConversations(),
+              stream: _controleurPrincipal.obtenirFluxConversationsParDate(
+                _dateSelectionnee,
+              ),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return Center(
@@ -406,7 +407,6 @@ class _principalState extends State<principal> {
                     ),
                   );
                 }
-
                 final conversations = snapshot.data ?? [];
 
                 if (conversations.isEmpty) {
@@ -517,7 +517,9 @@ class _principalState extends State<principal> {
 
   @override
   Widget build(BuildContext context) {
-    final hauteur = MediaQuery.of(context).size.height;
+    final taille = MediaQuery.of(context).size;
+    final hauteur = taille.height;
+    final largeur = taille.width;
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -579,71 +581,39 @@ class _principalState extends State<principal> {
         height: double.infinity,
         decoration: const BoxDecoration(
           image: DecorationImage(
-            image: AssetImage("images/b5.png"),
+            image: AssetImage("images/b1.png"),
             fit: BoxFit.cover,
           ),
         ),
         child: SafeArea(
           child: SingleChildScrollView(
             child: SizedBox(
-              height: MediaQuery.of(context).size.height,
+              height: hauteur < 820 ? 930 : hauteur * 1.12,
               child: Stack(
                 children: [
-                  Positioned(
-                    top: hauteur * 0.001,
-                    left: hauteur * 0.0001,
-                    child: const SizedBox(
-                      width: 395,
-                      height: 45,
-                      child: Recherche(),
-                    ),
-                  ),
-                  Positioned(
-                    top: hauteur * 0.08,
-                    left: hauteur * 0.02,
-                    child: SizedBox(
-                      width: 210,
-                      height: 170,
-                      child: Container(
-                        padding: const EdgeInsets.all(14),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.12),
-                          borderRadius: BorderRadius.circular(24),
-                          border: Border.all(
-                            color: Colors.white.withOpacity(0.18),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    top: hauteur * 0.08,
-                    right: hauteur * 0.02,
-                    child: GestureDetector(
-                      onTap: () {
-                        Navigator.pushNamed(context, mesnotes.screenRoute);
-                      },
-                      child: SizedBox(
-                        width: 130,
-                        height: 170,
-                        child: Container(
-                          padding: const EdgeInsets.all(14),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.12),
-                            borderRadius: BorderRadius.circular(24),
-                            border: Border.all(
-                              color: Colors.white.withOpacity(0.18),
+                  Stack(
+                    children: [
+                      Positioned(
+                        top: hauteur * 0.01,
+                        left: largeur * 0.05,
+                        child: SizedBox(
+                          width: largeur * 0.5,
+                          height: 165,
+                          child: Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.10),
+                              borderRadius: BorderRadius.circular(24),
+                              border: Border.all(
+                                color: Colors.white.withOpacity(0.16),
+                              ),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                  ),
-                  Stack(
-                    children: [
                       Positioned(
-                        top: hauteur * 0.095,
-                        left: hauteur * 0.035,
+                        top: hauteur * 0.03,
+                        left: largeur * 0.08,
                         child: SizedBox(
                           width: 120,
                           height: 44,
@@ -685,8 +655,8 @@ class _principalState extends State<principal> {
                         ),
                       ),
                       Positioned(
-                        top: hauteur * 0.155,
-                        left: hauteur * 0.05,
+                        top: hauteur * 0.09,
+                        left: largeur * 0.105,
                         child: SizedBox(
                           width: 35,
                           height: 15,
@@ -707,8 +677,8 @@ class _principalState extends State<principal> {
                         ),
                       ),
                       Positioned(
-                        top: hauteur * 0.174,
-                        left: hauteur * 0.07,
+                        top: hauteur * 0.111,
+                        left: largeur * 0.145,
                         child: SizedBox(
                           width: 25,
                           height: 12,
@@ -729,8 +699,8 @@ class _principalState extends State<principal> {
                         ),
                       ),
                       Positioned(
-                        top: hauteur * 0.19,
-                        left: hauteur * 0.09,
+                        top: hauteur * 0.125,
+                        left: largeur * 0.18,
                         child: SizedBox(
                           width: 20,
                           height: 8,
@@ -751,19 +721,33 @@ class _principalState extends State<principal> {
                         ),
                       ),
                       Positioned(
-                        top: hauteur * 0.13,
-                        left: hauteur * 0.12,
+                        top: hauteur * 0.068,
+                        left: largeur * 0.28,
                         child: Image.asset("images/robot0.png", width: 95),
                       ),
                       Positioned(
-                        right: hauteur * 0.001,
-                        top: hauteur * 0.08,
-                        child: const MesNotes(),
+                        right: largeur * 0.04,
+                        top: hauteur * 0.01,
+                        bottom: largeur * 1.92,
+                        child: const AccesRapidesNotesAlarmes(),
                       ),
                       Positioned(
-                        top: hauteur * 0.3,
-                        left: hauteur * 0.02,
-                        right: hauteur * 0.02,
+                        top: hauteur * 0.22,
+                        left: largeur * 0.05,
+                        right: largeur * 0.05,
+                        child: const CarteMeteoAccueil(),
+                      ),
+
+                      Positioned(
+                        top: hauteur * 0.288,
+                        left: largeur * 0.05,
+                        right: largeur * 0.05,
+                        child: const BarreBienEtre(),
+                      ),
+                      Positioned(
+                        top: hauteur * 0.39,
+                        left: largeur * 0.05,
+                        right: largeur * 0.05,
                         child: GestureDetector(
                           onTap: () {
                             Navigator.pushNamed(
@@ -847,11 +831,11 @@ class _principalState extends State<principal> {
                         ),
                       ),
                       Positioned(
-                        left: hauteur * 0.01,
-                        right: hauteur * 0.01,
-                        bottom: hauteur * -0.08,
+                        left: largeur * 0.025,
+                        right: largeur * 0.025,
+                        top: hauteur * 0.777,
                         child: SizedBox(
-                          height: hauteur * 0.4,
+                          height: hauteur * 0.35,
                           child: sectionHistorique(),
                         ),
                       ),
@@ -867,89 +851,258 @@ class _principalState extends State<principal> {
   }
 }
 
-class Recherche extends StatelessWidget {
-  const Recherche({super.key});
+class CarteMeteoAccueil extends StatelessWidget {
+  const CarteMeteoAccueil({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.15),
-        borderRadius: BorderRadius.circular(30),
-        border: Border.all(
-          color: const Color.fromARGB(159, 255, 255, 255).withOpacity(0.2),
+    return GestureDetector(
+      onTap: () => Navigator.pushNamed(context, MeteoPage.screenRoute),
+      child: Container(
+        height: 48,
+        padding: const EdgeInsets.symmetric(horizontal: 14),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.16),
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(color: Colors.white.withOpacity(0.20)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.08),
+              blurRadius: 14,
+              offset: const Offset(0, 6),
+            ),
+          ],
         ),
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.search, color: Colors.white),
-          const SizedBox(width: 10),
-          Expanded(
-            child: TextField(
-              style: const TextStyle(color: Color.fromARGB(75, 255, 255, 255)),
-              decoration: InputDecoration(
-                hintText: 'principal.search'.tr(),
-                hintStyle: const TextStyle(color: Colors.white70),
-                border: InputBorder.none,
+        child: Row(
+          children: [
+            Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.92),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.cloud_queue_rounded,
+                color: Color.fromARGB(255, 79, 179, 255),
+                size: 21,
               ),
             ),
-          ),
-          const Icon(Icons.mic, color: Colors.white),
-        ],
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                'menu.weather'.tr(),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ),
+            Text(
+              'Prévisions',
+              style: TextStyle(
+                color: Colors.white.withOpacity(0.72),
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(width: 6),
+            const Icon(
+              Icons.arrow_forward_ios_rounded,
+              color: Colors.white70,
+              size: 13,
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 
-class MesNotes extends StatelessWidget {
-  const MesNotes({super.key});
+class AccesRapidesNotesAlarmes extends StatelessWidget {
+  const AccesRapidesNotesAlarmes({super.key});
 
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.pushNamed(context, mesnotes.screenRoute);
-      },
-      child: SizedBox(
-        width: 170,
-        height: 170,
+  Widget _boutonAcces({
+    required BuildContext context,
+    required IconData icon,
+    required String titre,
+    required VoidCallback onTap,
+  }) {
+    return Expanded(
+      child: InkWell(
+        borderRadius: BorderRadius.circular(18),
+        onTap: onTap,
         child: Container(
-          padding: const EdgeInsets.all(10),
+          margin: const EdgeInsets.symmetric(vertical: 3),
+          padding: const EdgeInsets.symmetric(horizontal: 8.1, vertical: 8.4),
           decoration: BoxDecoration(
-            color: Colors.transparent,
-            borderRadius: BorderRadius.circular(24),
+            color: Colors.white.withOpacity(0.08),
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: Colors.white.withOpacity(0.10)),
           ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+          child: Row(
             children: [
               Container(
-                width: 48,
-                height: 48,
+                width: 38,
+                height: 38,
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(14),
                 ),
-                child: const Icon(
-                  Icons.note_alt,
-                  color: Color.fromARGB(255, 79, 179, 255),
-                  size: 28,
+                child: Icon(
+                  icon,
+                  color: const Color.fromARGB(255, 79, 179, 255),
+                  size: 23,
                 ),
               ),
-              const SizedBox(height: 14),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  titre,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: MediaQuery.of(context).size.width * 0.39,
+      height: 170,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.12),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: Colors.white.withOpacity(0.18)),
+        ),
+        child: Column(
+          children: [
+            _boutonAcces(
+              context: context,
+              icon: Icons.note_alt,
+              titre: 'principal.notes'.tr(),
+              onTap: () => Navigator.pushNamed(context, mesnotes.screenRoute),
+            ),
+            const SizedBox(height: 6),
+            _boutonAcces(
+              context: context,
+              icon: Icons.alarm_rounded,
+              titre: 'menu.alarms'.tr(),
+              onTap: () =>
+                  Navigator.pushNamed(context, AlarmesPage.screenRoute),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class BarreBienEtre extends StatelessWidget {
+  const BarreBienEtre({super.key});
+
+  Widget item({
+    required IconData icon,
+    required String titre,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          margin: const EdgeInsets.symmetric(horizontal: 4),
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.10),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.white.withOpacity(0.18)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, color: color, size: 24),
+              const SizedBox(height: 5),
               Text(
-                'principal.notes'.tr(),
-                textAlign: TextAlign.center,
+                titre,
                 style: const TextStyle(
                   color: Colors.white,
-                  fontSize: 14,
+                  fontSize: 11,
                   fontWeight: FontWeight.w700,
                 ),
               ),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 75,
+      padding: const EdgeInsets.symmetric(horizontal: 6),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.white.withOpacity(0.15)),
+      ),
+      child: Row(
+        children: [
+          item(
+            icon: Icons.favorite,
+            titre: "Santé",
+            color: Colors.redAccent,
+            onTap: () {
+              Navigator.pushNamed(context, 'page_sante');
+            },
+          ),
+          item(
+            icon: Icons.water_drop,
+            titre: "Eau",
+            color: Colors.blue,
+            onTap: () async {
+              final prefs = await SharedPreferences.getInstance();
+              final configure =
+                  prefs.getBool('profil_hydratation_configure') ?? false;
+
+              Navigator.pushNamed(
+                context,
+                configure
+                    ? EauPage.screenRoute
+                    : ConfigurationHydratationPage.screenRoute,
+              );
+            },
+          ),
+          item(
+            icon: Icons.directions_run,
+            titre: "Sport",
+            color: Colors.green,
+            onTap: () {},
+          ),
+          item(
+            icon: Icons.school,
+            titre: "Apprendre",
+            color: Colors.orange,
+            onTap: () {},
+          ),
+        ],
       ),
     );
   }

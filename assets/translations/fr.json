@@ -301,6 +301,7 @@
     "logout": "Déconnexion"
   },
   "principal": {
+    "forecast": "Prévisions",
     "no_user": "Aucun utilisateur",
     "history": "Historique",
     "loading": "Chargement...",

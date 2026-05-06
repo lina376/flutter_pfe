@@ -301,6 +301,7 @@
     "logout": "Log out"
   },
   "principal": {
+    "forecast": "Forecast",
     "no_user": "No user",
     "history": "History",
     "loading": "Loading...",

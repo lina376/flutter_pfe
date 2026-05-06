@@ -22,6 +22,8 @@ import 'package:ora/screens/auth_wrapper.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:ora/services/service_notification_locale.dart';
 import 'package:timezone/timezone.dart' as tz;
+import 'package:ora/screens/eau_page.dart';
+import 'package:ora/screens/eau1.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -61,8 +63,11 @@ class MyApp extends StatelessWidget {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      initialRoute: AuthWrapper.screenRoute,
+      initialRoute: principal.screenRoute,
       routes: {
+        ConfigurationHydratationPage.screenRoute: (context) =>
+            const ConfigurationHydratationPage(),
+        EauPage.screenRoute: (context) => const EauPage(),
         AuthWrapper.screenRoute: (context) => const AuthWrapper(),
         rencontre.screenRoute: (context) => const rencontre(),
         connecter.screenRoute: (context) => const connecter(),
