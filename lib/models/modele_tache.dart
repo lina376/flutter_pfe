@@ -1,5 +1,6 @@
 class ModeleTache {
   final String id;
+  final String userId;
   final String titre;
   final String heure;
   final DateTime date;
@@ -11,6 +12,7 @@ class ModeleTache {
 
   ModeleTache({
     required this.id,
+    required this.userId,
     required this.titre,
     required this.heure,
     required this.date,
@@ -24,6 +26,7 @@ class ModeleTache {
   Map<String, dynamic> toLocalMap() {
     return {
       'id': id,
+      'userId': userId,
       'titre': titre,
       'heure': heure,
       'date': date.toIso8601String(),
@@ -37,6 +40,7 @@ class ModeleTache {
 
   Map<String, dynamic> toCloudMap() {
     return {
+      'userId': userId,
       'titre': titre,
       'heure': heure,
       'date': date.toIso8601String(),
@@ -49,6 +53,7 @@ class ModeleTache {
   factory ModeleTache.fromMap(Map<String, dynamic> map) {
     return ModeleTache(
       id: (map['id'] ?? '').toString(),
+      userId: (map['userId'] ?? '').toString(),
       titre: (map['titre'] ?? '').toString(),
       heure: (map['heure'] ?? '--:--').toString(),
       date: DateTime.parse(map['date']),
@@ -62,6 +67,7 @@ class ModeleTache {
 
   ModeleTache copyWith({
     String? id,
+    String? userId,
     String? titre,
     String? heure,
     DateTime? date,
@@ -73,6 +79,7 @@ class ModeleTache {
   }) {
     return ModeleTache(
       id: id ?? this.id,
+      userId: userId ?? this.userId,
       titre: titre ?? this.titre,
       heure: heure ?? this.heure,
       date: date ?? this.date,

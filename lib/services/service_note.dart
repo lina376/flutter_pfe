@@ -10,6 +10,8 @@ class ServiceNote {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final BaseLocale _baseLocale = BaseLocale.instance;
 
+  String? get _userId => _authentification.currentUser?.uid;
+
   CollectionReference<Map<String, dynamic>>? get _notesRef {
     final utilisateur = _authentification.currentUser;
     if (utilisateur == null) return null;
@@ -21,10 +23,13 @@ class ServiceNote {
   }
 
   Future<void> _insererOuMajLocal(ModeleNote note) async {
+    final utilisateurId = _userId;
+    if (utilisateurId == null) return;
+
     final db = await _baseLocale.database;
     await db.insert(
       'notes',
-      note.toLocalMap(),
+      note.copyWith(userId: utilisateurId).toLocalMap(),
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
   }
@@ -34,8 +39,8 @@ class ServiceNote {
 
     final resultat = await db.query(
       'notes',
-      where: 'estSupprimee = ?',
-      whereArgs: [0],
+      where: 'userId = ? AND estSupprimee = ?',
+      whereArgs: [_userId ?? '', 0],
       orderBy: 'date DESC',
     );
 
@@ -47,8 +52,8 @@ class ServiceNote {
 
     final resultat = await db.query(
       'notes',
-      where: 'estSynchronisee = ?',
-      whereArgs: [0],
+      where: 'userId = ? AND estSynchronisee = ?',
+      whereArgs: [_userId ?? '', 0],
     );
 
     return resultat.map((e) => ModeleNote.fromLocalMap(e)).toList();
@@ -79,7 +84,11 @@ class ServiceNote {
       for (final doc in snapshot.docs) {
         final note = ModeleNote.fromFirestore(doc);
         await _insererOuMajLocal(
-          note.copyWith(estSynchronisee: true, estSupprimee: false),
+          note.copyWith(
+            userId: _userId,
+            estSynchronisee: true,
+            estSupprimee: false,
+          ),
         );
       }
 
@@ -99,7 +108,11 @@ class ServiceNote {
     for (final doc in snapshot.docs) {
       final note = ModeleNote.fromFirestore(doc);
       await _insererOuMajLocal(
-        note.copyWith(estSynchronisee: true, estSupprimee: false),
+        note.copyWith(
+          userId: _userId,
+          estSynchronisee: true,
+          estSupprimee: false,
+        ),
       );
     }
   }
@@ -119,7 +132,11 @@ class ServiceNote {
           await ref.doc(note.id).delete().timeout(const Duration(seconds: 5));
 
           final db = await _baseLocale.database;
-          await db.delete('notes', where: 'id = ?', whereArgs: [note.id]);
+          await db.delete(
+            'notes',
+            where: 'userId = ? AND id = ?',
+            whereArgs: [_userId ?? '', note.id],
+          );
         } else {
           await ref
               .doc(note.id)
@@ -143,6 +160,7 @@ class ServiceNote {
 
     final note = ModeleNote(
       id: id,
+      userId: _userId ?? '',
       titre: titre.isEmpty ? 'Sans titre' : titre,
       contenu: contenu,
       liked: aimee,
@@ -179,6 +197,7 @@ class ServiceNote {
   }) async {
     final note = ModeleNote(
       id: idNote,
+      userId: _userId ?? '',
       titre: titre.isEmpty ? 'Sans titre' : titre,
       contenu: contenu,
       liked: aimee,
@@ -214,8 +233,8 @@ class ServiceNote {
     await db.update(
       'notes',
       {'estSupprimee': 1, 'estSynchronisee': 0},
-      where: 'id = ?',
-      whereArgs: [idNote],
+      where: 'userId = ? AND id = ?',
+      whereArgs: [_userId ?? '', idNote],
     );
 
     try {
@@ -228,7 +247,11 @@ class ServiceNote {
 
       await ref.doc(idNote).delete().timeout(const Duration(seconds: 5));
 
-      await db.delete('notes', where: 'id = ?', whereArgs: [idNote]);
+      await db.delete(
+        'notes',
+        where: 'userId = ? AND id = ?',
+        whereArgs: [_userId ?? '', idNote],
+      );
     } catch (e) {
       print(' Erreur suppression note cloud: $e');
     }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:ora/controlleurs/controleur_eau.dart';
 import 'package:ora/models/modele_eau.dart';
+import 'package:ora/screens/eau1.dart';
 
 class EauPage extends StatefulWidget {
   static const String screenRoute = 'page_eau';
@@ -107,6 +108,21 @@ class _EauPageState extends State<EauPage> {
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.white),
         actions: [
+          IconButton(
+            onPressed: () async {
+              final resultat = await Navigator.pushNamed(
+                context,
+                ConfigurationHydratationPage.screenRoute,
+              );
+
+              if (resultat == true) {
+                await _charger();
+              }
+            },
+            icon: const Icon(Icons.settings),
+            color: Colors.white,
+          ),
+
           Container(
             margin: const EdgeInsets.only(right: 16),
             width: 44,

@@ -16,6 +16,7 @@ class ControleurAlarme {
     required String jours,
   }) {
     final alarme = ModeleAlarme(
+      userId: '',
       titre: titre,
       note: note,
       heure: heure,

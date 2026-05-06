@@ -1,5 +1,6 @@
 class ModeleAlarme {
   final int? id;
+  final String userId;
   final String titre;
   final String? note;
   final int heure;
@@ -10,6 +11,7 @@ class ModeleAlarme {
 
   ModeleAlarme({
     this.id,
+    required this.userId,
     required this.titre,
     this.note,
     required this.heure,
@@ -22,6 +24,7 @@ class ModeleAlarme {
   Map<String, dynamic> toMap() {
     return {
       'id': id,
+      'userId': userId,
       'titre': titre,
       'note': note,
       'heure': heure,
@@ -34,6 +37,7 @@ class ModeleAlarme {
 
   ModeleAlarme copyWith({
     int? id,
+    String? userId,
     String? titre,
     String? note,
     int? heure,
@@ -44,6 +48,7 @@ class ModeleAlarme {
   }) {
     return ModeleAlarme(
       id: id ?? this.id,
+      userId: userId ?? this.userId,
       titre: titre ?? this.titre,
       note: note ?? this.note,
       heure: heure ?? this.heure,
@@ -57,6 +62,7 @@ class ModeleAlarme {
   factory ModeleAlarme.fromMap(Map<String, dynamic> map) {
     return ModeleAlarme(
       id: map['id'],
+      userId: (map['userId'] ?? '').toString(),
       titre: map['titre'],
       note: map['note'],
       heure: map['heure'],

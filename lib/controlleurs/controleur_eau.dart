@@ -1,4 +1,6 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:ora/models/modele_eau.dart';
 import 'package:ora/services/service_eau_local.dart';
 import 'package:ora/services/service_eau_firebase.dart';
@@ -6,10 +8,21 @@ import 'package:ora/services/service_eau_firebase.dart';
 class ControleurEau {
   final ServiceEauLocal _local = ServiceEauLocal.instance;
   final ServiceEauFirebase _firebase = ServiceEauFirebase();
+  final FirebaseAuth _authentification = FirebaseAuth.instance;
 
   String get dateAujourdhui {
     return DateFormat('yyyy-MM-dd').format(DateTime.now());
   }
+
+  String get _userId {
+    final utilisateur = _authentification.currentUser;
+    if (utilisateur == null) {
+      throw Exception('Utilisateur non connecté');
+    }
+    return utilisateur.uid;
+  }
+
+  String clePreference(String nom) => '${_userId}_$nom';
 
   int calculerObjectifVerres({
     required int age,
@@ -35,17 +48,27 @@ class ControleurEau {
     return (litres / 0.25).round();
   }
 
+  Future<int> obtenirObjectifHydratation() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getInt(clePreference('objectif_hydratation')) ??
+        calculerObjectifVerres(age: 22, poids: 70, activite: 'normale');
+  }
+
   Future<ModeleEau> chargerAujourdhui() async {
+    final utilisateurId = _userId;
     final date = dateAujourdhui;
-    final existant = await _local.obtenirParDate(date);
+    final existant = await _local.obtenirParDate(utilisateurId, date);
 
     if (existant != null) return existant;
 
+    final objectif = await obtenirObjectifHydratation();
+
     final nouveau = ModeleEau(
-      id: date,
+      id: '$utilisateurId-$date',
+      userId: utilisateurId,
       date: date,
       verres: 0,
-      objectif: calculerObjectifVerres(age: 22, poids: 70, activite: 'normale'),
+      objectif: objectif,
       updatedAt: DateTime.now(),
       synced: false,
     );
@@ -68,7 +91,7 @@ class ControleurEau {
     final debut = DateFormat('yyyy-MM-dd').format(debutSemaine);
     final fin = DateFormat('yyyy-MM-dd').format(finSemaine);
 
-    return _local.obtenirEntreDates(debut, fin);
+    return _local.obtenirEntreDates(_userId, debut, fin);
   }
 
   Future<ModeleEau> ajouterVerre(ModeleEau eau) async {
@@ -77,6 +100,7 @@ class ControleurEau {
         : eau.verres;
 
     final maj = eau.copyWith(
+      userId: _userId,
       verres: nouveauNombre,
       updatedAt: DateTime.now(),
       synced: false,
@@ -92,6 +116,7 @@ class ControleurEau {
     final nouveauNombre = eau.verres > 0 ? eau.verres - 1 : 0;
 
     final maj = eau.copyWith(
+      userId: _userId,
       verres: nouveauNombre,
       updatedAt: DateTime.now(),
       synced: false,
@@ -104,24 +129,39 @@ class ControleurEau {
   }
 
   Future<void> synchroniser(ModeleEau eau) async {
+    final donnees = eau.copyWith(userId: _userId);
     try {
-      await _firebase.sauvegarder(eau);
-      await _local.sauvegarder(eau.copyWith(synced: true));
+      await _firebase.sauvegarder(donnees);
+      await _local.sauvegarder(donnees.copyWith(synced: true));
     } catch (_) {
-      await _local.sauvegarder(eau.copyWith(synced: false));
+      await _local.sauvegarder(donnees.copyWith(synced: false));
     }
   }
 
   Future<void> sauvegarderEtSynchroniser(ModeleEau eau) async {
-    await _local.sauvegarder(eau);
-    await synchroniser(eau);
+    final donnees = eau.copyWith(userId: _userId);
+    await _local.sauvegarder(donnees);
+    await synchroniser(donnees);
   }
 
   Future<void> synchroniserTout() async {
-    final nonSynces = await _local.obtenirNonSynchronises();
+    final nonSynces = await _local.obtenirNonSynchronises(_userId);
 
     for (final item in nonSynces) {
       await synchroniser(item);
     }
+  }
+
+  Future<void> modifierObjectifAujourdhui(int nouvelObjectif) async {
+    final eau = await chargerAujourdhui();
+
+    final maj = eau.copyWith(
+      objectif: nouvelObjectif,
+      updatedAt: DateTime.now(),
+      synced: false,
+    );
+
+    await _local.sauvegarder(maj);
+    await synchroniser(maj);
   }
 }

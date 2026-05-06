@@ -11,6 +11,8 @@ class ServiceTache {
   final FirebaseAuth _authentification = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
+  String? get _userId => _authentification.currentUser?.uid;
+
   final StreamController<List<ModeleTache>> _tachesController =
       StreamController<List<ModeleTache>>.broadcast();
 
@@ -46,8 +48,8 @@ class ServiceTache {
 
     final result = await db.query(
       'taches',
-      where: 'estSupprimee = ?',
-      whereArgs: [0],
+      where: 'userId = ? AND estSupprimee = ?',
+      whereArgs: [_userId ?? '', 0],
       orderBy:
           "date ASC, CASE priorite WHEN 'haute' THEN 1 WHEN 'moyenne' THEN 2 ELSE 3 END ASC, heure ASC",
     );
@@ -70,7 +72,7 @@ class ServiceTache {
 
     await db.insert(
       'taches',
-      tache.toLocalMap(),
+      tache.copyWith(userId: _userId ?? '').toLocalMap(),
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
   }
@@ -80,8 +82,8 @@ class ServiceTache {
 
     final result = await db.query(
       'taches',
-      where: 'estSynchronisee = ?',
-      whereArgs: [0],
+      where: 'userId = ? AND estSynchronisee = ?',
+      whereArgs: [_userId ?? '', 0],
     );
 
     return result.map((e) => ModeleTache.fromMap(e)).toList();
@@ -100,6 +102,7 @@ class ServiceTache {
 
       final tache = ModeleTache(
         id: id,
+        userId: _userId ?? '',
         titre: titre,
         heure: heure,
         date: dateSansHeure,
@@ -144,8 +147,8 @@ class ServiceTache {
       await db.update(
         'taches',
         {'estSupprimee': 1, 'estSynchronisee': 0},
-        where: 'id = ?',
-        whereArgs: [idTache],
+        where: 'userId = ? AND id = ?',
+        whereArgs: [_userId ?? '', idTache],
       );
 
       try {
@@ -154,7 +157,11 @@ class ServiceTache {
           await ref.doc(idTache).delete().timeout(const Duration(seconds: 2));
         }
 
-        await db.delete('taches', where: 'id = ?', whereArgs: [idTache]);
+        await db.delete(
+          'taches',
+          where: 'userId = ? AND id = ?',
+          whereArgs: [_userId ?? '', idTache],
+        );
       } catch (_) {}
 
       await _rafraichirFluxTaches();
@@ -172,8 +179,8 @@ class ServiceTache {
 
       final rows = await db.query(
         'taches',
-        where: 'id = ?',
-        whereArgs: [idTache],
+        where: 'userId = ? AND id = ?',
+        whereArgs: [_userId ?? '', idTache],
         limit: 1,
       );
 
@@ -291,6 +298,7 @@ class ServiceTache {
 
       final tache = ModeleTache(
         id: idTache,
+        userId: _userId ?? '',
         titre: titre,
         heure: heure,
         date: dateSansHeure,
@@ -345,6 +353,7 @@ class ServiceTache {
 
         final tache = ModeleTache(
           id: doc.id,
+          userId: _userId ?? '',
           titre: (data['titre'] ?? '').toString(),
           heure: (data['heure'] ?? '--:--').toString(),
           date: DateTime.parse(data['date']),
@@ -373,7 +382,11 @@ class ServiceTache {
       for (final t in nonSync) {
         if (t.estSupprimee) {
           await ref.doc(t.id).delete();
-          await db.delete('taches', where: 'id = ?', whereArgs: [t.id]);
+          await db.delete(
+            'taches',
+            where: 'userId = ? AND id = ?',
+            whereArgs: [_userId ?? '', t.id],
+          );
         } else {
           await ref.doc(t.id).set(t.toCloudMap());
           await _insererOuMajLocal(t.copyWith(estSynchronisee: true));

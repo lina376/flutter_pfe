@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:ora/screens/sante.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -1070,7 +1071,7 @@ class BarreBienEtre extends StatelessWidget {
             titre: "Santé",
             color: Colors.redAccent,
             onTap: () {
-              Navigator.pushNamed(context, 'page_sante');
+              Navigator.pushNamed(context, SantePage.screenRoute);
             },
           ),
           item(
@@ -1079,8 +1080,11 @@ class BarreBienEtre extends StatelessWidget {
             color: Colors.blue,
             onTap: () async {
               final prefs = await SharedPreferences.getInstance();
+
+              final uid = FirebaseAuth.instance.currentUser?.uid ?? 'guest';
+
               final configure =
-                  prefs.getBool('profil_hydratation_configure') ?? false;
+                  prefs.getBool('${uid}_profil_hydratation_configure') ?? false;
 
               Navigator.pushNamed(
                 context,

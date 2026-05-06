@@ -1,14 +1,23 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import '../database/base_locale.dart';
 import '../models/modele_alarme.dart';
 import 'service_notification_locale.dart';
 
 class ServiceAlarme {
   final BaseLocale _baseLocale = BaseLocale.instance;
+  final FirebaseAuth _authentification = FirebaseAuth.instance;
+
+  String? get _userId => _authentification.currentUser?.uid;
 
   Future<List<ModeleAlarme>> recupererToutesLesAlarmes() async {
     final db = await _baseLocale.database;
 
-    final result = await db.query('alarmes', orderBy: 'heure ASC, minute ASC');
+    final result = await db.query(
+      'alarmes',
+      where: 'userId = ?',
+      whereArgs: [_userId ?? ''],
+      orderBy: 'heure ASC, minute ASC',
+    );
 
     return result.map((e) => ModeleAlarme.fromMap(e)).toList();
   }
@@ -30,7 +39,10 @@ class ServiceAlarme {
   Future<int> ajouterAlarme(ModeleAlarme alarme) async {
     final db = await _baseLocale.database;
 
-    final id = await db.insert('alarmes', alarme.toMap());
+    final id = await db.insert(
+      'alarmes',
+      alarme.copyWith(userId: _userId ?? '').toMap(),
+    );
 
     try {
       await _programmerAlarmeNotification(id, alarme);
@@ -49,8 +61,8 @@ class ServiceAlarme {
     await db.update(
       'alarmes',
       alarme.toMap(),
-      where: 'id = ?',
-      whereArgs: [alarme.id],
+      where: 'userId = ? AND id = ?',
+      whereArgs: [_userId ?? '', alarme.id],
     );
 
     await _annulerToutesNotifications(alarme.id!);
@@ -63,7 +75,11 @@ class ServiceAlarme {
   Future<void> supprimerAlarme(int id) async {
     final db = await _baseLocale.database;
 
-    await db.delete('alarmes', where: 'id = ?', whereArgs: [id]);
+    await db.delete(
+      'alarmes',
+      where: 'userId = ? AND id = ?',
+      whereArgs: [_userId ?? '', id],
+    );
 
     await _annulerToutesNotifications(id);
   }
@@ -74,8 +90,8 @@ class ServiceAlarme {
     await db.update(
       'alarmes',
       {'active': active ? 1 : 0},
-      where: 'id = ?',
-      whereArgs: [id],
+      where: 'userId = ? AND id = ?',
+      whereArgs: [_userId ?? '', id],
     );
 
     await _annulerToutesNotifications(id);

@@ -761,6 +761,7 @@ class ServiceChat {
 
       await _serviceAlarme.ajouterAlarme(
         ModeleAlarme(
+          userId: '',
           titre: titre,
           note: dateTexte.isEmpty ? "Ajoutée par ORA" : "Date: $dateTexte",
           heure: heure,
@@ -797,6 +798,7 @@ class ServiceChat {
       await _serviceAlarme.modifierAlarme(
         ModeleAlarme(
           id: alarme.id,
+          userId: alarme.userId,
           titre: nouveauTitre.isEmpty ? alarme.titre : nouveauTitre,
           note: alarme.note,
           heure: heure,

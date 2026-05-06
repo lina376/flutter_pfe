@@ -1,6 +1,10 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:ora/screens/eau_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:ora/controlleurs/controleur_eau.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class ConfigurationHydratationPage extends StatefulWidget {
   static const String screenRoute = 'configuration_hydratation';
@@ -16,8 +20,17 @@ class _ConfigurationHydratationPageState
     extends State<ConfigurationHydratationPage> {
   final TextEditingController controleurAge = TextEditingController();
   final TextEditingController controleurPoids = TextEditingController();
+  @override
+  void initState() {
+    super.initState();
+    chargerProfil();
+  }
 
   String niveauActivite = 'normale';
+
+  String? get utilisateurId => FirebaseAuth.instance.currentUser?.uid;
+
+  String clePreference(String nom) => '${utilisateurId}_$nom';
 
   int calculerObjectifHydratation({
     required int age,
@@ -43,6 +56,26 @@ class _ConfigurationHydratationPageState
     return (litres / 0.25).round();
   }
 
+  Future<void> chargerProfil() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    controleurAge.text = (prefs.getInt(cle('profil_age')) ?? '').toString();
+
+    controleurPoids.text = (prefs.getDouble(cle('profil_poids')) ?? '')
+        .toString();
+
+    niveauActivite = prefs.getString(cle('profil_activite')) ?? 'normale';
+
+    if (!mounted) return;
+
+    setState(() {});
+  }
+
+  String cle(String nom) {
+    final uid = FirebaseAuth.instance.currentUser?.uid ?? 'guest';
+    return '${uid}_$nom';
+  }
+
   Future<void> enregistrerProfilHydratation() async {
     final age = int.tryParse(controleurAge.text.trim());
     final poids = double.tryParse(controleurPoids.text.trim());
@@ -60,17 +93,40 @@ class _ConfigurationHydratationPageState
       niveauActivite: niveauActivite,
     );
 
+    final uid = utilisateurId;
+    if (uid == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Utilisateur non connecté.')),
+      );
+      return;
+    }
+
     final prefs = await SharedPreferences.getInstance();
 
-    await prefs.setBool('profil_hydratation_configure', true);
-    await prefs.setInt('profil_age', age);
-    await prefs.setDouble('profil_poids', poids);
-    await prefs.setString('profil_activite', niveauActivite);
-    await prefs.setInt('objectif_hydratation', objectif);
+    await prefs.setBool(cle('profil_hydratation_configure'), true);
+    await prefs.setInt(cle('profil_age'), age);
+    await prefs.setDouble(cle('profil_poids'), poids);
+    await prefs.setString(cle('profil_activite'), niveauActivite);
+    await prefs.setInt(cle('objectif_hydratation'), objectif);
+    final controleurEau = ControleurEau();
+    await controleurEau.modifierObjectifAujourdhui(objectif);
+
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(uid)
+        .collection('profil_hydratation')
+        .doc('configuration')
+        .set({
+          'age': age,
+          'poids': poids,
+          'activite': niveauActivite,
+          'objectifVerres': objectif,
+          'updatedAt': DateTime.now().toIso8601String(),
+        });
 
     if (!mounted) return;
 
-    Navigator.pushReplacementNamed(context, EauPage.screenRoute);
+    Navigator.pop(context, true);
   }
 
   @override

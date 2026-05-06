@@ -19,7 +19,7 @@ class BaseLocale {
 
     return await openDatabase(
       path,
-      version: 10,
+      version: 11,
       onCreate: _createDB,
       onUpgrade: _onUpgrade,
     );
@@ -29,6 +29,7 @@ class BaseLocale {
     await db.execute('''
       CREATE TABLE taches (
         id TEXT PRIMARY KEY,
+        userId TEXT NOT NULL DEFAULT '',
         titre TEXT NOT NULL,
         description TEXT,
         date TEXT,
@@ -44,6 +45,7 @@ class BaseLocale {
     await db.execute('''
       CREATE TABLE notes(
         id TEXT PRIMARY KEY,
+        userId TEXT NOT NULL DEFAULT '',
         titre TEXT,
         contenu TEXT,
         liked INTEGER,
@@ -56,6 +58,7 @@ class BaseLocale {
     await db.execute('''
       CREATE TABLE alarmes(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
+        userId TEXT NOT NULL DEFAULT '',
         titre TEXT NOT NULL,
         note TEXT,
         heure INTEGER NOT NULL,
@@ -65,6 +68,19 @@ class BaseLocale {
         date TEXT
       )
     ''');
+  }
+
+  Future<void> _ajouterColonneSiAbsente(
+    Database db,
+    String table,
+    String colonne,
+    String definition,
+  ) async {
+    final colonnes = await db.rawQuery('PRAGMA table_info($table)');
+    final existe = colonnes.any((c) => c['name'] == colonne);
+    if (!existe) {
+      await db.execute('ALTER TABLE $table ADD COLUMN $definition');
+    }
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
@@ -117,31 +133,46 @@ class BaseLocale {
     }
 
     if (oldVersion >= 7 && oldVersion < 9) {
-      final colonnes = await db.rawQuery('PRAGMA table_info(alarmes)');
-      final existe = colonnes.any((c) => c['name'] == 'date');
-      if (!existe) {
-        await db.execute('ALTER TABLE alarmes ADD COLUMN date TEXT');
-      }
+      await _ajouterColonneSiAbsente(db, 'alarmes', 'date', 'date TEXT');
     }
 
     if (oldVersion < 8) {
-      final colonnes = await db.rawQuery('PRAGMA table_info(taches)');
-      final existe = colonnes.any((c) => c['name'] == 'categorie');
-      if (!existe) {
-        await db.execute(
-          "ALTER TABLE taches ADD COLUMN categorie TEXT NOT NULL DEFAULT 'Autre'",
-        );
-      }
+      await _ajouterColonneSiAbsente(
+        db,
+        'taches',
+        'categorie',
+        "categorie TEXT NOT NULL DEFAULT 'Autre'",
+      );
     }
 
     if (oldVersion < 10) {
-      final colonnes = await db.rawQuery('PRAGMA table_info(taches)');
-      final existe = colonnes.any((c) => c['name'] == 'priorite');
-      if (!existe) {
-        await db.execute(
-          "ALTER TABLE taches ADD COLUMN priorite TEXT NOT NULL DEFAULT 'moyenne'",
-        );
-      }
+      await _ajouterColonneSiAbsente(
+        db,
+        'taches',
+        'priorite',
+        "priorite TEXT NOT NULL DEFAULT 'moyenne'",
+      );
+    }
+
+    if (oldVersion < 11) {
+      await _ajouterColonneSiAbsente(
+        db,
+        'notes',
+        'userId',
+        "userId TEXT NOT NULL DEFAULT ''",
+      );
+      await _ajouterColonneSiAbsente(
+        db,
+        'taches',
+        'userId',
+        "userId TEXT NOT NULL DEFAULT ''",
+      );
+      await _ajouterColonneSiAbsente(
+        db,
+        'alarmes',
+        'userId',
+        "userId TEXT NOT NULL DEFAULT ''",
+      );
     }
   }
 

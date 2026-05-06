@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ModeleNote {
   final String id;
+  final String userId;
   final String titre;
   final String contenu;
   final bool liked;
@@ -13,6 +14,7 @@ class ModeleNote {
 
   const ModeleNote({
     required this.id,
+    required this.userId,
     required this.titre,
     required this.contenu,
     required this.liked,
@@ -26,6 +28,7 @@ class ModeleNote {
 
     return ModeleNote(
       id: doc.id,
+      userId: (data['userId'] ?? '').toString(),
       titre: (data['titre'] ?? 'Sans titre').toString(),
       contenu: (data['contenu'] ?? '').toString(),
       liked: (data['liked'] ?? false) == true,
@@ -38,6 +41,7 @@ class ModeleNote {
   factory ModeleNote.fromLocalMap(Map<String, dynamic> map) {
     return ModeleNote(
       id: (map['id'] ?? '').toString(),
+      userId: (map['userId'] ?? '').toString(),
       titre: (map['titre'] ?? 'Sans titre').toString(),
       contenu: (map['contenu'] ?? '').toString(),
       liked: (map['liked'] ?? 0) == 1,
@@ -49,6 +53,7 @@ class ModeleNote {
 
   Map<String, dynamic> toMap() {
     return {
+      'userId': userId,
       'titre': titre.isEmpty ? 'Sans titre' : titre,
       'contenu': contenu,
       'liked': liked,
@@ -59,6 +64,7 @@ class ModeleNote {
   Map<String, dynamic> toLocalMap() {
     return {
       'id': id,
+      'userId': userId,
       'titre': titre.isEmpty ? 'Sans titre' : titre,
       'contenu': contenu,
       'liked': liked ? 1 : 0,
@@ -70,6 +76,7 @@ class ModeleNote {
 
   ModeleNote copyWith({
     String? id,
+    String? userId,
     String? titre,
     String? contenu,
     bool? liked,
@@ -79,6 +86,7 @@ class ModeleNote {
   }) {
     return ModeleNote(
       id: id ?? this.id,
+      userId: userId ?? this.userId,
       titre: titre ?? this.titre,
       contenu: contenu ?? this.contenu,
       liked: liked ?? this.liked,
