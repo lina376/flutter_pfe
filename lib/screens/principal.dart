@@ -17,6 +17,7 @@ import 'package:ora/screens/alarmes.dart';
 import 'package:ora/screens/maps.dart';
 import 'package:ora/screens/langue.dart';
 import 'package:ora/screens/eau_page.dart';
+import 'package:ora/screens/sport.dart';
 
 class principal extends StatefulWidget {
   static const String screenRoute = 'pageprincipal';
@@ -1084,7 +1085,9 @@ class BarreBienEtre extends StatelessWidget {
             icon: Icons.directions_run,
             titre: "Sport",
             color: Colors.green,
-            onTap: () {},
+            onTap: () {
+              Navigator.pushNamed(context, SportPage.screenRoute);
+            },
           ),
           item(
             icon: Icons.school,

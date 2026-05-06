@@ -24,6 +24,7 @@ import 'package:ora/services/service_notification_locale.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:ora/screens/eau_page.dart';
 import 'package:ora/screens/sante.dart';
+import 'package:ora/screens/sport.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -67,6 +68,7 @@ class MyApp extends StatelessWidget {
       routes: {
         SantePage.screenRoute: (context) => const SantePage(),
         EauPage.screenRoute: (context) => const EauPage(),
+        SportPage.screenRoute: (context) => const SportPage(),
         AuthWrapper.screenRoute: (context) => const AuthWrapper(),
         rencontre.screenRoute: (context) => const rencontre(),
         connecter.screenRoute: (context) => const connecter(),
