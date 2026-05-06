@@ -17,8 +17,6 @@ import 'package:ora/screens/alarmes.dart';
 import 'package:ora/screens/maps.dart';
 import 'package:ora/screens/langue.dart';
 import 'package:ora/screens/eau_page.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:ora/screens/eau1.dart';
 
 class principal extends StatefulWidget {
   static const String screenRoute = 'pageprincipal';
@@ -1078,20 +1076,8 @@ class BarreBienEtre extends StatelessWidget {
             icon: Icons.water_drop,
             titre: "Eau",
             color: Colors.blue,
-            onTap: () async {
-              final prefs = await SharedPreferences.getInstance();
-
-              final uid = FirebaseAuth.instance.currentUser?.uid ?? 'guest';
-
-              final configure =
-                  prefs.getBool('${uid}_profil_hydratation_configure') ?? false;
-
-              Navigator.pushNamed(
-                context,
-                configure
-                    ? EauPage.screenRoute
-                    : ConfigurationHydratationPage.screenRoute,
-              );
+            onTap: () {
+              Navigator.pushNamed(context, EauPage.screenRoute);
             },
           ),
           item(

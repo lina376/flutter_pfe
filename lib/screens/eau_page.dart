@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:ora/controlleurs/controleur_eau.dart';
 import 'package:ora/models/modele_eau.dart';
-import 'package:ora/screens/eau1.dart';
 
 class EauPage extends StatefulWidget {
   static const String screenRoute = 'page_eau';
@@ -15,7 +14,7 @@ class EauPage extends StatefulWidget {
 
 class _EauPageState extends State<EauPage> {
   final ControleurEau _controleur = ControleurEau();
-
+  DateTime semaineAffichee = DateTime.now();
   ModeleEau? eau;
   List<ModeleEau> semaine = [];
   bool chargement = true;
@@ -30,7 +29,7 @@ class _EauPageState extends State<EauPage> {
 
   Future<void> _charger() async {
     final data = await _controleur.chargerAujourdhui();
-    final dataSemaine = await _controleur.chargerSemaine();
+    final dataSemaine = await _controleur.chargerSemaineDepuis(semaineAffichee);
 
     if (!mounted) return;
 
@@ -39,6 +38,15 @@ class _EauPageState extends State<EauPage> {
       semaine = dataSemaine;
       chargement = false;
     });
+  }
+
+  Future<void> _changerSemaine(int offset) async {
+    setState(() {
+      semaineAffichee = semaineAffichee.add(Duration(days: offset * 7));
+      chargement = true;
+    });
+
+    await _charger();
   }
 
   Future<void> _ajouter() async {
@@ -87,6 +95,34 @@ class _EauPageState extends State<EauPage> {
     });
   }
 
+  Widget _enteteSemaine() {
+    final debut = semaineAffichee.subtract(
+      Duration(days: semaineAffichee.weekday - 1),
+    );
+    final fin = debut.add(const Duration(days: 6));
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        IconButton(
+          onPressed: () => _changerSemaine(-1),
+          icon: const Icon(Icons.chevron_left, color: Colors.white),
+        ),
+        Text(
+          '${DateFormat('dd/MM').format(debut)} - ${DateFormat('dd/MM').format(fin)}',
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+        IconButton(
+          onPressed: () => _changerSemaine(1),
+          icon: const Icon(Icons.chevron_right, color: Colors.white),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final data = eau;
@@ -108,21 +144,6 @@ class _EauPageState extends State<EauPage> {
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.white),
         actions: [
-          IconButton(
-            onPressed: () async {
-              final resultat = await Navigator.pushNamed(
-                context,
-                ConfigurationHydratationPage.screenRoute,
-              );
-
-              if (resultat == true) {
-                await _charger();
-              }
-            },
-            icon: const Icon(Icons.settings),
-            color: Colors.white,
-          ),
-
           Container(
             margin: const EdgeInsets.only(right: 16),
             width: 44,
@@ -153,7 +174,7 @@ class _EauPageState extends State<EauPage> {
                   padding: const EdgeInsets.fromLTRB(18, 18, 18, 28),
                   child: Column(
                     children: [
-                      _carteConseil(),
+                      _carteConseil(data!),
                       const SizedBox(height: 16),
                       _carteObjectif(
                         litres: litres,
@@ -162,8 +183,10 @@ class _EauPageState extends State<EauPage> {
                         verres: verres,
                         objectif: objectif,
                       ),
-                      const SizedBox(height: 16),
+                      _enteteSemaine(),
+                      const SizedBox(height: 10),
                       _carteHistorique(),
+                      const SizedBox(height: 16),
                     ],
                   ),
                 ),
@@ -172,7 +195,7 @@ class _EauPageState extends State<EauPage> {
     );
   }
 
-  Widget _carteConseil() {
+  Widget _carteConseil(ModeleEau data) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(18),
@@ -193,7 +216,10 @@ class _EauPageState extends State<EauPage> {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  "L’eau est la source de vie.\nN’oublie pas de t’hydrater !",
+                  _conseilHydratation(
+                    verres: data.verres,
+                    objectif: data.objectif,
+                  ),
                   style: TextStyle(
                     color: Colors.white.withOpacity(0.82),
                     fontSize: 14,
@@ -421,10 +447,8 @@ class _EauPageState extends State<EauPage> {
   }
 
   List<int> _valeursSemaine() {
-    final maintenant = DateTime.now();
-
-    final debutSemaine = maintenant.subtract(
-      Duration(days: maintenant.weekday - 1),
+    final debutSemaine = semaineAffichee.subtract(
+      Duration(days: semaineAffichee.weekday - 1),
     );
 
     return List.generate(7, (index) {
@@ -436,6 +460,24 @@ class _EauPageState extends State<EauPage> {
       if (items.isEmpty) return 0;
       return items.first.verres;
     });
+  }
+
+  String _conseilHydratation({required int verres, required int objectif}) {
+    final progress = objectif == 0 ? 0.0 : verres / objectif;
+
+    if (progress >= 1) {
+      return 'ORA : Excellent ! Vous avez atteint votre objectif hydratation aujourd’hui 💧✨';
+    }
+
+    if (progress >= 0.7) {
+      return 'ORA : Vous êtes proche de votre objectif. Encore quelques verres et c’est parfait 💪';
+    }
+
+    if (progress >= 0.4) {
+      return 'ORA : Votre hydratation est moyenne aujourd’hui. Pensez à boire régulièrement 💧';
+    }
+
+    return 'ORA : Votre niveau d’hydratation est faible. Essayez de boire un verre maintenant 🌿';
   }
 
   BoxDecoration _decorationCarte() {

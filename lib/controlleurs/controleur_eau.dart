@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:ora/models/modele_eau.dart';
 import 'package:ora/services/service_eau_local.dart';
 import 'package:ora/services/service_eau_firebase.dart';
+import 'package:ora/controlleurs/controleur_sante.dart';
 
 class ControleurEau {
   final ServiceEauLocal _local = ServiceEauLocal.instance;
@@ -54,14 +55,75 @@ class ControleurEau {
         calculerObjectifVerres(age: 22, poids: 70, activite: 'normale');
   }
 
+  Future<void> mettreAJourObjectifDepuisSante(profilSante) async {
+    final eau = await chargerAujourdhui();
+
+    final nouvelObjectif = calculerObjectifVerres(
+      age: profilSante.age,
+      poids: profilSante.poids,
+      activite: profilSante.activite,
+    );
+
+    final maj = eau.copyWith(
+      objectif: nouvelObjectif,
+      updatedAt: DateTime.now(),
+      synced: false,
+    );
+
+    await _local.sauvegarder(maj);
+    await synchroniser(maj);
+  }
+
+  Future<List<ModeleEau>> chargerSemaineDepuis(DateTime dateReference) async {
+    final userId = _userId;
+
+    final debutSemaine = dateReference.subtract(
+      Duration(days: dateReference.weekday - 1),
+    );
+
+    final finSemaine = debutSemaine.add(const Duration(days: 6));
+
+    final debut = DateFormat('yyyy-MM-dd').format(debutSemaine);
+    final fin = DateFormat('yyyy-MM-dd').format(finSemaine);
+
+    return _local.obtenirEntreDates(userId: userId, debut: debut, fin: fin);
+  }
+
   Future<ModeleEau> chargerAujourdhui() async {
     final utilisateurId = _userId;
     final date = dateAujourdhui;
     final existant = await _local.obtenirParDate(utilisateurId, date);
+    if (existant != null) {
+      final profilSante = await ControleurSante().obtenirDernierProfil();
 
-    if (existant != null) return existant;
+      final objectifActuel = calculerObjectifVerres(
+        age: profilSante?.age ?? 20,
+        poids: profilSante?.poids ?? 65.0,
+        activite: profilSante?.activite ?? 'Normale',
+      );
 
-    final objectif = await obtenirObjectifHydratation();
+      if (existant.objectif != objectifActuel) {
+        final maj = existant.copyWith(
+          objectif: objectifActuel,
+          updatedAt: DateTime.now(),
+          synced: false,
+        );
+
+        await _local.sauvegarder(maj);
+        await synchroniser(maj);
+
+        return maj;
+      }
+
+      return existant;
+    }
+    final profilSante = await ControleurSante().obtenirDernierProfil();
+
+    final objectif = calculerObjectifVerres(
+      age: profilSante?.age ?? 20,
+      poids: profilSante?.poids ?? 65.0,
+      activite: profilSante?.activite ?? 'Normale',
+    );
 
     final nouveau = ModeleEau(
       id: '$utilisateurId-$date',
@@ -91,7 +153,7 @@ class ControleurEau {
     final debut = DateFormat('yyyy-MM-dd').format(debutSemaine);
     final fin = DateFormat('yyyy-MM-dd').format(finSemaine);
 
-    return _local.obtenirEntreDates(_userId, debut, fin);
+    return _local.obtenirEntreDates(userId: _userId, debut: debut, fin: fin);
   }
 
   Future<ModeleEau> ajouterVerre(ModeleEau eau) async {

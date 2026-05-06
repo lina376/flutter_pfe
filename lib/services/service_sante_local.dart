@@ -1,15 +1,15 @@
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
-import 'package:ora/models/modele_eau.dart';
+import 'package:ora/models/modele_sante.dart';
 
-class ServiceEauLocal {
-  static final ServiceEauLocal instance = ServiceEauLocal._init();
+class ServiceSanteLocal {
+  static final ServiceSanteLocal instance = ServiceSanteLocal._init();
   static Database? _database;
 
-  ServiceEauLocal._init();
+  ServiceSanteLocal._init();
 
   Future<Database> get database async {
-    _database ??= await _initDB('ora_eau.db');
+    _database ??= await _initDB('ora_sante.db');
     return _database!;
   }
 
@@ -19,59 +19,54 @@ class ServiceEauLocal {
 
     return openDatabase(
       path,
-      version: 2,
+      version: 1,
       onCreate: (db, version) async {
         await db.execute('''
-          CREATE TABLE eau (
+          CREATE TABLE sante (
             id TEXT PRIMARY KEY,
             userId TEXT NOT NULL,
             date TEXT NOT NULL,
-            verres INTEGER NOT NULL,
-            objectif INTEGER NOT NULL,
+            age INTEGER NOT NULL,
+            poids REAL NOT NULL,
+            activite TEXT NOT NULL,
+            heuresSommeil REAL NOT NULL,
+            humeur TEXT NOT NULL,
             updatedAt TEXT NOT NULL,
             synced INTEGER NOT NULL
           )
         ''');
       },
-      onUpgrade: (db, oldVersion, newVersion) async {
-        if (oldVersion < 2) {
-          final colonnes = await db.rawQuery('PRAGMA table_info(eau)');
-          final existe = colonnes.any((c) => c['name'] == 'userId');
-          if (!existe) {
-            await db.execute(
-              "ALTER TABLE eau ADD COLUMN userId TEXT NOT NULL DEFAULT ''",
-            );
-          }
-        }
-      },
     );
   }
 
-  Future<ModeleEau?> obtenirParDate(String userId, String date) async {
+  Future<ModeleSante?> obtenirParDate({
+    required String userId,
+    required String date,
+  }) async {
     final db = await database;
 
     final result = await db.query(
-      'eau',
+      'sante',
       where: 'userId = ? AND date = ?',
       whereArgs: [userId, date],
       limit: 1,
     );
 
     if (result.isEmpty) return null;
-    return ModeleEau.fromMap(result.first);
+    return ModeleSante.fromMap(result.first);
   }
 
-  Future<void> sauvegarder(ModeleEau eau) async {
+  Future<void> sauvegarder(ModeleSante sante) async {
     final db = await database;
 
     await db.insert(
-      'eau',
-      eau.toMap(),
+      'sante',
+      sante.toMap(),
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
   }
 
-  Future<List<ModeleEau>> obtenirEntreDates({
+  Future<List<ModeleSante>> obtenirEntreDates({
     required String userId,
     required String debut,
     required String fin,
@@ -79,24 +74,24 @@ class ServiceEauLocal {
     final db = await database;
 
     final result = await db.query(
-      'eau',
+      'sante',
       where: 'userId = ? AND date >= ? AND date <= ?',
       whereArgs: [userId, debut, fin],
       orderBy: 'date ASC',
     );
 
-    return result.map((e) => ModeleEau.fromMap(e)).toList();
+    return result.map((e) => ModeleSante.fromMap(e)).toList();
   }
 
-  Future<List<ModeleEau>> obtenirNonSynchronises(String userId) async {
+  Future<List<ModeleSante>> obtenirNonSynchronises(String userId) async {
     final db = await database;
 
     final result = await db.query(
-      'eau',
+      'sante',
       where: 'userId = ? AND synced = ?',
       whereArgs: [userId, 0],
     );
 
-    return result.map((e) => ModeleEau.fromMap(e)).toList();
+    return result.map((e) => ModeleSante.fromMap(e)).toList();
   }
 }
