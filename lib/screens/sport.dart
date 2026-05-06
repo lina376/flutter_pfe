@@ -418,7 +418,7 @@ class _SportPageState extends State<SportPage> {
               Expanded(
                 child: ElevatedButton.icon(
                   onPressed: _retirerMinutes,
-                  label: const Text('-5 min'),
+                  label: const Text('-10 min'),
                   style: _styleBouton(false),
                 ),
               ),
@@ -426,7 +426,7 @@ class _SportPageState extends State<SportPage> {
               Expanded(
                 child: ElevatedButton.icon(
                   onPressed: _ajouterMinutes,
-                  label: const Text('+5 min'),
+                  label: const Text('+10 min'),
                   style: _styleBouton(true),
                 ),
               ),
