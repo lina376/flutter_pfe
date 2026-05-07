@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:ora/screens/principal.dart';
+import 'package:ora/screens/statistiques_admin.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 
@@ -491,6 +492,18 @@ class AdminHome extends StatelessWidget {
         backgroundColor: Colors.transparent,
         elevation: 0,
         actions: [
+          IconButton(
+            style: const ButtonStyle(
+              backgroundColor: WidgetStatePropertyAll<Color>(
+                Color.fromARGB(194, 88, 70, 142),
+              ),
+            ),
+            icon: const Icon(Icons.bar_chart_rounded, color: Colors.white),
+            onPressed: () {
+              Navigator.pushNamed(context, StatistiquesAdminPage.screenRoute);
+            },
+          ),
+          const SizedBox(width: 8),
           IconButton(
             style: const ButtonStyle(
               backgroundColor: WidgetStatePropertyAll<Color>(

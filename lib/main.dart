@@ -19,6 +19,7 @@ import 'package:ora/screens/profil.dart';
 import 'package:ora/screens/rencontre.dart';
 import 'package:ora/screens/ajouter_alarme.dart';
 import 'package:ora/screens/admin_home.dart';
+import 'package:ora/screens/statistiques_admin.dart';
 import 'package:ora/screens/auth_wrapper.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:ora/services/service_notification_locale.dart';
@@ -88,6 +89,7 @@ class MyApp extends StatelessWidget {
         LanguePage.screenRoute: (context) => const LanguePage(),
         AjouterAlarmePage.screenRoute: (context) => const AjouterAlarmePage(),
         AdminHome.screenRoute: (context) => const AdminHome(),
+        StatistiquesAdminPage.screenRoute: (context) => const StatistiquesAdminPage(),
       },
       theme: ThemeData(primaryColor: Colors.blue, fontFamily: 'Jomhuria'),
     );
