@@ -10,6 +10,7 @@ import 'package:ora/controlleurs/controleur_principal.dart';
 import 'package:ora/models/modele_principale.dart';
 import 'package:ora/screens/calendrier.dart';
 import 'package:ora/screens/chat.dart';
+import 'package:ora/screens/coach_ora.dart';
 import 'package:ora/screens/mesnotes.dart';
 import 'package:ora/screens/notifications.dart';
 import 'package:ora/screens/meteo.dart';
@@ -1075,7 +1076,7 @@ class BarreBienEtre extends StatelessWidget {
           ),
           item(
             icon: Icons.water_drop,
-            titre: "Eau",
+            titre: "Hydratation",
             color: Colors.blue,
             onTap: () {
               Navigator.pushNamed(context, EauPage.screenRoute);
@@ -1090,10 +1091,12 @@ class BarreBienEtre extends StatelessWidget {
             },
           ),
           item(
-            icon: Icons.school,
-            titre: "Apprendre",
-            color: Colors.orange,
-            onTap: () {},
+            icon: Icons.psychology_alt,
+            titre: "Coach ORA",
+            color: Colors.orangeAccent,
+            onTap: () {
+              Navigator.pushNamed(context, CoachOraPage.screenRoute);
+            },
           ),
         ],
       ),

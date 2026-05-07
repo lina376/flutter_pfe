@@ -85,9 +85,19 @@ class _chatState extends State<chat> {
     } else if (args is Map<String, dynamic>) {
       final idConversation = args['conversationId'];
       final contexte = args['contexte'];
+      final questionInitiale = args['questionInitiale'];
 
       if (idConversation is String) {
         conversationId ??= idConversation;
+      }
+
+      if (questionInitiale is String &&
+          questionInitiale.trim().isNotEmpty &&
+          controleurMessage.text.trim().isEmpty) {
+        controleurMessage.text = questionInitiale.trim();
+        controleurMessage.selection = TextSelection.fromPosition(
+          TextPosition(offset: controleurMessage.text.length),
+        );
       }
 
       if (contexte is ModeleContexte) {

@@ -5,6 +5,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:ora/screens/alarmes.dart';
 import 'package:ora/screens/calendrier.dart';
 import 'package:ora/screens/chat.dart';
+import 'package:ora/screens/coach_ora.dart';
 import 'package:ora/screens/connecter.dart';
 import 'package:ora/screens/creecompte.dart';
 import 'package:ora/screens/favorise.dart';
@@ -69,6 +70,7 @@ class MyApp extends StatelessWidget {
         SantePage.screenRoute: (context) => const SantePage(),
         EauPage.screenRoute: (context) => const EauPage(),
         SportPage.screenRoute: (context) => const SportPage(),
+        CoachOraPage.screenRoute: (context) => const CoachOraPage(),
         AuthWrapper.screenRoute: (context) => const AuthWrapper(),
         rencontre.screenRoute: (context) => const rencontre(),
         connecter.screenRoute: (context) => const connecter(),
