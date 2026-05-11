@@ -26,7 +26,11 @@ class _CalendrierState extends State<Calendrier> {
     'Rendez-vous',
     'Autre',
   ];
-
+final List<String> _priorites = const [
+  'Haute',
+  'Moyenne',
+  'Basse',
+];
   @override
   void initState() {
     super.initState();
@@ -53,7 +57,7 @@ class _CalendrierState extends State<Calendrier> {
     final titreCtrl = TextEditingController();
     String? heureChoisie;
     String categorieChoisie = 'Autre';
-
+String prioriteChoisie = 'Basse';
     showDialog(
       context: context,
       builder: (context) {
@@ -91,8 +95,29 @@ class _CalendrierState extends State<Calendrier> {
                     onChanged: (valeur) {
                       if (valeur == null) return;
                       setLocalState(() => categorieChoisie = valeur);
+                      
                     },
+                    
+
                   ),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<String>(
+  value: prioriteChoisie,
+  decoration: const InputDecoration(
+    labelText: "Priorité",
+    border: OutlineInputBorder(),
+  ),
+  items: _priorites.map((priorite) {
+    return DropdownMenuItem<String>(
+      value: priorite,
+      child: Text(priorite),
+    );
+  }).toList(),
+  onChanged: (valeur) {
+    if (valeur == null) return;
+    setLocalState(() => prioriteChoisie = valeur);
+  },
+),
                   const SizedBox(height: 12),
                   InkWell(
                     onTap: () async {
@@ -132,14 +157,13 @@ class _CalendrierState extends State<Calendrier> {
                   onPressed: () async {
                     final titre = titreCtrl.text.trim();
                     if (titre.isEmpty) return;
-
-                    await _controleurTache.ajouterTache(
-                      titre: titre,
-                      heure: heureChoisie ?? "--:--",
-                      date: _dateSelectionnee,
-                      categorie: categorieChoisie,
-                    );
-
+await _controleurTache.ajouterTache(
+  titre: titre,
+  heure: heureChoisie ?? "--:--",
+  date: _dateSelectionnee,
+  categorie: categorieChoisie,
+  priorite: prioriteChoisie,
+);
                     if (mounted) {
                       Navigator.pop(context);
                       setState(() {});
@@ -209,6 +233,8 @@ class _CalendrierState extends State<Calendrier> {
                 ),
                 const SizedBox(height: 6),
                 _buildCategorieBadge(t.categorie),
+                const SizedBox(height: 6),
+_buildCategorieBadge(t.priorite),
               ],
             ),
           ),
