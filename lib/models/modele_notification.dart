@@ -81,6 +81,14 @@ class ModeleNotification {
 
     case 'task':
       return Icons.task_alt;
+      case 'shopping':
+  return Icons.shopping_cart;
+  case 'work':
+  return Icons.work;
+
+case 'personnel':
+  return Icons.person;
+
 
     default:
       return Icons.notifications_active;

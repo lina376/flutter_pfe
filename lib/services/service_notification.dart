@@ -21,7 +21,11 @@ class ServiceNotification {
     if (ref == null) return Stream.value([]);
 
     return ref
-        .orderBy('createdAt', descending: true)
+    .where(
+      'scheduledFor',
+      isLessThanOrEqualTo: Timestamp.now(),
+    )
+    .orderBy('scheduledFor', descending: true)
         .snapshots()
         .map(
           (snapshot) => snapshot.docs
@@ -82,10 +86,22 @@ Stream<int> compterNonLues() {
   final ref = _refNotifications();
   if (ref == null) return Stream.value(0);
 
-  return ref
-      .where('isRead', isEqualTo: false)
-      .snapshots()
-      .map((s) => s.docs.length);
+  return ref.snapshots().map((snapshot) {
+    final now = DateTime.now();
+
+    return snapshot.docs.where((doc) {
+      final data = doc.data();
+
+      final isRead = data['isRead'] == true;
+
+      final scheduledFor =
+          (data['scheduledFor'] as Timestamp?)?.toDate();
+
+      if (scheduledFor == null) return false;
+
+      return !isRead && !scheduledFor.isAfter(now);
+    }).length;
+  });
 }
 Future<void> creerNotification({
   required String title,
