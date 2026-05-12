@@ -7,15 +7,14 @@ class ServiceAlarme {
   final BaseLocale _baseLocale = BaseLocale.instance;
   final FirebaseAuth _authentification = FirebaseAuth.instance;
 
-  String? get _userId => _authentification.currentUser?.uid;
-
+String get _userId => _authentification.currentUser?.uid ?? 'guest';
   Future<List<ModeleAlarme>> recupererToutesLesAlarmes() async {
     final db = await _baseLocale.database;
 
     final result = await db.query(
       'alarmes',
       where: 'userId = ?',
-      whereArgs: [_userId ?? ''],
+      whereArgs: [_userId],
       orderBy: 'heure ASC, minute ASC',
     );
 

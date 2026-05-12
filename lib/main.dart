@@ -20,7 +20,6 @@ import 'package:ora/screens/rencontre.dart';
 import 'package:ora/screens/ajouter_alarme.dart';
 import 'package:ora/screens/admin_home.dart';
 import 'package:ora/screens/statistiques_admin.dart';
-import 'package:ora/screens/auth_wrapper.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:ora/services/service_notification_locale.dart';
 import 'package:timezone/timezone.dart' as tz;
@@ -66,13 +65,12 @@ class MyApp extends StatelessWidget {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      initialRoute: principal.screenRoute,
+      initialRoute: rencontre.screenRoute,
       routes: {
         SantePage.screenRoute: (context) => const SantePage(),
         EauPage.screenRoute: (context) => const EauPage(),
         SportPage.screenRoute: (context) => const SportPage(),
         CoachOraPage.screenRoute: (context) => const CoachOraPage(),
-        AuthWrapper.screenRoute: (context) => const AuthWrapper(),
         rencontre.screenRoute: (context) => const rencontre(),
         connecter.screenRoute: (context) => const connecter(),
         creecompte.screenRoute: (context) => const creecompte(),

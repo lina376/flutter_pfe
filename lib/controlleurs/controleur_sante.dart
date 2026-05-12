@@ -48,21 +48,31 @@ class ControleurSante {
     return nouveau;
   }
 
-  Future<List<ModeleSante>> chargerSemaine() async {
-    final userId = _userId;
-    final maintenant = DateTime.now();
+ Future<List<ModeleSante>> chargerSemaine() async {
+  final userId = _userId;
+  final maintenant = DateTime.now();
 
-    final debutSemaine = maintenant.subtract(
-      Duration(days: maintenant.weekday - 1),
-    );
+  final debutSemaine = maintenant.subtract(
+    Duration(days: maintenant.weekday - 1),
+  );
 
-    final finSemaine = debutSemaine.add(const Duration(days: 6));
+  final finSemaine = debutSemaine.add(const Duration(days: 6));
 
-    final debut = DateFormat('yyyy-MM-dd').format(debutSemaine);
-    final fin = DateFormat('yyyy-MM-dd').format(finSemaine);
+  final debut = DateFormat('yyyy-MM-dd').format(debutSemaine);
+  final fin = DateFormat('yyyy-MM-dd').format(finSemaine);
 
-    return _local.obtenirEntreDates(userId: userId, debut: debut, fin: fin);
+  final donneesFirebase = await _firebase.obtenirEntreDates(
+    userId: userId,
+    debut: debut,
+    fin: fin,
+  );
+
+  for (final item in donneesFirebase) {
+    await _local.sauvegarder(item.copyWith(synced: true));
   }
+
+  return _local.obtenirEntreDates(userId: userId, debut: debut, fin: fin);
+}
 
   Future<ModeleSante> modifierSommeil(ModeleSante sante, double heures) async {
     final maj = sante.copyWith(
@@ -130,20 +140,29 @@ class ControleurSante {
   }
 
   Future<List<ModeleSante>> chargerSemaineDepuis(DateTime dateReference) async {
-    final userId = _userId;
+  final userId = _userId;
 
-    final debutSemaine = dateReference.subtract(
-      Duration(days: dateReference.weekday - 1),
-    );
+  final debutSemaine = dateReference.subtract(
+    Duration(days: dateReference.weekday - 1),
+  );
 
-    final finSemaine = debutSemaine.add(const Duration(days: 6));
+  final finSemaine = debutSemaine.add(const Duration(days: 6));
 
-    final debut = DateFormat('yyyy-MM-dd').format(debutSemaine);
-    final fin = DateFormat('yyyy-MM-dd').format(finSemaine);
+  final debut = DateFormat('yyyy-MM-dd').format(debutSemaine);
+  final fin = DateFormat('yyyy-MM-dd').format(finSemaine);
 
-    return _local.obtenirEntreDates(userId: userId, debut: debut, fin: fin);
+  final donneesFirebase = await _firebase.obtenirEntreDates(
+    userId: userId,
+    debut: debut,
+    fin: fin,
+  );
+
+  for (final item in donneesFirebase) {
+    await _local.sauvegarder(item.copyWith(synced: true));
   }
 
+  return _local.obtenirEntreDates(userId: userId, debut: debut, fin: fin);
+}
   Future<ModeleSante?> obtenirDernierProfil() async {
     return await chargerAujourdhui();
   }

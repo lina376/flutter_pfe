@@ -74,20 +74,50 @@ class ControleurEau {
     await synchroniser(maj);
   }
 
-  Future<List<ModeleEau>> chargerSemaineDepuis(DateTime dateReference) async {
-    final userId = _userId;
+  Future<List<ModeleEau>> chargerSemaineDepuis(
+  DateTime dateReference,
+) async {
+  final userId = _userId;
 
-    final debutSemaine = dateReference.subtract(
-      Duration(days: dateReference.weekday - 1),
-    );
+  final debutSemaine = dateReference.subtract(
+    Duration(days: dateReference.weekday - 1),
+  );
 
-    final finSemaine = debutSemaine.add(const Duration(days: 6));
+  final finSemaine = debutSemaine.add(const Duration(days: 6));
 
-    final debut = DateFormat('yyyy-MM-dd').format(debutSemaine);
-    final fin = DateFormat('yyyy-MM-dd').format(finSemaine);
+  final debut = DateFormat('yyyy-MM-dd').format(debutSemaine);
+  final fin = DateFormat('yyyy-MM-dd').format(finSemaine);
 
-    return _local.obtenirEntreDates(userId: userId, debut: debut, fin: fin);
+  final donneesFirebase = await _firebase.obtenirEntreDates(
+    userId: userId,
+    debut: debut,
+    fin: fin,
+  );
+
+  for (final item in donneesFirebase) {
+    await _local.sauvegarder(item.copyWith(synced: true));
   }
+try {
+  final donneesFirebase = await _firebase
+      .obtenirEntreDates(
+        userId: userId,
+        debut: debut,
+        fin: fin,
+      )
+      .timeout(const Duration(seconds: 5));
+
+  for (final item in donneesFirebase) {
+    await _local.sauvegarder(item.copyWith(synced: true));
+  }
+} catch (e) {
+  print("Erreur chargement eau semaine Firebase: $e");
+}
+  return _local.obtenirEntreDates(
+    userId: userId,
+    debut: debut,
+    fin: fin,
+  );
+}
 
   Future<ModeleEau> chargerAujourdhui() async {
     final utilisateurId = _userId;
@@ -141,21 +171,41 @@ class ControleurEau {
     return nouveau;
   }
 
-  Future<List<ModeleEau>> chargerSemaine() async {
-    final maintenant = DateTime.now();
+Future<List<ModeleEau>> chargerSemaine() async {
+  final userId = _userId;
+  final maintenant = DateTime.now();
 
-    final debutSemaine = maintenant.subtract(
-      Duration(days: maintenant.weekday - 1),
-    );
+  final debutSemaine = maintenant.subtract(
+    Duration(days: maintenant.weekday - 1),
+  );
 
-    final finSemaine = debutSemaine.add(const Duration(days: 6));
+  final finSemaine = debutSemaine.add(const Duration(days: 6));
 
-    final debut = DateFormat('yyyy-MM-dd').format(debutSemaine);
-    final fin = DateFormat('yyyy-MM-dd').format(finSemaine);
+  final debut = DateFormat('yyyy-MM-dd').format(debutSemaine);
+  final fin = DateFormat('yyyy-MM-dd').format(finSemaine);
 
-    return _local.obtenirEntreDates(userId: _userId, debut: debut, fin: fin);
+  try {
+    final donneesFirebase = await _firebase
+        .obtenirEntreDates(
+          userId: userId,
+          debut: debut,
+          fin: fin,
+        )
+        .timeout(const Duration(seconds: 5));
+
+    for (final item in donneesFirebase) {
+      await _local.sauvegarder(item.copyWith(synced: true));
+    }
+  } catch (e) {
+    print("Erreur chargement eau Firebase: $e");
   }
 
+  return _local.obtenirEntreDates(
+    userId: userId,
+    debut: debut,
+    fin: fin,
+  );
+}
   Future<ModeleEau> ajouterVerre(ModeleEau eau) async {
     final nouveauNombre = eau.verres < eau.objectif
         ? eau.verres + 1

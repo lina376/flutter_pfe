@@ -19,7 +19,7 @@ class BaseLocale {
 
     return await openDatabase(
       path,
-      version: 11,
+      version: 12,
       onCreate: _createDB,
       onUpgrade: _onUpgrade,
     );
@@ -166,6 +166,21 @@ class BaseLocale {
         'taches',
         'userId',
         "userId TEXT NOT NULL DEFAULT ''",
+      );
+      await _ajouterColonneSiAbsente(
+        db,
+        'alarmes',
+        'userId',
+        "userId TEXT NOT NULL DEFAULT ''",
+      );
+    }
+
+    if (oldVersion < 12) {
+      await _ajouterColonneSiAbsente(
+        db,
+        'alarmes',
+        'date',
+        'date TEXT',
       );
       await _ajouterColonneSiAbsente(
         db,

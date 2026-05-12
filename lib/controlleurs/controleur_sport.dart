@@ -244,21 +244,75 @@ class ControleurSport {
   }
 
   Future<List<ModeleSport>> chargerSemaineDepuis(DateTime dateReference) async {
-    final debutSemaine = dateReference.subtract(
-      Duration(days: dateReference.weekday - 1),
-    );
-    final finSemaine = debutSemaine.add(const Duration(days: 6));
+  final userId = _userId;
 
-    return _local.obtenirEntreDates(
-      userId: _userId,
-      debut: DateFormat('yyyy-MM-dd').format(debutSemaine),
-      fin: DateFormat('yyyy-MM-dd').format(finSemaine),
-    );
+  final debutSemaine = dateReference.subtract(
+    Duration(days: dateReference.weekday - 1),
+  );
+
+  final finSemaine = debutSemaine.add(const Duration(days: 6));
+
+  final debut = DateFormat('yyyy-MM-dd').format(debutSemaine);
+  final fin = DateFormat('yyyy-MM-dd').format(finSemaine);
+
+  try {
+    final donneesFirebase = await _firebase
+        .obtenirEntreDates(
+          userId: userId,
+          debut: debut,
+          fin: fin,
+        )
+        .timeout(const Duration(seconds: 5));
+
+    for (final item in donneesFirebase) {
+      await _local.sauvegarder(item.copyWith(synced: true));
+    }
+  } catch (e) {
+    print("Erreur Firebase sport semaine: $e");
   }
 
-  Future<List<ModeleSport>> chargerSemaine() async {
-    return chargerSemaineDepuis(DateTime.now());
+  return _local.obtenirEntreDates(
+    userId: userId,
+    debut: debut,
+    fin: fin,
+  );
+}
+Future<List<ModeleSport>> chargerSemaine() async {
+  final userId = _userId;
+
+  final maintenant = DateTime.now();
+
+  final debutSemaine = maintenant.subtract(
+    Duration(days: maintenant.weekday - 1),
+  );
+
+  final finSemaine = debutSemaine.add(const Duration(days: 6));
+
+  final debut = DateFormat('yyyy-MM-dd').format(debutSemaine);
+  final fin = DateFormat('yyyy-MM-dd').format(finSemaine);
+
+  try {
+    final donneesFirebase = await _firebase
+        .obtenirEntreDates(
+          userId: userId,
+          debut: debut,
+          fin: fin,
+        )
+        .timeout(const Duration(seconds: 5));
+
+    for (final item in donneesFirebase) {
+      await _local.sauvegarder(item.copyWith(synced: true));
+    }
+  } catch (e) {
+    print("Erreur Firebase sport: $e");
   }
+
+  return _local.obtenirEntreDates(
+    userId: userId,
+    debut: debut,
+    fin: fin,
+  );
+}
 
   Future<ModeleSport> modifierMinutes(ModeleSport sport, int minutes) async {
     final profilSante = await ControleurSante().obtenirDernierProfil();
