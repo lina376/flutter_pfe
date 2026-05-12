@@ -23,6 +23,8 @@ import 'package:ora/controlleurs/controleur_notification.dart';
 import 'package:ora/controlleurs/controleur_eau.dart';
 import 'package:ora/services/service_notification.dart';
 import 'package:ora/controlleurs/controleur_sport.dart';
+import 'package:ora/services/service_notification_locale.dart';
+import 'package:ora/controlleurs/controleur_sante.dart';
 class principal extends StatefulWidget {
   static const String screenRoute = 'pageprincipal';
 
@@ -69,50 +71,83 @@ class _principalState extends State<principal> {
     }
   }
 
-  @override
-  void initState() {
-    super.initState();
-    verifierRole();
-    verifierHydratation();
-    verifierSport();
-  }
+@override
+void initState() {
+  super.initState();
 
+  verifierRole();
+
+  Future.delayed(const Duration(seconds: 2), () {
+    verifierHydratation();
+  });
+
+  Future.delayed(const Duration(seconds: 8), () {
+    verifierSport();
+  });
+
+  Future.delayed(const Duration(seconds: 14), () {
+    verifierSommeil();
+  });
+}
+Future<void> envoyerNotificationOra({
+  required String title,
+  required String body,
+  required String type,
+  required String iconType,
+  Map<String, dynamic> data = const {},
+}) async {
+  final id = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+
+  await ServiceNotification().creerNotification(
+    title: title,
+    body: body,
+    type: '${type}_${DateTime.now().millisecondsSinceEpoch}',
+    iconType: iconType,
+    scheduledFor: DateTime.now(),
+    data: data,
+  );
+
+  await ServiceNotificationLocale.instance.afficherNotification(
+    id: id,
+    titre: title,
+    corps: body,
+  );
+}
   Future<String> creerConversation(String premierMessage) async {
     return _controleurPrincipal.creerConversation(
       premierMessage: premierMessage,
     );
   }
-  Future<void> verifierSport() async {
+Future<void> verifierSommeil() async {
+  final sante = await ControleurSante().chargerAujourdhui();
+  if (sante.heuresSommeil >= 7) return;
+
+  await envoyerNotificationOra(
+    title: 'Conseil sommeil',
+    body:
+        'Votre sommeil est insuffisant : ${sante.heuresSommeil}h 😴',
+    type: 'sante_sommeil',
+    iconType: 'health',
+    data: {
+      'heuresSommeil': sante.heuresSommeil,
+    },
+  );
+}
+Future<void> verifierSport() async {
   final sport = await ControleurSport().chargerAujourdhui();
 
   if (sport.minutes >= sport.objectifMinutes) return;
 
-  final heure = DateTime.now().hour;
-
-  String periode;
-  if (heure >= 8 && heure < 12) {
-    periode = 'matin';
-  } else if (heure >= 12 && heure < 18) {
-    periode = 'apres_midi';
-  } else if (heure >= 18 && heure < 23) {
-    periode = 'soir';
-  } else {
-    return;
-  }
-
-  final dejaEnvoyee =
-      await ServiceNotification().notificationExisteAujourdHui(
-    type: 'sport_$periode',
-  );
-
-  if (dejaEnvoyee) return;
-
-  await ServiceNotification().creerNotification(
+  await envoyerNotificationOra(
     title: 'Rappel sport',
-    body: 'C’est le moment de bouger un peu 💪',
-    type: 'sport_$periode',
+    body:
+        'Tu n’as pas encore atteint ton objectif sport : ${sport.minutes}/${sport.objectifMinutes} min 💪',
+    type: 'sport',
     iconType: 'sport',
-    scheduledFor: DateTime.now(),
+    data: {
+      'minutes': sport.minutes,
+      'objectifMinutes': sport.objectifMinutes,
+    },
   );
 }
 Future<void> verifierHydratation() async {
@@ -120,32 +155,16 @@ Future<void> verifierHydratation() async {
 
   if (eau.verres >= eau.objectif) return;
 
-  final heure = DateTime.now().hour;
-
-  String periode;
-  if (heure >= 8 && heure < 12) {
-    periode = 'matin';
-  } else if (heure >= 12 && heure < 18) {
-    periode = 'apres_midi';
-  } else if (heure >= 18 && heure < 23) {
-    periode = 'soir';
-  } else {
-    return;
-  }
-
-  final dejaEnvoyee =
-      await ServiceNotification().notificationExisteAujourdHui(
-    type: 'water_$periode',
-  );
-
-  if (dejaEnvoyee) return;
-
-  await ServiceNotification().creerNotification(
+  await envoyerNotificationOra(
     title: 'Rappel hydratation',
-    body: 'Tu n’as pas encore atteint ton objectif. Bois un verre d’eau 💧',
-    type: 'water_$periode',
+    body:
+        'Tu n’as pas encore atteint ton objectif : ${eau.verres}/${eau.objectif} verres 💧',
+    type: 'water',
     iconType: 'water',
-    scheduledFor: DateTime.now(),
+    data: {
+      'verres': eau.verres,
+      'objectif': eau.objectif,
+    },
   );
 }
   void _ouvrirProfilDepuisMenu() {

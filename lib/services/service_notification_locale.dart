@@ -186,6 +186,46 @@ Future<void> afficherNotification({
     ),
   );
 }
+Future<void> programmerRappelQuotidien({
+  required int id,
+  required String titre,
+  required String corps,
+  required int heure,
+  required int minute,
+}) async {
+  final maintenant = tz.TZDateTime.now(tz.local);
+
+  var dateProgramme = tz.TZDateTime(
+    tz.local,
+    maintenant.year,
+    maintenant.month,
+    maintenant.day,
+    heure,
+    minute,
+  );
+
+  if (dateProgramme.isBefore(maintenant)) {
+    dateProgramme = dateProgramme.add(const Duration(days: 1));
+  }
+
+  await _plugin.zonedSchedule(
+    id,
+    titre,
+    corps,
+    dateProgramme,
+    const NotificationDetails(
+      android: AndroidNotificationDetails(
+        'ora_rappels',
+        'Rappels ORA',
+        importance: Importance.max,
+        priority: Priority.high,
+      ),
+    ),
+    androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+    matchDateTimeComponents: DateTimeComponents.time,
+
+  );
+}
   Future<void> testerNotification() async {
     const androidDetails = AndroidNotificationDetails(
       'ora_alarm_channel',

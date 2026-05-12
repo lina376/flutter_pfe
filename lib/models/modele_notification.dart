@@ -53,20 +53,37 @@ class ModeleNotification {
     };
   }
 
-  IconData get icon {
-    switch (iconType) {
-      case 'water':
-        return Icons.water_drop;
-      case 'doctor':
-        return Icons.medical_services;
-      case 'medicine':
-        return Icons.medication;
-      case 'sport':
-        return Icons.fitness_center;
-      case 'sleep':
-        return Icons.bedtime;
-      default:
-        return Icons.notifications_active;
-    }
+ IconData get icon {
+  switch (iconType) {
+    case 'water':
+      return Icons.water_drop;
+
+    case 'sport':
+      return Icons.fitness_center;
+
+    case 'health':
+      return Icons.favorite;
+
+    case 'sleep':
+      return Icons.bedtime;
+
+    case 'doctor':
+      return Icons.medical_services;
+
+    case 'medicine':
+      return Icons.medication;
+
+    case 'study':
+      return Icons.menu_book;
+
+    case 'trip':
+      return Icons.map;
+
+    case 'task':
+      return Icons.task_alt;
+
+    default:
+      return Icons.notifications_active;
   }
+}
 }

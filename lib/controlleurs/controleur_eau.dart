@@ -5,8 +5,7 @@ import 'package:ora/models/modele_eau.dart';
 import 'package:ora/services/service_eau_local.dart';
 import 'package:ora/services/service_eau_firebase.dart';
 import 'package:ora/controlleurs/controleur_sante.dart';
-import 'package:ora/services/service_notification.dart';
-import 'package:ora/services/service_notification_locale.dart';
+
 class ControleurEau {
   final ServiceEauLocal _local = ServiceEauLocal.instance;
   final ServiceEauFirebase _firebase = ServiceEauFirebase();
@@ -73,53 +72,22 @@ class ControleurEau {
 
     await _local.sauvegarder(maj);
     await synchroniser(maj);
-    
   }
 
-  Future<List<ModeleEau>> chargerSemaineDepuis(
-  DateTime dateReference,
-) async {
-  final userId = _userId;
+  Future<List<ModeleEau>> chargerSemaineDepuis(DateTime dateReference) async {
+    final userId = _userId;
 
-  final debutSemaine = dateReference.subtract(
-    Duration(days: dateReference.weekday - 1),
-  );
+    final debutSemaine = dateReference.subtract(
+      Duration(days: dateReference.weekday - 1),
+    );
 
-  final finSemaine = debutSemaine.add(const Duration(days: 6));
+    final finSemaine = debutSemaine.add(const Duration(days: 6));
 
-  final debut = DateFormat('yyyy-MM-dd').format(debutSemaine);
-  final fin = DateFormat('yyyy-MM-dd').format(finSemaine);
+    final debut = DateFormat('yyyy-MM-dd').format(debutSemaine);
+    final fin = DateFormat('yyyy-MM-dd').format(finSemaine);
 
-  final donneesFirebase = await _firebase.obtenirEntreDates(
-    userId: userId,
-    debut: debut,
-    fin: fin,
-  );
-
-  for (final item in donneesFirebase) {
-    await _local.sauvegarder(item.copyWith(synced: true));
+    return _local.obtenirEntreDates(userId: userId, debut: debut, fin: fin);
   }
-try {
-  final donneesFirebase = await _firebase
-      .obtenirEntreDates(
-        userId: userId,
-        debut: debut,
-        fin: fin,
-      )
-      .timeout(const Duration(seconds: 5));
-
-  for (final item in donneesFirebase) {
-    await _local.sauvegarder(item.copyWith(synced: true));
-  }
-} catch (e) {
-  print("Erreur chargement eau semaine Firebase: $e");
-}
-  return _local.obtenirEntreDates(
-    userId: userId,
-    debut: debut,
-    fin: fin,
-  );
-}
 
   Future<ModeleEau> chargerAujourdhui() async {
     final utilisateurId = _userId;
@@ -146,15 +114,7 @@ try {
 
         return maj;
       }
-if (existant.verres < existant.objectif) {
-  await ServiceNotification().creerNotification(
-    title: 'Rappel hydratation',
-    body: 'Tu n’as pas encore atteint ton objectif. Bois un verre d’eau 💧',
-    type: 'water',
-    iconType: 'water',
-    scheduledFor: DateTime.now(),
-  );
-}
+
       return existant;
     }
     final profilSante = await ControleurSante().obtenirDernierProfil();
@@ -181,41 +141,21 @@ if (existant.verres < existant.objectif) {
     return nouveau;
   }
 
-Future<List<ModeleEau>> chargerSemaine() async {
-  final userId = _userId;
-  final maintenant = DateTime.now();
+  Future<List<ModeleEau>> chargerSemaine() async {
+    final maintenant = DateTime.now();
 
-  final debutSemaine = maintenant.subtract(
-    Duration(days: maintenant.weekday - 1),
-  );
+    final debutSemaine = maintenant.subtract(
+      Duration(days: maintenant.weekday - 1),
+    );
 
-  final finSemaine = debutSemaine.add(const Duration(days: 6));
+    final finSemaine = debutSemaine.add(const Duration(days: 6));
 
-  final debut = DateFormat('yyyy-MM-dd').format(debutSemaine);
-  final fin = DateFormat('yyyy-MM-dd').format(finSemaine);
+    final debut = DateFormat('yyyy-MM-dd').format(debutSemaine);
+    final fin = DateFormat('yyyy-MM-dd').format(finSemaine);
 
-  try {
-    final donneesFirebase = await _firebase
-        .obtenirEntreDates(
-          userId: userId,
-          debut: debut,
-          fin: fin,
-        )
-        .timeout(const Duration(seconds: 5));
-
-    for (final item in donneesFirebase) {
-      await _local.sauvegarder(item.copyWith(synced: true));
-    }
-  } catch (e) {
-    print("Erreur chargement eau Firebase: $e");
+    return _local.obtenirEntreDates(userId: _userId, debut: debut, fin: fin);
   }
 
-  return _local.obtenirEntreDates(
-    userId: userId,
-    debut: debut,
-    fin: fin,
-  );
-}
   Future<ModeleEau> ajouterVerre(ModeleEau eau) async {
     final nouveauNombre = eau.verres < eau.objectif
         ? eau.verres + 1
@@ -230,22 +170,7 @@ Future<List<ModeleEau>> chargerSemaine() async {
 
     await _local.sauvegarder(maj);
     await synchroniser(maj);
-    if (maj.verres < maj.objectif) {
-  await ServiceNotification().creerNotification(
-    title: 'Rappel hydratation',
-    body:
-        'Tu n’as pas encore atteint ton objectif. Bois un verre d’eau 💧',
-    type: 'water',
-    iconType: 'water',
-    scheduledFor: DateTime.now(),
-  );
-}
 
-await ServiceNotificationLocale.instance.afficherNotification(
-  id: DateTime.now().millisecondsSinceEpoch ~/ 1000,
-  titre: 'Rappel hydratation',
-  corps: 'Bois un verre d’eau 💧',
-);
     return maj;
   }
 
