@@ -4,7 +4,9 @@ import '../services/service_notification.dart';
 
 class ControleurNotification {
   final ServiceNotification _service = ServiceNotification();
-
+Stream<int> compterNonLues() {
+  return _service.compterNonLues();
+}
   Stream<List<ModeleNotification>> obtenirFluxNotifications() {
     return _service.obtenirFluxNotifications();
   }

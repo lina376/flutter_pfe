@@ -167,7 +167,25 @@ class ServiceNotificationLocale {
   Future<void> annulerNotificationTrajet(String idTrajet) async {
     await _plugin.cancel(idTrajet.hashCode.abs());
   }
-
+Future<void> afficherNotification({
+  required int id,
+  required String titre,
+  required String corps,
+}) async {
+  await _plugin.show(
+    id,
+    titre,
+    corps,
+    NotificationDetails(
+      android: AndroidNotificationDetails(
+        'ora_channel',
+        'ORA Notifications',
+        importance: Importance.max,
+        priority: Priority.high,
+      ),
+    ),
+  );
+}
   Future<void> testerNotification() async {
     const androidDetails = AndroidNotificationDetails(
       'ora_alarm_channel',

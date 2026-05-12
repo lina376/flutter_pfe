@@ -277,6 +277,7 @@ class ControleurSport {
     fin: fin,
   );
 }
+
 Future<List<ModeleSport>> chargerSemaine() async {
   final userId = _userId;
 

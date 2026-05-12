@@ -5,7 +5,8 @@ import 'package:ora/models/modele_eau.dart';
 import 'package:ora/services/service_eau_local.dart';
 import 'package:ora/services/service_eau_firebase.dart';
 import 'package:ora/controlleurs/controleur_sante.dart';
-
+import 'package:ora/services/service_notification.dart';
+import 'package:ora/services/service_notification_locale.dart';
 class ControleurEau {
   final ServiceEauLocal _local = ServiceEauLocal.instance;
   final ServiceEauFirebase _firebase = ServiceEauFirebase();
@@ -72,6 +73,7 @@ class ControleurEau {
 
     await _local.sauvegarder(maj);
     await synchroniser(maj);
+    
   }
 
   Future<List<ModeleEau>> chargerSemaineDepuis(
@@ -144,7 +146,15 @@ try {
 
         return maj;
       }
-
+if (existant.verres < existant.objectif) {
+  await ServiceNotification().creerNotification(
+    title: 'Rappel hydratation',
+    body: 'Tu n’as pas encore atteint ton objectif. Bois un verre d’eau 💧',
+    type: 'water',
+    iconType: 'water',
+    scheduledFor: DateTime.now(),
+  );
+}
       return existant;
     }
     final profilSante = await ControleurSante().obtenirDernierProfil();
@@ -220,7 +230,22 @@ Future<List<ModeleEau>> chargerSemaine() async {
 
     await _local.sauvegarder(maj);
     await synchroniser(maj);
+    if (maj.verres < maj.objectif) {
+  await ServiceNotification().creerNotification(
+    title: 'Rappel hydratation',
+    body:
+        'Tu n’as pas encore atteint ton objectif. Bois un verre d’eau 💧',
+    type: 'water',
+    iconType: 'water',
+    scheduledFor: DateTime.now(),
+  );
+}
 
+await ServiceNotificationLocale.instance.afficherNotification(
+  id: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+  titre: 'Rappel hydratation',
+  corps: 'Bois un verre d’eau 💧',
+);
     return maj;
   }
 

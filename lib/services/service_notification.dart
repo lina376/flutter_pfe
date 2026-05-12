@@ -78,7 +78,61 @@ class ServiceNotification {
       'data': {'doctorName': doctorName},
     });
   }
+Stream<int> compterNonLues() {
+  final ref = _refNotifications();
+  if (ref == null) return Stream.value(0);
 
+  return ref
+      .where('isRead', isEqualTo: false)
+      .snapshots()
+      .map((s) => s.docs.length);
+}
+Future<void> creerNotification({
+  required String title,
+  required String body,
+  required String type,
+  required String iconType,
+  required DateTime scheduledFor,
+  Map<String, dynamic> data = const {},
+}) async {
+  final ref = _refNotifications();
+  if (ref == null) return;
+
+  await ref.add({
+    'title': title,
+    'body': body,
+    'type': type,
+    'iconType': iconType,
+    'isRead': false,
+    'createdAt': Timestamp.now(),
+    'scheduledFor': Timestamp.fromDate(scheduledFor),
+    'data': data,
+  });
+}
+Future<bool> notificationExisteAujourdHui({
+  required String type,
+}) async {
+  final ref = _refNotifications();
+  if (ref == null) return false;
+
+  final aujourdHui = DateTime.now();
+
+  final debut = DateTime(
+    aujourdHui.year,
+    aujourdHui.month,
+    aujourdHui.day,
+  );
+
+  final fin = debut.add(const Duration(days: 1));
+
+  final snapshot = await ref
+      .where('type', isEqualTo: type)
+      .where('createdAt', isGreaterThanOrEqualTo: Timestamp.fromDate(debut))
+      .where('createdAt', isLessThan: Timestamp.fromDate(fin))
+      .get();
+
+  return snapshot.docs.isNotEmpty;
+}
   Future<void> sendMedicineReminder({
     required String medicineName,
     required DateTime reminderTime,

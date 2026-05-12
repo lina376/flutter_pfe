@@ -19,7 +19,10 @@ import 'package:ora/screens/maps.dart';
 import 'package:ora/screens/langue.dart';
 import 'package:ora/screens/eau_page.dart';
 import 'package:ora/screens/sport.dart';
-
+import 'package:ora/controlleurs/controleur_notification.dart';
+import 'package:ora/controlleurs/controleur_eau.dart';
+import 'package:ora/services/service_notification.dart';
+import 'package:ora/controlleurs/controleur_sport.dart';
 class principal extends StatefulWidget {
   static const String screenRoute = 'pageprincipal';
 
@@ -70,6 +73,8 @@ class _principalState extends State<principal> {
   void initState() {
     super.initState();
     verifierRole();
+    verifierHydratation();
+    verifierSport();
   }
 
   Future<String> creerConversation(String premierMessage) async {
@@ -77,7 +82,72 @@ class _principalState extends State<principal> {
       premierMessage: premierMessage,
     );
   }
+  Future<void> verifierSport() async {
+  final sport = await ControleurSport().chargerAujourdhui();
 
+  if (sport.minutes >= sport.objectifMinutes) return;
+
+  final heure = DateTime.now().hour;
+
+  String periode;
+  if (heure >= 8 && heure < 12) {
+    periode = 'matin';
+  } else if (heure >= 12 && heure < 18) {
+    periode = 'apres_midi';
+  } else if (heure >= 18 && heure < 23) {
+    periode = 'soir';
+  } else {
+    return;
+  }
+
+  final dejaEnvoyee =
+      await ServiceNotification().notificationExisteAujourdHui(
+    type: 'sport_$periode',
+  );
+
+  if (dejaEnvoyee) return;
+
+  await ServiceNotification().creerNotification(
+    title: 'Rappel sport',
+    body: 'C’est le moment de bouger un peu 💪',
+    type: 'sport_$periode',
+    iconType: 'sport',
+    scheduledFor: DateTime.now(),
+  );
+}
+Future<void> verifierHydratation() async {
+  final eau = await ControleurEau().chargerAujourdhui();
+
+  if (eau.verres >= eau.objectif) return;
+
+  final heure = DateTime.now().hour;
+
+  String periode;
+  if (heure >= 8 && heure < 12) {
+    periode = 'matin';
+  } else if (heure >= 12 && heure < 18) {
+    periode = 'apres_midi';
+  } else if (heure >= 18 && heure < 23) {
+    periode = 'soir';
+  } else {
+    return;
+  }
+
+  final dejaEnvoyee =
+      await ServiceNotification().notificationExisteAujourdHui(
+    type: 'water_$periode',
+  );
+
+  if (dejaEnvoyee) return;
+
+  await ServiceNotification().creerNotification(
+    title: 'Rappel hydratation',
+    body: 'Tu n’as pas encore atteint ton objectif. Bois un verre d’eau 💧',
+    type: 'water_$periode',
+    iconType: 'water',
+    scheduledFor: DateTime.now(),
+  );
+}
   void _ouvrirProfilDepuisMenu() {
     Navigator.pop(context);
     Navigator.pushNamed(context, 'pageprofil');
@@ -236,25 +306,60 @@ class _principalState extends State<principal> {
                                     );
                                   },
                                 ),
-                                ListTile(
-                                  contentPadding: EdgeInsets.zero,
-                                  leading: const Icon(
-                                    Icons.notifications_none,
-                                    color: Colors.white,
-                                  ),
-                                  title: Text(
-                                    'menu.notifications'.tr(),
-                                    style: const TextStyle(color: Colors.white),
-                                  ),
-                                  trailing: Switch(
-                                    value: _notif,
-                                    onChanged: (v) {
-                                      setLocal(() => _notif = v);
-                                      setState(() => _notif = v);
-                                    },
-                                  ),
-                                ),
-                                const SizedBox(height: 6),
+                               StreamBuilder<int>(
+  stream: ControleurNotification().compterNonLues(),
+  builder: (context, snapshot) {
+    final count = snapshot.data ?? 0;
+
+    return ListTile(
+      contentPadding: EdgeInsets.zero,
+      leading: Stack(
+        children: [
+          const Icon(Icons.notifications, color: Colors.white),
+
+          if (count > 0)
+            Positioned(
+              right: 0,
+              top: 0,
+              child: Container(
+                padding: const EdgeInsets.all(4),
+                decoration: const BoxDecoration(
+                  color: Colors.red,
+                  shape: BoxShape.circle,
+                ),
+                child: Text(
+                  count > 9 ? '9+' : '$count',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 9,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+
+      title: Text(
+        'menu.notifications'.tr(),
+        style: const TextStyle(color: Colors.white),
+      ),
+
+      trailing: Switch(
+        value: _notif,
+        onChanged: (v) {
+          setLocal(() => _notif = v);
+          setState(() => _notif = v);
+        },
+      ),
+
+      onTap: () {
+        Navigator.pop(context);
+        Navigator.pushNamed(context, notifications.screenRoute);
+      },
+    );
+  },
+),
                                 TextButton(
                                   onPressed: _deconnecterDepuisMenu,
                                   child: Text(
@@ -561,20 +666,59 @@ class _principalState extends State<principal> {
               ),
             ),
           _buildPhotoProfil(),
-          IconButton(
-            style: const ButtonStyle(
-              backgroundColor: WidgetStatePropertyAll<Color>(
-                Color.fromARGB(92, 88, 70, 142),
+          StreamBuilder<int>(
+  stream: ControleurNotification().compterNonLues(),
+  builder: (context, snapshot) {
+    final count = snapshot.data ?? 0;
+
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        IconButton(
+          style: const ButtonStyle(
+            backgroundColor: WidgetStatePropertyAll<Color>(
+              Color.fromARGB(92, 88, 70, 142),
+            ),
+          ),
+          icon: const Icon(
+            Icons.notifications_active,
+            color: Colors.white,
+          ),
+          onPressed: () {
+            Navigator.pushNamed(context, notifications.screenRoute);
+          },
+          tooltip: 'notification',
+          iconSize: 25,
+          constraints: const BoxConstraints(
+            minHeight: 25,
+            minWidth: 25,
+          ),
+        ),
+
+        if (count > 0)
+          Positioned(
+            right: 2,
+            top: 2,
+            child: Container(
+              padding: const EdgeInsets.all(4),
+              decoration: const BoxDecoration(
+                color: Colors.redAccent,
+                shape: BoxShape.circle,
+              ),
+              child: Text(
+                count > 9 ? '9+' : '$count',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 9,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
-            icon: const Icon(Icons.notifications_active, color: Colors.white),
-            onPressed: () {
-              Navigator.pushNamed(context, notifications.screenRoute);
-            },
-            tooltip: 'notification',
-            iconSize: 25,
-            constraints: const BoxConstraints(minHeight: 25, minWidth: 25),
           ),
+      ],
+    );
+  },
+),
         ],
       ),
       body: Container(
