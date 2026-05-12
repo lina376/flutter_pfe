@@ -16,28 +16,67 @@ class rencontre extends StatefulWidget {
 
 class _rencontreState extends State<rencontre> {
   Future<void> allerPageSuivante() async {
-    final utilisateur = FirebaseAuth.instance.currentUser;
+  final utilisateur = FirebaseAuth.instance.currentUser;
 
-    if (utilisateur != null) {
-      final doc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(utilisateur.uid)
-          .get();
+  if (utilisateur == null) {
+    if (!mounted) return;
 
-      final role = doc.data()?['role'] ?? 'user';
-
-      if (!mounted) return;
-
-      if (role == 'admin') {
-        Navigator.pushReplacementNamed(context, AdminHome.screenRoute);
-      } else {
-        Navigator.pushReplacementNamed(context, principal.screenRoute);
-      }
-    } else {
-      if (!mounted) return;
-      Navigator.pushReplacementNamed(context, connecter.screenRoute);
-    }
+    Navigator.pushReplacementNamed(
+      context,
+      connecter.screenRoute,
+    );
+    return;
   }
+
+  await utilisateur.reload();
+
+  final user = FirebaseAuth.instance.currentUser;
+
+  if (user == null) {
+    if (!mounted) return;
+
+    Navigator.pushReplacementNamed(
+      context,
+      connecter.screenRoute,
+    );
+    return;
+  }
+
+  if (!user.emailVerified) {
+    await FirebaseAuth.instance.signOut();
+
+    if (!mounted) return;
+
+    Navigator.pushReplacementNamed(
+      context,
+      connecter.screenRoute,
+    );
+    return;
+  }
+
+  final doc = await FirebaseFirestore.instance
+      .collection('users')
+      .doc(user.uid)
+      .get();
+
+  final role = doc.data()?['role'] ?? 'user';
+
+  if (!mounted) return;
+
+  if (role == 'admin') {
+    Navigator.pushReplacementNamed(
+      context,
+      AdminHome.screenRoute,
+    );
+  }
+
+  else {
+    Navigator.pushReplacementNamed(
+      context,
+      principal.screenRoute,
+    );
+  }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -68,7 +107,6 @@ class _rencontreState extends State<rencontre> {
                 ),
               ),
 
-              /// 🔹 TITLE
               Positioned(
                 top: MediaQuery.of(context).size.height * 0.025,
                 left: MediaQuery.of(context).size.height * 0.065,
@@ -82,7 +120,6 @@ class _rencontreState extends State<rencontre> {
                 ),
               ),
 
-              /// 🔹 ORA (تبقى كيف ما هي)
               Positioned(
                 top: MediaQuery.of(context).size.height * 0.08,
                 left: MediaQuery.of(context).size.height * 0.15,
@@ -96,7 +133,6 @@ class _rencontreState extends State<rencontre> {
                 ),
               ),
 
-              /// 🔹 HELP TEXT
               Positioned(
                 top: MediaQuery.of(context).size.height * 0.2,
                 left: MediaQuery.of(context).size.height * 0.02,
@@ -123,7 +159,6 @@ class _rencontreState extends State<rencontre> {
 
               _buttomcommencer(onTap: allerPageSuivante),
 
-              /// 🔹 BUBBLES DESIGN (ما تبدلش)
               Stack(
                 children: [
                   Positioned(
@@ -181,7 +216,6 @@ class _rencontreState extends State<rencontre> {
   }
 }
 
-/// 🔹 BUTTON
 class _buttomcommencer extends StatefulWidget {
   final Future<void> Function() onTap;
   const _buttomcommencer({required this.onTap});
