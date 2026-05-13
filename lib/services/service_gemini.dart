@@ -5,7 +5,7 @@ import 'package:ora/models/modele_contexte.dart';
 class ServiceGemini {
   static const String apiKey = String.fromEnvironment(
     'GEMINI_API_KEY',
-    defaultValue: 'AIzaSyA55iZJtu2GhdplKmA2il1vpRNwngeyx2w',
+    defaultValue: 'AIzaSyBj5lzp-68iZQPIf7F62xwZbMIKnOa6esk',
   );
 
   Uri get _url => Uri.parse(
@@ -99,7 +99,9 @@ Actions possibles :
 CREATE_NOTE, UPDATE_NOTE, DELETE_NOTE, SEARCH_NOTE,
 CREATE_TASK, UPDATE_TASK, DELETE_TASK, SEARCH_TASK, GET_TASKS_BY_DATE,
 CREATE_ALARME, UPDATE_ALARME, DELETE_ALARME, TOGGLE_ALARME,
-CREATE_TRIP_REMINDER, RECOMMENDATION, OPEN_MAP_ROUTE, CHAT.
+CREATE_TRIP_REMINDER, RECOMMENDATION, OPEN_MAP_ROUTE,ADD_WATER,REMOVE_WATER,SET_WATER,SET_WEIGHT,
+INCREASE_WEIGHT,DECREASE_WEIGHT,SET_MOOD,SET_SLEEP,ADD_SPORT,
+REMOVE_SPORT,SET_SPORT,SET_HEALTH_STATE,GET_DAILY_SUMMARY,CHAT.
 
 Règles générales :
 - Retourne seulement un objet JSON ou une liste JSON.
@@ -141,7 +143,72 @@ Modifier tâche :
 
 Afficher les tâches d'une date :
 {"action":"GET_TASKS_BY_DATE","date":"YYYY-MM-DD","tri":"priorite"}
+Bilan journalier :
+Si l'utilisateur demande son bilan, résumé, état du jour, "chnoua na9sni lyoum",
+"a3tini bilan", "bilan lyoum", retourne :
 
+{"action":"GET_DAILY_SUMMARY"}
+Actions santé / sport / hydratation autorisées :
+
+ADD_WATER : ajouter un ou plusieurs verres d’eau.
+Exemple utilisateur : "j’ai bu un verre d’eau"
+Réponse JSON :
+{"action":"ADD_WATER","quantite":1}
+
+REMOVE_WATER : retirer un ou plusieurs verres d’eau.
+Exemple utilisateur : "retire un verre d’eau"
+Réponse JSON :
+{"action":"REMOVE_WATER","quantite":1}
+
+SET_WATER : définir le nombre total de verres d’eau de la journée.
+Exemple utilisateur : "mets mon eau à 4 verres"
+Réponse JSON :
+{"action":"SET_WATER","verres":4}
+
+SET_WEIGHT : définir le poids actuel.
+Exemple utilisateur : "mon poids est 70.5 kg"
+Réponse JSON :
+{"action":"SET_WEIGHT","poids":70.5}
+
+INCREASE_WEIGHT : augmenter le poids actuel.
+Exemple utilisateur : "augmente mon poids de 1 kg"
+Réponse JSON :
+{"action":"INCREASE_WEIGHT","valeur":1}
+
+DECREASE_WEIGHT : diminuer le poids actuel.
+Exemple utilisateur : "diminue mon poids de 0.5 kg"
+Réponse JSON :
+{"action":"DECREASE_WEIGHT","valeur":0.5}
+
+SET_MOOD : enregistrer l’humeur du jour.
+Exemple utilisateur : "je suis heureux aujourd’hui"
+Réponse JSON :
+{"action":"SET_MOOD","humeur":"Heureux"}
+
+SET_SLEEP : enregistrer le nombre d’heures de sommeil.
+Exemple utilisateur : "j’ai dormi 7 heures"
+Réponse JSON :
+{"action":"SET_SLEEP","heures":7}
+
+ADD_SPORT : ajouter des minutes de sport.
+Exemple utilisateur : "j’ai fait 30 minutes de sport"
+Réponse JSON :
+{"action":"ADD_SPORT","minutes":30}
+
+REMOVE_SPORT : retirer des minutes de sport.
+Exemple utilisateur : "retire 10 minutes de sport"
+Réponse JSON :
+{"action":"REMOVE_SPORT","minutes":10}
+
+SET_SPORT : définir le total des minutes de sport de la journée.
+Exemple utilisateur : "mets mon sport à 40 minutes"
+Réponse JSON :
+{"action":"SET_SPORT","minutes":40}
+
+SET_HEALTH_STATE : modifier l’état de santé.
+Exemple utilisateur : "je suis malade aujourd’hui"
+Réponse JSON :
+{"action":"SET_HEALTH_STATE","etat_sante":"Malade"}
 Important pour chercher les tâches :
 - Si l'utilisateur dit "tâches d'aujourd'hui", "tasks today", "jibli les taches d'aujourd'hui", retourne GET_TASKS_BY_DATE avec la date actuelle.
 - Si l'utilisateur dit "tâches de demain", retourne GET_TASKS_BY_DATE avec la date de demain.
@@ -150,7 +217,12 @@ Important pour chercher les tâches :
 Important pour terminer une tâche :
 - Si l'utilisateur dit "j'ai terminé", "terminer", "كمّلت", "kammalt", retourne UPDATE_TASK avec "terminee": true.
 - Si l'utilisateur dit "pas terminée", retourne UPDATE_TASK avec "terminee": false.
+Si le message de l’utilisateur contient une demande de modification
+comme ajouter, retirer, diminuer, augmenter, corriger, mettre à jour,
+changer ou définir, tu dois retourner l’action JSON correspondante.
 
+Ne réponds jamais avec du texte normal pour ces actions.
+Retourne uniquement un JSON valide.
 Supprimer tâche :
 {"action":"DELETE_TASK","titre":"..."}
 

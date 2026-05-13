@@ -121,18 +121,7 @@ class ControleurSante {
     return _local.obtenirParDate(userId: maj.userId, date: maj.date).then((v) => v ?? maj);
   }
 
-  Future<ModeleSante> modifierHumeur(ModeleSante sante, String humeur) async {
-    final maj = sante.copyWith(
-      humeur: humeur,
-      updatedAt: DateTime.now(),
-      synced: false,
-    );
-
-    await _local.sauvegarder(maj);
-    await synchroniser(maj);
-    return _local.obtenirParDate(userId: maj.userId, date: maj.date).then((v) => v ?? maj);
-  }
-
+ 
   Future<ModeleSante> modifierPoids(ModeleSante sante, double poids) async {
     final maj = sante.copyWith(
       poids: poids,
@@ -186,7 +175,21 @@ class ControleurSante {
       await synchroniser(item);
     }
   }
+Future<ModeleSante> modifierHumeur(ModeleSante sante, String humeur) async {
+  final maj = sante.copyWith(
+    humeur: humeur,
+    updatedAt: DateTime.now(),
+    synced: false,
+  );
 
+  await _local.sauvegarder(maj);
+  await synchroniser(maj);
+
+  return _local.obtenirParDate(
+    userId: maj.userId,
+    date: maj.date,
+  ).then((v) => v ?? maj);
+}
   Future<void> _recupererDepuisFirebaseSansEcraserLocal({
     required String userId,
     required String date,

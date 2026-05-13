@@ -8,7 +8,9 @@ import 'service_alarme.dart';
 import 'service_meteo.dart';
 import 'service_maps.dart';
 import 'service_notification_locale.dart';
-
+import 'package:ora/controlleurs/controleur_eau.dart';
+import 'package:ora/controlleurs/controleur_sante.dart';
+import 'package:ora/controlleurs/controleur_sport.dart';
 import '../models/modele_contexte.dart';
 import '../models/modele_alarme.dart';
 
@@ -21,6 +23,9 @@ class ServiceChat {
   final ServiceAlarme _serviceAlarme = ServiceAlarme();
   final ServiceMeteo _serviceMeteo = ServiceMeteo();
   final ServiceMaps _serviceMaps = ServiceMaps();
+  final ControleurEau _controleurEau = ControleurEau();
+final ControleurSante _controleurSante = ControleurSante();
+final ControleurSport _controleurSport = ControleurSport();
 
   User? obtenirUtilisateurActuel() => _authentification.currentUser;
 
@@ -200,6 +205,19 @@ class ServiceChat {
       'CREATE_TRIP_REMINDER',
       'RECOMMENDATION',
       'OPEN_MAP_ROUTE',
+      'ADD_WATER',
+'REMOVE_WATER',
+'SET_WATER',
+'SET_WEIGHT',
+'INCREASE_WEIGHT',
+'DECREASE_WEIGHT',
+'SET_MOOD',
+'SET_SLEEP',
+'ADD_SPORT',
+'REMOVE_SPORT',
+'SET_SPORT',
+'SET_HEALTH_STATE',
+'GET_DAILY_SUMMARY',
       'CHAT',
     };
 
@@ -228,7 +246,7 @@ class ServiceChat {
     if (action == 'CREATE_TRIP_REMINDER') {
       return _valeur(commande, 'destination', '').isNotEmpty;
     }
-
+  
     return true;
   }
 
@@ -314,7 +332,6 @@ class ServiceChat {
           contexte,
         );
       }
-
       return _ResultatExecution(
         "Clique pour voir le trajet vers ${contexte.id}",
         contexte,
@@ -848,7 +865,181 @@ class ServiceChat {
       }
       return _ResultatExecution("Je n’ai pas trouvé l’alarme.", contexte);
     }
+    if (action == "ADD_WATER" ||
+        action == "REMOVE_WATER" ||
+        action == "SET_WATER") {
+      final eau = await _controleurEau.chargerAujourdhui();
 
+      final valeur = int.tryParse(
+            "${resultat['quantite'] ?? resultat['verres'] ?? 1}",
+          ) ??
+          1;
+
+      var maj = eau;
+
+      if (action == "ADD_WATER") {
+        for (int i = 0; i < valeur; i++) {
+          maj = await _controleurEau.ajouterVerre(maj);
+        }
+      }
+
+      if (action == "REMOVE_WATER") {
+        for (int i = 0; i < valeur; i++) {
+          maj = await _controleurEau.retirerVerre(maj);
+        }
+      }
+
+      if (action == "SET_WATER") {
+  maj = eau;
+
+  while (maj.verres < valeur) {
+    maj = await _controleurEau.ajouterVerre(maj);
+  }
+
+  while (maj.verres > valeur) {
+    maj = await _controleurEau.retirerVerre(maj);
+  }
+}
+
+      return _ResultatExecution(
+        "💧 Hydratation mise à jour : ${maj.verres}/${maj.objectif} verres.",
+        contexte,
+      );
+    }
+
+    if (action == "SET_WEIGHT" ||
+        action == "INCREASE_WEIGHT" ||
+        action == "DECREASE_WEIGHT") {
+      final sante = await _controleurSante.chargerAujourdhui();
+
+      final valeur = double.tryParse(
+            "${resultat['poids'] ?? resultat['valeur'] ?? sante.poids}",
+          ) ??
+          sante.poids;
+
+      double nouveauPoids = sante.poids;
+
+      if (action == "SET_WEIGHT") nouveauPoids = valeur;
+      if (action == "INCREASE_WEIGHT") nouveauPoids += valeur;
+      if (action == "DECREASE_WEIGHT") nouveauPoids -= valeur;
+
+      if (nouveauPoids < 20) nouveauPoids = 20;
+
+      final maj = await _controleurSante.modifierPoids(sante, nouveauPoids);
+
+      return _ResultatExecution(
+        "⚖️ Poids mis à jour : ${maj.poids.toStringAsFixed(1)} kg.",
+        contexte,
+      );
+    }
+
+    if (action == "SET_MOOD") {
+      final sante = await _controleurSante.chargerAujourdhui();
+      final humeur = _valeur(resultat, "humeur", "Normal");
+
+      final maj = await _controleurSante.modifierHumeur(sante, humeur);
+
+      return _ResultatExecution(
+        "😊 Humeur enregistrée : ${maj.humeur}.",
+        contexte,
+      );
+    }
+
+    if (action == "SET_SLEEP") {
+      final sante = await _controleurSante.chargerAujourdhui();
+
+      final heures = double.tryParse(
+            "${resultat['heures'] ?? resultat['sommeil'] ?? sante.heuresSommeil}",
+          ) ??
+          sante.heuresSommeil;
+
+      final maj = await _controleurSante.modifierSommeil(sante, heures);
+
+      return _ResultatExecution(
+        "😴 Sommeil enregistré : ${maj.heuresSommeil} h.",
+        contexte,
+      );
+    }
+
+    if (action == "ADD_SPORT" ||
+        action == "REMOVE_SPORT" ||
+        action == "SET_SPORT") {
+      final sport = await _controleurSport.chargerAujourdhui();
+
+      final valeur = int.tryParse("${resultat['minutes'] ?? 0}") ?? 0;
+
+      int nouveauTotal = sport.minutes;
+
+      if (action == "ADD_SPORT") nouveauTotal += valeur;
+      if (action == "REMOVE_SPORT") nouveauTotal -= valeur;
+      if (action == "SET_SPORT") nouveauTotal = valeur;
+
+      if (nouveauTotal < 0) nouveauTotal = 0;
+
+      final maj = await _controleurSport.modifierMinutes(sport, nouveauTotal);
+
+      return _ResultatExecution(
+        "🏃 Sport mis à jour : ${maj.minutes}/${maj.objectifMinutes} min.",
+        contexte,
+      );
+    }
+
+    if (action == "SET_HEALTH_STATE") {
+      final sport = await _controleurSport.chargerAujourdhui();
+      final etat = _valeur(resultat, "etat_sante", "Bonne santé");
+
+      final maj = await _controleurSport.modifierEtatSante(sport, etat);
+
+      return _ResultatExecution(
+        "🩺 État de santé mis à jour : ${maj.etatSante}.",
+        contexte,
+      );
+    }
+    if (action == "GET_DAILY_SUMMARY") {
+  final eau = await _controleurEau.chargerAujourdhui();
+  final sante = await _controleurSante.chargerAujourdhui();
+  final sport = await _controleurSport.chargerAujourdhui();
+
+  final verresRestants = eau.objectif - eau.verres;
+  final sportRestant = sport.objectifMinutes - sport.minutes;
+
+  String conseil = "";
+
+  if (verresRestants > 0) {
+    conseil += "💧 Il te reste $verresRestants verre(s) d’eau à boire.\n";
+  } else {
+    conseil += "💧 Objectif hydratation atteint.\n";
+  }
+
+  if (sportRestant > 0) {
+    conseil += "🏃 Il te reste $sportRestant min de sport pour atteindre ton objectif.\n";
+  } else {
+    conseil += "🏃 Objectif sport atteint.\n";
+  }
+
+  if (sante.heuresSommeil < 6) {
+    conseil += "😴 Ton sommeil est faible, essaie de te reposer plus.\n";
+  } else if (sante.heuresSommeil >= 7) {
+    conseil += "😴 Sommeil satisfaisant aujourd’hui.\n";
+  }
+
+  if (sante.humeur.toLowerCase().contains("triste") ||
+      sante.humeur.toLowerCase().contains("stress")) {
+    conseil += "😊 Essaie de faire une petite pause ou une activité relaxante.\n";
+  }
+
+  return _ResultatExecution(
+    "📊 Bilan du jour :\n"
+    "💧 Hydratation : ${eau.verres}/${eau.objectif} verres\n"
+    "🏃 Sport : ${sport.minutes}/${sport.objectifMinutes} min\n"
+    "⚖️ Poids : ${sante.poids.toStringAsFixed(1)} kg\n"
+    "😊 Humeur : ${sante.humeur}\n"
+    "😴 Sommeil : ${sante.heuresSommeil} h\n"
+    "🩺 État santé : ${sport.etatSante}\n\n"
+    "✅ Conseil ORA :\n$conseil",
+    contexte,
+  );
+}
     if (action == "RECOMMENDATION") {
       final maintenant = DateTime.now();
       final taches = await _serviceTache.recupererToutesLesTaches();
