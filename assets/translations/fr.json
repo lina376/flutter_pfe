@@ -45,7 +45,6 @@
     "notifications": "Notifications",
     "weather": "Météo",
     "maps": "Carte",
-    "alarms": "Alarmes",
     "settings": "Paramètres",
     "logout": "Déconnexion",
     "admin": "Administration"
@@ -294,7 +293,6 @@
     "profile": "Profil",
     "favorites": "Favoris",
     "weather": "Météo",
-    "alarms": "Alarmes",
     "maps": "Carte",
     "language": "Langue",
     "notifications": "Notifications",
@@ -310,31 +308,6 @@
     "discuss": "Discuter",
     "search": "Rechercher...",
     "notes": "Mes notes"
-  },
-  "alarms": {
-    "title": "Alarmes",
-    "add_alarm": "Ajouter une alarme",
-    "edit_alarm": "Modifier l'alarme",
-    "delete_alarm": "Supprimer l'alarme",
-    "alarm_time": "Heure de l'alarme",
-    "alarm_label": "Titre de l'alarme",
-    "repeat": "Répéter",
-    "once": "Une fois",
-    "daily": "Quotidien",
-    "alarm_saved": "Alarme enregistrée avec succès",
-    "alarm_deleted": "Alarme supprimée",
-    "no_alarms": "Aucune alarme",
-    "days": {
-      "unique":"une seule fois",
-      "quotidien": "Tous les jours",
-      "lun": "Lundi",
-      "mar": "Mardi",
-      "mer": "Mercredi",
-      "jeu": "Jeudi",
-      "ven": "Vendredi",
-      "sam": "Samedi",
-      "dim": "Dimanche"
-    }
   },
   "admin": {
     "title": "Espace Admin",

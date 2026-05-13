@@ -4,7 +4,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:ora/services/service_gemini.dart';
 import 'service_note.dart';
 import 'service_tache.dart';
-import 'service_alarme.dart';
 import 'service_meteo.dart';
 import 'service_maps.dart';
 import 'service_notification_locale.dart';
@@ -12,15 +11,12 @@ import 'package:ora/controlleurs/controleur_eau.dart';
 import 'package:ora/controlleurs/controleur_sante.dart';
 import 'package:ora/controlleurs/controleur_sport.dart';
 import '../models/modele_contexte.dart';
-import '../models/modele_alarme.dart';
-
 class ServiceChat {
   final ServiceTache _serviceTache = ServiceTache();
   final ServiceGemini _gemini = ServiceGemini();
   final FirebaseAuth _authentification = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final ServiceNote _serviceNote = ServiceNote();
-  final ServiceAlarme _serviceAlarme = ServiceAlarme();
   final ServiceMeteo _serviceMeteo = ServiceMeteo();
   final ServiceMaps _serviceMaps = ServiceMaps();
   final ControleurEau _controleurEau = ControleurEau();
@@ -198,10 +194,6 @@ final ControleurSport _controleurSport = ControleurSport();
       'DELETE_TASK',
       'SEARCH_TASK',
       'GET_TASKS_BY_DATE',
-      'CREATE_ALARME',
-      'UPDATE_ALARME',
-      'DELETE_ALARME',
-      'TOGGLE_ALARME',
       'CREATE_TRIP_REMINDER',
       'RECOMMENDATION',
       'OPEN_MAP_ROUTE',
@@ -232,10 +224,6 @@ final ControleurSport _controleurSport = ControleurSport();
       'UPDATE_TASK',
       'DELETE_TASK',
       'SEARCH_TASK',
-      'CREATE_ALARME',
-      'UPDATE_ALARME',
-      'DELETE_ALARME',
-      'TOGGLE_ALARME',
     };
 
     if (titreObligatoire.contains(action)) {
@@ -761,109 +749,6 @@ final ControleurSport _controleurSport = ControleurSport();
       await _enregistrerContexte(conversationRef, nouveauContexte);
 
       return _ResultatExecution(texteReponse, nouveauContexte);
-    }
-
-    if (action == "CREATE_ALARME") {
-      final dateTexte = _valeur(resultat, "date", "");
-      final titre = _valeur(resultat, "titre", "Alarme");
-      final heureTexte = _valeur(resultat, "heure", "--:--");
-      final jours = _valeur(
-        resultat,
-        "jours",
-        dateTexte.isEmpty ? "quotidien" : "unique",
-      );
-
-      final heure = _extraireHeure(heureTexte, DateTime.now().hour);
-      final minute = _extraireMinute(heureTexte, DateTime.now().minute);
-
-      await _serviceAlarme.ajouterAlarme(
-        ModeleAlarme(
-          userId: '',
-          titre: titre,
-          note: dateTexte.isEmpty ? "Ajoutée par ORA" : "Date: $dateTexte",
-          heure: heure,
-          minute: minute,
-          jours: jours,
-          active: true,
-          date: dateTexte.isEmpty ? null : dateTexte,
-        ),
-      );
-
-      return _ResultatExecution(
-        "L’alarme a été ajoutée avec succès.",
-        contexte,
-      );
-    }
-
-    if (action == "UPDATE_ALARME") {
-      final titre = _valeur(resultat, "titre", "");
-      final nouveauTitre = _valeur(resultat, "nouveau_titre", "");
-      final heureTexte = _valeur(resultat, "heure", "");
-      final jours = _valeur(resultat, "jours", "");
-      final dateTexte = _valeur(resultat, "date", "");
-
-      final alarme = await _serviceAlarme.trouverAlarmeParTitre(titre);
-      if (alarme == null)
-        return _ResultatExecution(
-          "Je n’ai pas trouvé l’alarme à modifier.",
-          contexte,
-        );
-
-      final heure = _extraireHeure(heureTexte, alarme.heure);
-      final minute = _extraireMinute(heureTexte, alarme.minute);
-
-      await _serviceAlarme.modifierAlarme(
-        ModeleAlarme(
-          id: alarme.id,
-          userId: alarme.userId,
-          titre: nouveauTitre.isEmpty ? alarme.titre : nouveauTitre,
-          note: alarme.note,
-          heure: heure,
-          minute: minute,
-          jours: jours.isEmpty ? alarme.jours : jours,
-          active: alarme.active,
-          date: dateTexte.isEmpty ? alarme.date : dateTexte,
-        ),
-      );
-
-      return _ResultatExecution(
-        "L’alarme a été modifiée avec succès.",
-        contexte,
-      );
-    }
-
-    if (action == "DELETE_ALARME") {
-      final titre = _valeur(resultat, "titre", "");
-      final alarme = await _serviceAlarme.trouverAlarmeParTitre(titre);
-
-      if (alarme != null && alarme.id != null) {
-        await _serviceAlarme.supprimerAlarme(alarme.id!);
-        return _ResultatExecution(
-          "L’alarme a été supprimée avec succès.",
-          contexte,
-        );
-      }
-      return _ResultatExecution(
-        "Je n’ai pas trouvé l’alarme à supprimer.",
-        contexte,
-      );
-    }
-
-    if (action == "TOGGLE_ALARME") {
-      final titre = _valeur(resultat, "titre", "");
-      final active = (resultat["active"] ?? true) == true;
-      final alarme = await _serviceAlarme.trouverAlarmeParTitre(titre);
-
-      if (alarme != null && alarme.id != null) {
-        await _serviceAlarme.basculerActivation(alarme.id!, active);
-        return _ResultatExecution(
-          active
-              ? "L’alarme a été activée avec succès."
-              : "L’alarme a été désactivée avec succès.",
-          contexte,
-        );
-      }
-      return _ResultatExecution("Je n’ai pas trouvé l’alarme.", contexte);
     }
     if (action == "ADD_WATER" ||
         action == "REMOVE_WATER" ||

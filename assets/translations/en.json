@@ -45,7 +45,6 @@
     "notifications": "Notifications",
     "weather": "Weather",
     "maps": "Maps",
-    "alarms": "Alarms",
     "settings": "Settings",
     "logout": "Log out",
     "admin": "Admin"
@@ -294,7 +293,6 @@
     "profile": "Profile",
     "favorites": "Favorites",
     "weather": "Weather",
-    "alarms": "Alarms",
     "maps": "Maps",
     "language": "Language",
     "notifications": "Notifications",
@@ -310,32 +308,6 @@
     "discuss": "Discuss",
     "search": "Search...",
     "notes": "My Notes"
-  },
-  "alarms": {
-    
-    "title": "Alarms",
-    "add_alarm": "Add alarm",
-    "edit_alarm": "Edit alarm",
-    "delete_alarm": "Delete alarm",
-    "alarm_time": "Alarm time",
-    "alarm_label": "Alarm label",
-    "repeat": "Repeat",
-    "once": "Once",
-    "daily": "Daily",
-    "alarm_saved": "Alarm saved successfully",
-    "alarm_deleted": "Alarm deleted",
-    "no_alarms": "No alarms",
-    "days": {
-      "unique": "One time",
-      "quotidien": "Every day",
-      "lun": "Monday",
-      "mar": "Tuesday",
-      "mer": "Wednesday",
-      "jeu": "Thursday",
-      "ven": "Friday",
-      "sam": "Saturday",
-      "dim": "Sunday"
-    }
   },
   "admin": {
     "title": "Admin Panel",

@@ -2,7 +2,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:ora/screens/alarmes.dart';
 import 'package:ora/screens/calendrier.dart';
 import 'package:ora/screens/chat.dart';
 import 'package:ora/screens/coach_ora.dart';
@@ -17,7 +16,6 @@ import 'package:ora/screens/notifications.dart';
 import 'package:ora/screens/principal.dart';
 import 'package:ora/screens/profil.dart';
 import 'package:ora/screens/rencontre.dart';
-import 'package:ora/screens/ajouter_alarme.dart';
 import 'package:ora/screens/admin_home.dart';
 import 'package:ora/screens/statistiques_admin.dart';
 import 'package:timezone/data/latest.dart' as tz;
@@ -80,10 +78,8 @@ class MyApp extends StatelessWidget {
         Profil.screenRoute: (context) => const Profil(),
         Calendrier.screenRoute: (context) => const Calendrier(),
         MeteoPage.screenRoute: (context) => const MeteoPage(),
-        AlarmesPage.screenRoute: (context) => const AlarmesPage(),
         MapsPage.screenRoute: (context) => const MapsPage(),
         LanguePage.screenRoute: (context) => const LanguePage(),
-        AjouterAlarmePage.screenRoute: (context) => const AjouterAlarmePage(),
         AdminHome.screenRoute: (context) => const AdminHome(),
         StatistiquesAdminPage.screenRoute: (context) => const StatistiquesAdminPage(),
       },

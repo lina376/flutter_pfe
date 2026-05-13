@@ -19,7 +19,7 @@ class BaseLocale {
 
     return await openDatabase(
       path,
-      version: 12,
+      version: 13,
       onCreate: _createDB,
       onUpgrade: _onUpgrade,
     );
@@ -54,20 +54,6 @@ class BaseLocale {
         estSupprimee INTEGER
       )
     ''');
-
-    await db.execute('''
-      CREATE TABLE alarmes(
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        userId TEXT NOT NULL DEFAULT '',
-        titre TEXT NOT NULL,
-        note TEXT,
-        heure INTEGER NOT NULL,
-        minute INTEGER NOT NULL,
-        jours TEXT NOT NULL,
-        active INTEGER NOT NULL DEFAULT 1,
-        date TEXT
-      )
-    ''');
   }
 
   Future<void> _ajouterColonneSiAbsente(
@@ -78,6 +64,7 @@ class BaseLocale {
   ) async {
     final colonnes = await db.rawQuery('PRAGMA table_info($table)');
     final existe = colonnes.any((c) => c['name'] == colonne);
+
     if (!existe) {
       await db.execute('ALTER TABLE $table ADD COLUMN $definition');
     }
@@ -100,6 +87,7 @@ class BaseLocale {
 
     if (oldVersion < 4) {
       await db.execute('DROP TABLE IF EXISTS taches');
+
       await db.execute('''
         CREATE TABLE taches (
           id TEXT PRIMARY KEY,
@@ -114,26 +102,6 @@ class BaseLocale {
           estSupprimee INTEGER NOT NULL DEFAULT 0
         )
       ''');
-    }
-
-    if (oldVersion < 7) {
-      await db.execute('DROP TABLE IF EXISTS alarmes');
-      await db.execute('''
-        CREATE TABLE alarmes(
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          titre TEXT NOT NULL,
-          note TEXT,
-          heure INTEGER NOT NULL,
-          minute INTEGER NOT NULL,
-          jours TEXT NOT NULL,
-          active INTEGER NOT NULL DEFAULT 1,
-          date TEXT
-        )
-      ''');
-    }
-
-    if (oldVersion >= 7 && oldVersion < 9) {
-      await _ajouterColonneSiAbsente(db, 'alarmes', 'date', 'date TEXT');
     }
 
     if (oldVersion < 8) {
@@ -161,33 +129,17 @@ class BaseLocale {
         'userId',
         "userId TEXT NOT NULL DEFAULT ''",
       );
+
       await _ajouterColonneSiAbsente(
         db,
         'taches',
         'userId',
         "userId TEXT NOT NULL DEFAULT ''",
       );
-      await _ajouterColonneSiAbsente(
-        db,
-        'alarmes',
-        'userId',
-        "userId TEXT NOT NULL DEFAULT ''",
-      );
     }
 
-    if (oldVersion < 12) {
-      await _ajouterColonneSiAbsente(
-        db,
-        'alarmes',
-        'date',
-        'date TEXT',
-      );
-      await _ajouterColonneSiAbsente(
-        db,
-        'alarmes',
-        'userId',
-        "userId TEXT NOT NULL DEFAULT ''",
-      );
+    if (oldVersion < 13) {
+      await db.execute('DROP TABLE IF EXISTS alarmes');
     }
   }
 

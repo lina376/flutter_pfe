@@ -14,7 +14,6 @@ import 'package:ora/screens/coach_ora.dart';
 import 'package:ora/screens/mesnotes.dart';
 import 'package:ora/screens/notifications.dart';
 import 'package:ora/screens/meteo.dart';
-import 'package:ora/screens/alarmes.dart';
 import 'package:ora/screens/maps.dart';
 import 'package:ora/screens/langue.dart';
 import 'package:ora/screens/eau_page.dart';
@@ -336,17 +335,6 @@ Future<void> verifierHydratation() async {
                                 const Divider(
                                   color: Colors.white24,
                                   height: 18,
-                                ),
-                                _list(
-                                  icon: Icons.map_outlined,
-                                  title: 'menu.maps'.tr(),
-                                  onTap: () {
-                                    Navigator.pop(context);
-                                    Navigator.pushNamed(
-                                      context,
-                                      MapsPage.screenRoute,
-                                    );
-                                  },
                                 ),
                                 _list(
                                   icon: Icons.language,
@@ -927,7 +915,7 @@ Future<void> verifierHydratation() async {
                         right: largeur * 0.04,
                         top: hauteur * 0.01,
                         bottom: largeur * 1.92,
-                        child: const AccesRapidesNotesAlarmes(),
+                        child: const AccesRapidesNotesMps(),
                       ),
                       Positioned(
                         top: hauteur * 0.22,
@@ -1119,9 +1107,8 @@ class CarteMeteoAccueil extends StatelessWidget {
     );
   }
 }
-
-class AccesRapidesNotesAlarmes extends StatelessWidget {
-  const AccesRapidesNotesAlarmes({super.key});
+class AccesRapidesNotesMps extends StatelessWidget {
+  const AccesRapidesNotesMps({super.key});
 
   Widget _boutonAcces({
     required BuildContext context,
@@ -1198,12 +1185,13 @@ class AccesRapidesNotesAlarmes extends StatelessWidget {
             ),
             const SizedBox(height: 6),
             _boutonAcces(
-              context: context,
-              icon: Icons.alarm_rounded,
-              titre: 'menu.alarms'.tr(),
-              onTap: () =>
-                  Navigator.pushNamed(context, AlarmesPage.screenRoute),
-            ),
+  context: context,
+  icon: Icons.alt_route,
+  titre: 'MPS',
+  onTap: () {
+    Navigator.pushNamed(context,MapsPage.screenRoute );
+  },
+),
           ],
         ),
       ),

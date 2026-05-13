@@ -83,7 +83,7 @@ Source: ${contexte.source}
     try {
       final prompt =
           """
-Tu es ORA, assistant intelligent d'une application Flutter de notes, tâches et alarmes.
+Tu es ORA, assistant intelligent d'une application Flutter de notes, tâches.
 
 Date actuelle exacte : ${DateTime.now().toIso8601String()}
 Contexte actif :
@@ -98,7 +98,6 @@ Ne réponds jamais avec une explication dans cette fonction.
 Actions possibles :
 CREATE_NOTE, UPDATE_NOTE, DELETE_NOTE, SEARCH_NOTE,
 CREATE_TASK, UPDATE_TASK, DELETE_TASK, SEARCH_TASK, GET_TASKS_BY_DATE,
-CREATE_ALARME, UPDATE_ALARME, DELETE_ALARME, TOGGLE_ALARME,
 CREATE_TRIP_REMINDER, RECOMMENDATION, OPEN_MAP_ROUTE,ADD_WATER,REMOVE_WATER,SET_WATER,SET_WEIGHT,
 INCREASE_WEIGHT,DECREASE_WEIGHT,SET_MOOD,SET_SLEEP,ADD_SPORT,
 REMOVE_SPORT,SET_SPORT,SET_HEALTH_STATE,GET_DAILY_SUMMARY,CHAT.
@@ -228,21 +227,6 @@ Supprimer tâche :
 
 Chercher tâche :
 {"action":"SEARCH_TASK","titre":"..."}
-
-Créer alarme :
-{"action":"CREATE_ALARME","titre":"...","heure":"HH:mm","date":"YYYY-MM-DD","jours":"unique"}
-ou
-{"action":"CREATE_ALARME","titre":"...","heure":"HH:mm","jours":"quotidien"}
-
-Modifier alarme :
-{"action":"UPDATE_ALARME","titre":"...","nouveau_titre":"...","heure":"HH:mm","date":"YYYY-MM-DD","jours":"unique"}
-
-Supprimer alarme :
-{"action":"DELETE_ALARME","titre":"..."}
-
-Activer/désactiver alarme :
-{"action":"TOGGLE_ALARME","titre":"...","active":true}
-
 Créer rappel trajet météo :
 {"action":"CREATE_TRIP_REMINDER","destination":"Sousse","date":"YYYY-MM-DD","heure_arrivee":"HH:mm"}
 
