@@ -2,7 +2,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:ora/controlleurs/controleur_statistique_admin.dart';
 import 'package:ora/models/modele_statistique_admin.dart';
-
+import 'package:easy_localization/easy_localization.dart';
 class StatistiquesAdminPage extends StatefulWidget {
   static const String screenRoute = 'statistiquesAdmin';
 
@@ -27,8 +27,8 @@ class _StatistiquesAdminPageState extends State<StatistiquesAdminPage> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: const Text(
-          'Statistiques',
+        title: Text(
+          "admin.stats".tr(),
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         leading: IconButton(
@@ -102,11 +102,11 @@ class _StatistiquesAdminPageState extends State<StatistiquesAdminPage> {
   }
 
   Widget _entete() {
-    return const Column(
+    return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Tableau de bord admin',
+          "admin.dashboard".tr(),
           style: TextStyle(
             color: Colors.white,
             fontSize: 31,
@@ -115,7 +115,7 @@ class _StatistiquesAdminPageState extends State<StatistiquesAdminPage> {
         ),
         SizedBox(height: 5),
         Text(
-          'Suivi de l\'activité des utilisateurs ORA',
+          "admin.activity_follow".tr(),
           style: TextStyle(color: Colors.white70, fontSize: 16),
         ),
       ],
@@ -132,9 +132,9 @@ class _StatistiquesAdminPageState extends State<StatistiquesAdminPage> {
       ),
       child: Row(
         children: [
-          _boutonPeriode('jour', 'Aujourd\'hui'),
-          _boutonPeriode('semaine', 'Semaine'),
-          _boutonPeriode('mois', 'Mois'),
+          _boutonPeriode('jour', "admin.today".tr()),
+          _boutonPeriode('semaine', "admin.week".tr()),
+          _boutonPeriode('mois', "admin.month".tr()),
         ],
       ),
     );
@@ -180,25 +180,25 @@ class _StatistiquesAdminPageState extends State<StatistiquesAdminPage> {
       children: [
         _carteStat(
           icone: Icons.groups_rounded,
-          titre: 'Utilisateurs',
+          titre: "admin.users".tr(),
           valeur: statistiques.totalUtilisateurs.toString(),
           sousTitre: 'comptes utilisateur',
         ),
         _carteStat(
           icone: Icons.water_drop_rounded,
-          titre: 'Objectif eau',
+          titre: "admin.water_goal".tr(),
           valeur: '${statistiques.pourcentageEau.toStringAsFixed(0)}%',
           sousTitre: '${statistiques.utilisateursEauObjectif} utilisateurs',
         ),
         _carteStat(
           icone: Icons.fitness_center_rounded,
-          titre: 'Sport',
+          titre: "admin.sport".tr(),
           valeur: '${statistiques.pourcentageSport.toStringAsFixed(0)}%',
           sousTitre: '${statistiques.utilisateursSport} utilisateurs',
         ),
         _carteStat(
           icone: Icons.smart_toy_rounded,
-          titre: 'Chat ORA',
+          titre: "admin.chat".tr(),
           valeur: '${statistiques.pourcentageChat.toStringAsFixed(0)}%',
           sousTitre: '${statistiques.utilisateursChat} utilisateurs',
         ),
@@ -265,7 +265,7 @@ class _StatistiquesAdminPageState extends State<StatistiquesAdminPage> {
 }
   Widget _carteGraphiqueGlobal(ModeleStatistiqueAdmin statistiques) {
     return _conteneurGraphique(
-      titre: 'Répartition globale',
+      titre: "admin.global_stats".tr(),
       enfant: SizedBox(
         height: 210,
         child: PieChart(
@@ -274,7 +274,7 @@ class _StatistiquesAdminPageState extends State<StatistiquesAdminPage> {
             sectionsSpace: 3,
             sections: [
               _sectionPie('Eau', statistiques.pourcentageEau, Colors.lightBlueAccent),
-              _sectionPie('Sport', statistiques.pourcentageSport, Colors.greenAccent),
+              _sectionPie("admin.sport".tr(), statistiques.pourcentageSport, Colors.greenAccent),
               _sectionPie('Chat', statistiques.pourcentageChat, const Color(0xFFB4A7D6)),
             ],
           ),
@@ -300,7 +300,7 @@ class _StatistiquesAdminPageState extends State<StatistiquesAdminPage> {
   }
 Widget _carteBarres(ModeleStatistiqueAdmin statistiques) {
   return _conteneurGraphique(
-    titre: 'Activité par utilisateurs',
+    titre: "admin.activity_users".tr(),
     enfant: SizedBox(
       height: 260,
       child: BarChart(
@@ -354,7 +354,7 @@ Widget _carteBarres(ModeleStatistiqueAdmin statistiques) {
               sideTitles: SideTitles(
                 showTitles: true,
                 getTitlesWidget: (value, meta) {
-                  final titres = ['Eau', 'Sport', 'Chat'];
+                  final titres = ['Eau', "admin.sport".tr(), 'Chat'];
 
                   return Padding(
                     padding: const EdgeInsets.only(top: 8),
@@ -408,10 +408,9 @@ Widget _carteBarres(ModeleStatistiqueAdmin statistiques) {
       ],
     );
   }
-
   Widget _listeDetails(ModeleStatistiqueAdmin statistiques) {
     return _conteneurGraphique(
-      titre: 'Détails',
+      titre: "admin.details".tr(),
       enfant: Column(
         children: [
           _ligneDetail(

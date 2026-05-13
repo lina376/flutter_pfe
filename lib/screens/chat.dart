@@ -144,7 +144,11 @@ class _chatState extends State<chat> {
     }
 
     await _speech.listen(
-      localeId: 'ar_AR',
+      localeId: context.locale.languageCode == 'ar'
+    ? 'ar_AR'
+    : context.locale.languageCode == 'fr'
+        ? 'fr_FR'
+        : 'en_US',
       listenMode: stt.ListenMode.dictation,
       partialResults: true,
       listenFor: const Duration(seconds: 20),
@@ -475,7 +479,7 @@ class _chatState extends State<chat> {
                                           },
                                           icon: const Icon(Icons.map),
                                           label: Text(
-                                            "Voir trajet vers $destination",
+                                            "${"maps.route_to".tr()} $destination",
                                           ),
                                         ),
                                       ),

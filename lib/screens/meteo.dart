@@ -92,19 +92,43 @@ class _MeteoPageState extends State<MeteoPage> {
     }
   }
 
-  IconData _iconePrincipale(String description) {
-    final texte = description.toLowerCase();
+    IconData _iconePrincipale(String description) {
+  final texte = description.toLowerCase();
 
-    if (texte.contains("pluie")) return Icons.water_drop_outlined;
-    if (texte.contains("nuage")) return Icons.cloud_outlined;
-    if (texte.contains("orage")) return Icons.flash_on_outlined;
-    if (texte.contains("vent")) return Icons.air;
-    if (texte.contains("soleil") || texte.contains("dégagé")) {
-      return Icons.wb_sunny_outlined;
-    }
-
-    return Icons.wb_cloudy_outlined;
+  if (texte.contains("rain") ||
+      texte.contains("pluie") ||
+      texte.contains("مطر")) {
+    return Icons.water_drop_outlined;
   }
+
+  if (texte.contains("cloud") ||
+      texte.contains("nuage") ||
+      texte.contains("سحاب")) {
+    return Icons.cloud_outlined;
+  }
+
+  if (texte.contains("storm") ||
+      texte.contains("orage") ||
+      texte.contains("عاصفة")) {
+    return Icons.flash_on_outlined;
+  }
+
+  if (texte.contains("wind") ||
+      texte.contains("vent") ||
+      texte.contains("رياح")) {
+    return Icons.air;
+  }
+
+  if (texte.contains("sun") ||
+      texte.contains("soleil") ||
+      texte.contains("clear") ||
+      texte.contains("dégagé") ||
+      texte.contains("مشمس")) {
+    return Icons.wb_sunny_outlined;
+  }
+
+  return Icons.wb_cloudy_outlined;
+}
 
   Widget _blocPrincipal() {
     final meteo = _meteoActuelle!;

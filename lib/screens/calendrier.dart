@@ -17,19 +17,19 @@ class Calendrier extends StatefulWidget {
 class _CalendrierState extends State<Calendrier> {
   final ControleurTache _controleurTache = ControleurTache();
 
-  final List<String> _categories = const [
-    'Études',
-    'Travail',
-    'Personnel',
-    'Santé',
-    'Courses',
-    'Rendez-vous',
-    'Autre',
-  ];
-final List<String> _priorites = const [
-  'Haute',
-  'Moyenne',
-  'Basse',
+ final List<String> _categories = [
+  "tasks.study".tr(),
+  "tasks.work".tr(),
+  "tasks.personal".tr(),
+  "tasks.health".tr(),
+  "tasks.shopping".tr(),
+  "tasks.meeting".tr(),
+  "tasks.other".tr(),
+];
+final List<String> _priorites = [
+  "tasks.high".tr(),
+  "tasks.medium".tr(),
+  "tasks.low".tr(),
 ];
   @override
   void initState() {
@@ -103,10 +103,10 @@ String prioriteChoisie = 'Basse';
                   const SizedBox(height: 12),
                   DropdownButtonFormField<String>(
   value: prioriteChoisie,
-  decoration: const InputDecoration(
-    labelText: "Priorité",
-    border: OutlineInputBorder(),
-  ),
+  decoration: InputDecoration(
+  labelText: "tasks.priority".tr(),
+  border: const OutlineInputBorder(),
+),
   items: _priorites.map((priorite) {
     return DropdownMenuItem<String>(
       value: priorite,

@@ -4,7 +4,7 @@ import 'package:ora/controlleurs/controleur_sport.dart';
 import 'package:ora/models/modele_eau.dart';
 import 'package:ora/models/modele_sante.dart';
 import 'package:ora/models/modele_sport.dart';
-
+import 'package:easy_localization/easy_localization.dart';
 class SportPage extends StatefulWidget {
   static const String screenRoute = 'page_sport';
 
@@ -191,8 +191,8 @@ class _SportPageState extends State<SportPage> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: const Text(
-          'Sport',
+        title:  Text(
+          "sport.title".tr(),
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900),
         ),
         centerTitle: true,
@@ -276,8 +276,8 @@ class _SportPageState extends State<SportPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Conseil ORA du jour',
+                 Text(
+                  "sport.daily_tip".tr(),
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 15,
@@ -316,8 +316,8 @@ class _SportPageState extends State<SportPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Résumé activité',
+           Text(
+            "sport.summary".tr(),
             style: TextStyle(
               color: Colors.white,
               fontSize: 18,
@@ -353,10 +353,10 @@ class _SportPageState extends State<SportPage> {
       decoration: _decorationCarte(),
       child: Column(
         children: [
-          const Align(
+           Align(
             alignment: Alignment.centerLeft,
             child: Text(
-              'Objectif sportif',
+              "sport.goal".tr(),
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 16,
@@ -404,8 +404,8 @@ class _SportPageState extends State<SportPage> {
           const SizedBox(height: 18),
           Text(
             progress >= 1
-                ? 'Objectif atteint, bravo ! 🎉'
-                : 'Ajoutez une petite séance pour avancer.',
+                ? "sport.goal_done".tr()
+                : "sport.goal_continue".tr(),
             style: TextStyle(
               color: Colors.white.withOpacity(0.82),
               fontSize: 14,
@@ -448,8 +448,8 @@ class _SportPageState extends State<SportPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Profil sportif',
+           Text(
+            "sport.profile".tr(),
             style: TextStyle(
               color: Colors.white,
               fontSize: 16,
@@ -533,8 +533,8 @@ class _SportPageState extends State<SportPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Exercices recommandés',
+           Text(
+            "sport.exercises".tr(),
             style: TextStyle(
               color: Colors.white,
               fontSize: 16,
@@ -615,8 +615,8 @@ class _SportPageState extends State<SportPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Historique sport - Cette semaine',
+           Text(
+            "sport.history".tr(),
             style: TextStyle(
               color: Colors.white,
               fontSize: 16,
@@ -692,8 +692,8 @@ class _SportPageState extends State<SportPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Lien avec Santé & Eau',
+           Text(
+            "sport.health_link".tr(),
             style: TextStyle(
               color: Colors.white,
               fontSize: 16,
@@ -701,13 +701,13 @@ class _SportPageState extends State<SportPage> {
             ),
           ),
           const SizedBox(height: 14),
-          _ligneLien(Icons.person, 'Âge', '$age ans'),
-          _ligneLien(Icons.monitor_weight, 'Poids', poids),
-          if (data != null) _ligneLien(Icons.track_changes, 'Objectif sport', data.objectifSport),
-          if (data != null) _ligneLien(Icons.health_and_safety, 'État santé', data.etatSante),
-          _ligneLien(Icons.bedtime, 'Sommeil', '$sommeil h'),
-          _ligneLien(Icons.mood, 'Humeur', humeur),
-          _ligneLien(Icons.water_drop, 'Hydratation', hydratation),
+         _ligneLien(Icons.person, "sport.age".tr(), "$age ${"sport.years".tr()}"),
+_ligneLien(Icons.monitor_weight, "health.weight".tr(), poids),
+if (data != null) _ligneLien(Icons.track_changes, "sport.goal".tr(), data.objectifSport),
+if (data != null) _ligneLien(Icons.health_and_safety, "sport.health_state".tr(), data.etatSante),
+_ligneLien(Icons.bedtime, "health.sleep".tr(), "$sommeil h"),
+_ligneLien(Icons.mood, "health.mood".tr(), humeur),
+_ligneLien(Icons.water_drop, "water.title".tr(), hydratation),
         ],
       ),
     );

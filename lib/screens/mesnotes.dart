@@ -30,7 +30,9 @@ class _mesnotesState extends State<mesnotes> {
 
   Future<void> ouvrirChatPourNote(ModeleNote note) async {
     final conversationId = await _controleurPrincipal.creerConversation(
-      premierMessage: note.titre.isEmpty ? "Nouvelle discussion" : note.titre,
+      premierMessage: note.titre.isEmpty
+    ? "chat.new_discussion".tr()
+    : note.titre,
       contexteType: "note",
       contexteId: note.id,
     );

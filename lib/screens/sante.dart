@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:ora/controlleurs/controleur_sante.dart';
 import 'package:ora/models/modele_sante.dart';
-
+import 'package:easy_localization/easy_localization.dart';
 class SantePage extends StatefulWidget {
   static const String screenRoute = 'page_sante';
 
@@ -295,8 +295,8 @@ class _SantePageState extends State<SantePage> {
       decoration: _decorationCarte(),
       child: Column(
         children: [
-          const Text(
-            'Score santé',
+           Text(
+            "health.score".tr(),
             style: TextStyle(
               color: Colors.white,
               fontSize: 18,
@@ -331,8 +331,8 @@ class _SantePageState extends State<SantePage> {
                     ),
                   ),
 
-                  const Text(
-                    'Aujourd’hui',
+                   Text(
+                    "health.today".tr(),
                     style: TextStyle(
                       color: Colors.white70,
                       fontWeight: FontWeight.w600,
@@ -371,8 +371,8 @@ class _SantePageState extends State<SantePage> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: const Text(
-          'Santé',
+        title:  Text(
+          "health.title".tr(),
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900),
         ),
         centerTitle: true,
@@ -446,8 +446,8 @@ class _SantePageState extends State<SantePage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Conseil ORA du jour',
+                 Text(
+                  "health.daily_tip".tr(),
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 15,
@@ -500,8 +500,8 @@ class _SantePageState extends State<SantePage> {
                   ),
                 ),
                 const SizedBox(height: 6),
-                const Text(
-                  'Votre profil santé',
+                 Text(
+                  "health.profile".tr(),
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 24,
@@ -558,7 +558,7 @@ class _SantePageState extends State<SantePage> {
                 ElevatedButton.icon(
                   onPressed: _ouvrirModifierProfil,
                   icon: const Icon(Icons.edit),
-                  label: const Text('Modifier'),
+                  label: Text("app.edit".tr()),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.white.withOpacity(0.14),
                     foregroundColor: Colors.white,
@@ -612,8 +612,8 @@ class _SantePageState extends State<SantePage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Sommeil',
+           Text(
+            "health.sleep".tr(),
             style: TextStyle(
               color: Colors.white,
               fontSize: 16,
@@ -656,11 +656,11 @@ class _SantePageState extends State<SantePage> {
 
   Widget _carteHumeur(ModeleSante data) {
     final humeurs = [
-      {'nom': 'Heureux', 'emoji': '😊'},
-      {'nom': 'Normal', 'emoji': '😐'},
-      {'nom': 'Fatigué', 'emoji': '😴'},
-      {'nom': 'Stressé', 'emoji': '😵'},
-    ];
+  {'key': 'Heureux', 'label': 'health.happy'.tr(), 'emoji': '😊'},
+  {'key': 'Normal', 'label': 'health.normal'.tr(), 'emoji': '😐'},
+  {'key': 'Fatigué', 'label': 'health.tired'.tr(), 'emoji': '😴'},
+  {'key': 'Stressé', 'label': 'health.stressed'.tr(), 'emoji': '😵'},
+];
 
     return Container(
       width: double.infinity,
@@ -669,8 +669,8 @@ class _SantePageState extends State<SantePage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Humeur',
+           Text(
+            "health.mood".tr(),
             style: TextStyle(
               color: Colors.white,
               fontSize: 16,
@@ -680,12 +680,13 @@ class _SantePageState extends State<SantePage> {
           const SizedBox(height: 16),
           Row(
             children: humeurs.map((item) {
-              final nom = item['nom']!;
-              final selected = data.humeur == nom;
+  final key = item['key']!;
+  final label = item['label']!;
+  final selected = data.humeur == key;
 
-              return Expanded(
-                child: GestureDetector(
-                  onTap: () => _modifierHumeur(nom),
+  return Expanded(
+    child: GestureDetector(
+      onTap: () => _modifierHumeur(key),
                   child: Container(
                     margin: const EdgeInsets.symmetric(horizontal: 4),
                     padding: const EdgeInsets.symmetric(vertical: 14),
@@ -708,7 +709,7 @@ class _SantePageState extends State<SantePage> {
                         ),
                         const SizedBox(height: 6),
                         Text(
-                          nom,
+                          label,
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 11,
@@ -735,8 +736,8 @@ class _SantePageState extends State<SantePage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Poids',
+           Text(
+            "health.weight".tr(),
             style: TextStyle(
               color: Colors.white,
               fontSize: 16,
@@ -761,7 +762,7 @@ class _SantePageState extends State<SantePage> {
                 child: ElevatedButton.icon(
                   onPressed: () => _modifierPoids(data.poids - 0.1),
                   icon: const Icon(Icons.remove),
-                  label: const Text('Retirer'),
+                  label:  Text("water.remove".tr()),
                   style: _styleBouton(false),
                 ),
               ),
@@ -770,7 +771,7 @@ class _SantePageState extends State<SantePage> {
                 child: ElevatedButton.icon(
                   onPressed: () => _modifierPoids(data.poids + 0.1),
                   icon: const Icon(Icons.add),
-                  label: const Text('Ajouter'),
+                  label:  Text("water.add".tr()),
                   style: _styleBouton(true),
                 ),
               ),
@@ -783,7 +784,15 @@ class _SantePageState extends State<SantePage> {
 
   Widget _carteHistoriqueSommeil() {
     final valeurs = _valeursSommeilSemaine();
-    final jours = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
+    final jours = [
+  "water.mon".tr(),
+  "water.tue".tr(),
+  "water.wed".tr(),
+  "water.thu".tr(),
+  "water.fri".tr(),
+  "water.sat".tr(),
+  "water.sun".tr(),
+];
     const maxHeures = 10.0;
 
     return Container(
@@ -793,8 +802,8 @@ class _SantePageState extends State<SantePage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Historique sommeil - Cette semaine',
+           Text(
+            "health.sleep_history".tr(),
             style: TextStyle(
               color: Colors.white,
               fontSize: 16,
@@ -866,8 +875,8 @@ class _SantePageState extends State<SantePage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Historique humeur - Cette semaine',
+           Text(
+            "health.mood_history".tr(),
             style: TextStyle(
               color: Colors.white,
               fontSize: 16,
@@ -964,67 +973,55 @@ class _SantePageState extends State<SantePage> {
 
     return score.clamp(0, 100);
   }
+String _conseilSante(ModeleSante data) {
+  double objectifHydratation = data.poids * 0.035;
 
-  String _conseilSante(ModeleSante data) {
-    double objectifHydratation = data.poids * 0.035;
-
-    if (data.activite == 'Sportif') {
-      objectifHydratation += 0.5;
-    }
-
-    if (data.humeur == 'Stressé') {
-      objectifHydratation += 0.3;
-    }
-
-    if (data.heuresSommeil <= 5) {
-      objectifHydratation += 0.2;
-    }
-
-    objectifHydratation = objectifHydratation.clamp(1.5, 4.0);
-
-    // CONSEIL SOMMEIL
-    if (data.heuresSommeil <= 4) {
-      return 'ORA détecte une fatigue importante 😴\n'
-          'Votre sommeil est insuffisant aujourd’hui.\n'
-          'Essayez de dormir plus tôt et hydratez-vous davantage.\n'
-          'Objectif recommandé : ${objectifHydratation.toStringAsFixed(1)} L 💧';
-    }
-
-    // CONSEIL STRESS
-    if (data.humeur == 'Stressé') {
-      return 'ORA détecte un niveau de stress élevé 🌿\n'
-          'Prenez quelques minutes pour respirer et vous détendre.\n'
-          'Une bonne hydratation peut aussi réduire la fatigue mentale.\n'
-          'Essayez de boire ${objectifHydratation.toStringAsFixed(1)} L aujourd’hui 💧';
-    }
-
-    // CONSEIL FATIGUE
-    if (data.humeur == 'Fatigué') {
-      return 'Votre corps semble fatigué aujourd’hui 💜\n'
-          'Essayez de ralentir le rythme et reposez-vous davantage.\n'
-          'Hydratation recommandée : ${objectifHydratation.toStringAsFixed(1)} L 💧';
-    }
-
-    // SPORT
-    if (data.activite == 'Sportif') {
-      return 'ORA détecte une activité physique élevée 🏃\n'
-          'Votre corps a besoin de plus d’eau et de récupération.\n'
-          'Hydratation idéale : ${objectifHydratation.toStringAsFixed(1)} L 💧';
-    }
-
-    // EXCELLENT ETAT
-    if (data.heuresSommeil >= 7 && data.humeur == 'Heureux') {
-      return 'Excellent équilibre aujourd’hui ✨\n'
-          'Votre sommeil et votre humeur sont très bons.\n'
-          'Continuez comme ça et gardez une bonne hydratation 💧';
-    }
-
-    // NORMAL
-    return 'ORA surveille votre équilibre santé 💜\n'
-        'Continuez à bien dormir, bien manger et rester hydraté.\n'
-        'Objectif hydratation : ${objectifHydratation.toStringAsFixed(1)} L 💧';
+  if (data.activite == 'Sportif') {
+    objectifHydratation += 0.5;
   }
 
+  if (data.humeur == 'Stressé') {
+    objectifHydratation += 0.3;
+  }
+
+  if (data.heuresSommeil <= 5) {
+    objectifHydratation += 0.2;
+  }
+
+  objectifHydratation = objectifHydratation.clamp(1.5, 4.0);
+
+  if (data.heuresSommeil <= 4) {
+    return "health.tip_sleep".tr(
+      args: [objectifHydratation.toStringAsFixed(1)],
+    );
+  }
+
+  if (data.humeur == 'Stressé') {
+    return "health.tip_stress".tr(
+      args: [objectifHydratation.toStringAsFixed(1)],
+    );
+  }
+
+  if (data.humeur == 'Fatigué') {
+    return "health.tip_tired".tr(
+      args: [objectifHydratation.toStringAsFixed(1)],
+    );
+  }
+
+  if (data.activite == 'Sportif') {
+    return "health.tip_sport".tr(
+      args: [objectifHydratation.toStringAsFixed(1)],
+    );
+  }
+
+  if (data.heuresSommeil >= 7 && data.humeur == 'Heureux') {
+    return "health.tip_excellent".tr();
+  }
+
+  return "health.tip_normal".tr(
+    args: [objectifHydratation.toStringAsFixed(1)],
+  );
+}
   List<double> _valeursSommeilSemaine() {
     final debutSemaine = semaineAffichee.subtract(
       Duration(days: semaineAffichee.weekday - 1),

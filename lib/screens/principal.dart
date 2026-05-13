@@ -102,7 +102,7 @@ Future<void> verifierMeteo() async {
       description.contains('averse') ||
       description.contains('orage')) {
     await envoyerNotificationOra(
-      title: 'Météo ORA',
+      title: 'notifications.weather_title'.tr(),
       body: meteo.conseil,
       type: 'meteo',
       iconType: 'weather',
@@ -115,7 +115,7 @@ Future<void> verifierMeteo() async {
 
   if (meteo.temperature >= 32) {
     await envoyerNotificationOra(
-      title: 'Chaleur élevée',
+      title: 'notifications.heat_title'.tr(),
       body: meteo.conseil,
       type: 'meteo',
       iconType: 'weather',
@@ -156,9 +156,11 @@ Future<void> verifierSommeil() async {
   if (sante.heuresSommeil >= 7) return;
 
   await envoyerNotificationOra(
-    title: 'Conseil sommeil',
+    title: 'notifications.sleep_title'.tr(),
     body:
-        'Votre sommeil est insuffisant : ${sante.heuresSommeil}h 😴',
+        'notifications.sleep_body'.tr(
+  args: ['${sante.heuresSommeil}'],
+),
     type: 'sante_sommeil',
     iconType: 'health',
     data: {
@@ -172,9 +174,14 @@ Future<void> verifierSport() async {
   if (sport.minutes >= sport.objectifMinutes) return;
 
   await envoyerNotificationOra(
-    title: 'Rappel sport',
+    title: 'notifications.sport_title'.tr(),
     body:
-        'Tu n’as pas encore atteint ton objectif sport : ${sport.minutes}/${sport.objectifMinutes} min 💪',
+        'notifications.sport_body'.tr(
+  args: [
+    '${sport.minutes}',
+    '${sport.objectifMinutes}',
+  ],
+),
     type: 'sport',
     iconType: 'sport',
     data: {
@@ -189,9 +196,14 @@ Future<void> verifierHydratation() async {
   if (eau.verres >= eau.objectif) return;
 
   await envoyerNotificationOra(
-    title: 'Rappel hydratation',
+    title: 'notifications.water_title'.tr(),
     body:
-        'Tu n’as pas encore atteint ton objectif : ${eau.verres}/${eau.objectif} verres 💧',
+        'notifications.water_body'.tr(
+  args: [
+    '${eau.verres}',
+    '${eau.objectif}',
+  ],
+),
     type: 'water',
     iconType: 'water',
     data: {
@@ -689,23 +701,23 @@ Future<void> verifierHydratation() async {
         ),
         actions: [
           if (isAdmin)
-            Positioned(
-              top: 50,
-              right: 30,
-              child: GestureDetector(
-                onTap: () {
-                  Navigator.pushNamed(context, AdminHome.screenRoute);
-                },
-                child: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: const BoxDecoration(
-                    color: Color.fromARGB(92, 88, 70, 142),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(Icons.admin_panel_settings, color: Colors.white),
-                ),
-              ),
-            ),
+  GestureDetector(
+    onTap: () {
+      Navigator.pushNamed(context, AdminHome.screenRoute);
+    },
+    child: Container(
+      margin: const EdgeInsets.only(right: 5),
+      padding: const EdgeInsets.all(8),
+      decoration: const BoxDecoration(
+        color: Color.fromARGB(92, 88, 70, 142),
+        shape: BoxShape.circle,
+      ),
+      child: const Icon(
+        Icons.admin_panel_settings,
+        color: Colors.white,
+      ),
+    ),
+  ),
           _buildPhotoProfil(),
           StreamBuilder<int>(
   stream: ControleurNotification().compterNonLues(),
@@ -1088,7 +1100,7 @@ class CarteMeteoAccueil extends StatelessWidget {
               ),
             ),
             Text(
-              'Prévisions',
+              'meteo.forecast'.tr(),
               style: TextStyle(
                 color: Colors.white.withOpacity(0.72),
                 fontSize: 11,
@@ -1187,7 +1199,7 @@ class AccesRapidesNotesMps extends StatelessWidget {
             _boutonAcces(
   context: context,
   icon: Icons.alt_route,
-  titre: 'MPS',
+titre: 'maps.title'.tr(),
   onTap: () {
     Navigator.pushNamed(context,MapsPage.screenRoute );
   },
@@ -1253,7 +1265,7 @@ class BarreBienEtre extends StatelessWidget {
         children: [
           item(
             icon: Icons.favorite,
-            titre: "Santé",
+            titre: "health.title".tr(),
             color: Colors.redAccent,
             onTap: () {
               Navigator.pushNamed(context, SantePage.screenRoute);
@@ -1261,7 +1273,7 @@ class BarreBienEtre extends StatelessWidget {
           ),
           item(
             icon: Icons.water_drop,
-            titre: "Hydratation",
+            titre: "water.title".tr(),
             color: Colors.blue,
             onTap: () {
               Navigator.pushNamed(context, EauPage.screenRoute);
@@ -1269,7 +1281,7 @@ class BarreBienEtre extends StatelessWidget {
           ),
           item(
             icon: Icons.directions_run,
-            titre: "Sport",
+            titre: "sport.title".tr(),
             color: Colors.green,
             onTap: () {
               Navigator.pushNamed(context, SportPage.screenRoute);
@@ -1277,7 +1289,7 @@ class BarreBienEtre extends StatelessWidget {
           ),
           item(
             icon: Icons.psychology_alt,
-            titre: "Coach ORA",
+            titre: "coach.title".tr(),
             color: Colors.orangeAccent,
             onTap: () {
               Navigator.pushNamed(context, CoachOraPage.screenRoute);

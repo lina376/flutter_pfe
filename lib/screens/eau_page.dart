@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:ora/controlleurs/controleur_eau.dart';
 import 'package:ora/models/modele_eau.dart';
-
+import 'package:easy_localization/easy_localization.dart';
 class EauPage extends StatefulWidget {
   static const String screenRoute = 'page_eau';
 
@@ -135,8 +135,7 @@ class _EauPageState extends State<EauPage> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: const Text(
-          'Eau',
+        title: Text("water.title".tr(),
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900),
         ),
         centerTitle: true,
@@ -206,8 +205,8 @@ class _EauPageState extends State<EauPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Conseil ORA du jour',
+                 Text(
+                  "water.daily_tip".tr(),
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 15,
@@ -254,10 +253,10 @@ class _EauPageState extends State<EauPage> {
       decoration: _decorationCarte(),
       child: Column(
         children: [
-          const Align(
+           Align(
             alignment: Alignment.centerLeft,
             child: Text(
-              'Objectif quotidien',
+              "water.daily_goal".tr(),
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 16,
@@ -291,8 +290,8 @@ class _EauPageState extends State<EauPage> {
           const SizedBox(height: 8),
           Text(
             progress >= 1
-                ? 'Objectif atteint ! 🎉'
-                : 'Continue, tu es proche !',
+                ? "water.goal_reached".tr()
+                : "water.keep_going".tr(),
             style: TextStyle(
               color: Colors.white.withOpacity(0.85),
               fontSize: 14,
@@ -329,7 +328,7 @@ class _EauPageState extends State<EauPage> {
           ),
           const SizedBox(height: 6),
           Text(
-            'Bravo ! Tu suis ton objectif quotidien.',
+            "water.good_progress".tr(),
             style: TextStyle(
               color: Colors.white.withOpacity(0.75),
               fontSize: 12,
@@ -345,7 +344,7 @@ class _EauPageState extends State<EauPage> {
                 child: ElevatedButton.icon(
                   onPressed: _retirer,
                   icon: const Icon(Icons.remove),
-                  label: const Text('Retirer'),
+                 label: Text("water.remove".tr()) ,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.white.withOpacity(0.14),
                     foregroundColor: Colors.white,
@@ -362,7 +361,7 @@ class _EauPageState extends State<EauPage> {
                 child: ElevatedButton.icon(
                   onPressed: _ajouter,
                   icon: const Icon(Icons.add),
-                  label: const Text('Ajouter'),
+                  label: Text("water.add".tr()),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF4FB3FF),
                     foregroundColor: Colors.white,
@@ -383,7 +382,15 @@ class _EauPageState extends State<EauPage> {
 
   Widget _carteHistorique() {
     final valeurs = _valeursSemaine();
-    final jours = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
+    final jours = [
+  "water.mon".tr(),
+  "water.tue".tr(),
+  "water.wed".tr(),
+  "water.thu".tr(),
+  "water.fri".tr(),
+  "water.sat".tr(),
+  "water.sun".tr(),
+];
     final maxVal = 12.0;
 
     return Container(
@@ -393,8 +400,8 @@ class _EauPageState extends State<EauPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Historique',
+           Text(
+            "water.history".tr(),
             style: TextStyle(
               color: Colors.white,
               fontSize: 16,
@@ -466,18 +473,18 @@ class _EauPageState extends State<EauPage> {
     final progress = objectif == 0 ? 0.0 : verres / objectif;
 
     if (progress >= 1) {
-      return 'ORA : Excellent ! Vous avez atteint votre objectif hydratation aujourd’hui 💧✨';
+      return "water.tip_excellent".tr();
     }
 
     if (progress >= 0.7) {
-      return 'ORA : Vous êtes proche de votre objectif. Encore quelques verres et c’est parfait 💪';
+      return "water.tip_close".tr();
     }
 
     if (progress >= 0.4) {
-      return 'ORA : Votre hydratation est moyenne aujourd’hui. Pensez à boire régulièrement 💧';
+      return "water.tip_medium".tr();
     }
 
-    return 'ORA : Votre niveau d’hydratation est faible. Essayez de boire un verre maintenant 🌿';
+    return "water.tip_low".tr();
   }
 
   BoxDecoration _decorationCarte() {

@@ -6,7 +6,7 @@ import 'package:ora/screens/chat.dart';
 import 'package:ora/screens/eau_page.dart';
 import 'package:ora/screens/sante.dart';
 import 'package:ora/screens/sport.dart';
-
+import 'package:easy_localization/easy_localization.dart';
 class CoachOraPage extends StatefulWidget {
   static const String screenRoute = 'pagecoachora';
 
@@ -73,8 +73,7 @@ class _CoachOraPageState extends State<CoachOraPage> {
           icon: const Icon(Icons.chevron_left, color: Colors.white, size: 34),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
-          'Coach ORA',
+        title: Text("coach.title".tr(),
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800),
         ),
         centerTitle: true,
@@ -118,7 +117,7 @@ class _CoachOraPageState extends State<CoachOraPage> {
                         Expanded(
                           child: _miniStat(
                             icon: Icons.water_drop,
-                            titre: 'Hydratation',
+                            titre: "coach.hydration".tr(),
                             valeur:
                                 '${coach.eauBu.toStringAsFixed(1)} / ${coach.objectifEau.toStringAsFixed(1)} L',
                             couleur: Colors.lightBlueAccent,
@@ -132,7 +131,7 @@ class _CoachOraPageState extends State<CoachOraPage> {
                         Expanded(
                           child: _miniStat(
                             icon: Icons.directions_run,
-                            titre: 'Sport',
+                            titre: "coach.sport".tr(),
                             valeur:
                                 '${coach.minutesSport} / ${coach.objectifSport} min',
                             couleur: Colors.greenAccent,
@@ -150,7 +149,7 @@ class _CoachOraPageState extends State<CoachOraPage> {
                         Expanded(
                           child: _miniStat(
                             icon: Icons.bedtime,
-                            titre: 'Sommeil',
+                            titre: "coach.sleep".tr(),
                             valeur: '${coach.heuresSommeil.toStringAsFixed(1)} h',
                             couleur: Colors.deepPurpleAccent.shade100,
                             onTap: () => Navigator.pushNamed(
@@ -163,7 +162,7 @@ class _CoachOraPageState extends State<CoachOraPage> {
                         Expanded(
                           child: _miniStat(
                             icon: Icons.mood,
-                            titre: 'Humeur',
+                            titre: "coach.mood".tr(),
                             valeur: coach.humeur,
                             couleur: Colors.pinkAccent.shade100,
                             onTap: () => Navigator.pushNamed(
@@ -177,19 +176,19 @@ class _CoachOraPageState extends State<CoachOraPage> {
                     const SizedBox(height: 14),
                     _carteRecommandation(
                       icon: Icons.water_drop_outlined,
-                      titre: 'Recommandation hydratation',
+                      titre: "coach.hydration_recommendation".tr(),
                       texte: coach.recommandationHydratation,
                     ),
                     const SizedBox(height: 10),
                     _carteRecommandation(
                       icon: Icons.fitness_center,
-                      titre: 'Recommandation sport',
+                      titre: "coach.sport_recommendation".tr(),
                       texte: coach.recommandationSport,
                     ),
                     const SizedBox(height: 10),
                     _carteRecommandation(
                       icon: Icons.health_and_safety,
-                      titre: 'Alerte santé',
+                      titre: "coach.health_alert".tr(),
                       texte: coach.alerteSante,
                     ),
                     const SizedBox(height: 18),
@@ -213,15 +212,15 @@ class _CoachOraPageState extends State<CoachOraPage> {
           children: [
             const Icon(Icons.error_outline, color: Colors.white, size: 48),
             const SizedBox(height: 12),
-            const Text(
-              'Impossible de charger Coach ORA pour le moment.',
+             Text(
+"coach.load_error".tr(),
               textAlign: TextAlign.center,
               style: TextStyle(color: Colors.white, fontSize: 16),
             ),
             const SizedBox(height: 14),
             ElevatedButton(
               onPressed: _recharger,
-              child: const Text('Réessayer'),
+              child: Text("app.retry".tr()),
             ),
           ],
         ),
@@ -265,8 +264,8 @@ class _CoachOraPageState extends State<CoachOraPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Score bien-être',
+                 Text(
+             "coach.wellbeing_score".tr(),
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 18,
@@ -284,7 +283,7 @@ class _CoachOraPageState extends State<CoachOraPage> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Mis à jour: ${coach.date}',
+                  "${"coach.updated".tr()} : ${coach.date}",
                   style: TextStyle(
                     color: Colors.white.withOpacity(0.65),
                     fontSize: 12,
@@ -311,8 +310,8 @@ class _CoachOraPageState extends State<CoachOraPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Conseil intelligent du jour',
+                 Text(
+                  "coach.daily_tip".tr(),
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 16,
@@ -442,8 +441,8 @@ class _CoachOraPageState extends State<CoachOraPage> {
           ),
         ),
         icon: const Icon(Icons.smart_toy_outlined),
-        label: const Text(
-          'Parler avec Coach ORA',
+        label:  Text(
+"coach.talk".tr(),
           style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
         ),
       ),
