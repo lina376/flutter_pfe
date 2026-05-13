@@ -88,7 +88,8 @@ class ModeleNotification {
 
 case 'personnel':
   return Icons.person;
-
+case 'weather':
+  return Icons.cloud;
 
     default:
       return Icons.notifications_active;

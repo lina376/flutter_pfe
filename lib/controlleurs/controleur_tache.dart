@@ -34,13 +34,22 @@ if (heure == "--:--" || !heure.contains(":")) return;
           'Rendez-vous : $titre. Consultez le trajet pour arriver à l’heure 📍',
       type: 'rendez_vous',
       iconType: 'trip',
+      Duration rappelAvant;
+
+if (priorite.toLowerCase() == 'haute') {
+  rappelAvant = const Duration(minutes: 30);
+} else if (priorite.toLowerCase() == 'moyenne') {
+  rappelAvant = const Duration(minutes: 15);
+} else {
+  rappelAvant = const Duration(minutes: 5);
+}
       scheduledFor: DateTime(
   date.year,
   date.month,
   date.day,
   int.parse(heure.split(':')[0]),
   int.parse(heure.split(':')[1]),
-).subtract(const Duration(minutes: 30)),
+).subtract(rappelAvant),
       data: {
         'destination': titre,
         'date': date.toIso8601String(),
@@ -55,13 +64,22 @@ if (heure == "--:--" || !heure.contains(":")) return;
     body: 'Il est temps de commencer votre séance d’étude 📚',
     type: 'etude',
     iconType: 'study',
+    Duration rappelAvant;
+
+if (priorite.toLowerCase() == 'haute') {
+  rappelAvant = const Duration(minutes: 30);
+} else if (priorite.toLowerCase() == 'moyenne') {
+  rappelAvant = const Duration(minutes: 15);
+} else {
+  rappelAvant = const Duration(minutes: 5);
+}
     scheduledFor: DateTime(
       date.year,
       date.month,
       date.day,
       int.parse(heure.split(':')[0]),
       int.parse(heure.split(':')[1]),
-    ).subtract(const Duration(minutes: 10)),
+    ).subtract(rappelAvant),
     data: {
       'titre': titre,
       'date': date.toIso8601String(),
@@ -75,13 +93,22 @@ if (categorie.toLowerCase() == 'courses') {
     body: 'N’oublie pas tes courses 🛒',
     type: 'courses',
     iconType: 'shopping',
+    Duration rappelAvant;
+
+if (priorite.toLowerCase() == 'haute') {
+  rappelAvant = const Duration(minutes: 30);
+} else if (priorite.toLowerCase() == 'moyenne') {
+  rappelAvant = const Duration(minutes: 15);
+} else {
+  rappelAvant = const Duration(minutes: 5);
+}
     scheduledFor: DateTime(
       date.year,
       date.month,
       date.day,
       int.parse(heure.split(':')[0]),
       int.parse(heure.split(':')[1]),
-    ).subtract(const Duration(minutes: 15)),
+    ).subtract(rappelAvant),
     data: {
       'titre': titre,
       'date': date.toIso8601String(),
@@ -95,13 +122,22 @@ if (categorie.toLowerCase() == 'travail') {
     body: 'Votre tâche de travail aprés 20 min💼',
     type: 'travail',
     iconType: 'work',
+    Duration rappelAvant;
+
+if (priorite.toLowerCase() == 'haute') {
+  rappelAvant = const Duration(minutes: 30);
+} else if (priorite.toLowerCase() == 'moyenne') {
+  rappelAvant = const Duration(minutes: 15);
+} else {
+  rappelAvant = const Duration(minutes: 5);
+}
     scheduledFor: DateTime(
       date.year,
       date.month,
       date.day,
       int.parse(heure.split(':')[0]),
       int.parse(heure.split(':')[1]),
-    ).subtract(const Duration(minutes: 20)),
+    ).subtract(rappelAvant),
     data: {
       'titre': titre,
       'date': date.toIso8601String(),
@@ -116,13 +152,22 @@ if (categorie.toLowerCase() == 'personnelle') {
     body: 'Votre activité personnelle approche 😊',
     type: 'personnelle',
     iconType: 'personnel',
+    Duration rappelAvant;
+
+if (priorite.toLowerCase() == 'haute') {
+  rappelAvant = const Duration(minutes: 30);
+} else if (priorite.toLowerCase() == 'moyenne') {
+  rappelAvant = const Duration(minutes: 15);
+} else {
+  rappelAvant = const Duration(minutes: 5);
+}
     scheduledFor: DateTime(
       date.year,
       date.month,
       date.day,
       int.parse(heure.split(':')[0]),
       int.parse(heure.split(':')[1]),
-    ).subtract(const Duration(minutes: 8)),
+    ).subtract(rappelAvant),
     data: {
       'titre': titre,
       'date': date.toIso8601String(),
@@ -138,13 +183,22 @@ if (categorie.toLowerCase() == 'santé' ||
     body: 'Votre activité santé approche ❤️',
     type: 'sante',
     iconType: 'health',
+    Duration rappelAvant;
+
+if (priorite.toLowerCase() == 'haute') {
+  rappelAvant = const Duration(minutes: 30);
+} else if (priorite.toLowerCase() == 'moyenne') {
+  rappelAvant = const Duration(minutes: 15);
+} else {
+  rappelAvant = const Duration(minutes: 5);
+}
     scheduledFor: DateTime(
       date.year,
       date.month,
       date.day,
       int.parse(heure.split(':')[0]),
       int.parse(heure.split(':')[1]),
-    ).subtract(const Duration(minutes: 10)),
+    ).subtract(rappelAvant),
     data: {
       'titre': titre,
       'date': date.toIso8601String(),
@@ -159,13 +213,22 @@ if (categorie.toLowerCase() == 'autre') {
     body: 'Votre tâche approche ⏰',
     type: 'autre',
     iconType: 'task',
+    Duration rappelAvant;
+
+if (priorite.toLowerCase() == 'haute') {
+  rappelAvant = const Duration(minutes: 30);
+} else if (priorite.toLowerCase() == 'moyenne') {
+  rappelAvant = const Duration(minutes: 15);
+} else {
+  rappelAvant = const Duration(minutes: 5);
+}
     scheduledFor: DateTime(
       date.year,
       date.month,
       date.day,
       int.parse(heure.split(':')[0]),
       int.parse(heure.split(':')[1]),
-    ).subtract(const Duration(minutes: 5)),
+    ).subtract(rappelAvant),
     data: {
       'titre': titre,
       'date': date.toIso8601String(),

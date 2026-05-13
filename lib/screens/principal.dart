@@ -25,6 +25,7 @@ import 'package:ora/services/service_notification.dart';
 import 'package:ora/controlleurs/controleur_sport.dart';
 import 'package:ora/services/service_notification_locale.dart';
 import 'package:ora/controlleurs/controleur_sante.dart';
+import 'package:ora/services/service_meteo.dart';
 class principal extends StatefulWidget {
   static const String screenRoute = 'pageprincipal';
 
@@ -88,6 +89,39 @@ void initState() {
   Future.delayed(const Duration(seconds: 14), () {
     verifierSommeil();
   });
+  Future.delayed(const Duration(seconds: 18), () {
+  verifierMeteo();
+});
+
+}
+Future<void> verifierMeteo() async {
+  final meteo = await ServiceMeteo().obtenirMeteoActuelle();
+
+  final description = meteo.description.toLowerCase();
+
+  if (description.contains('pluie') ||
+      description.contains('averse') ||
+      description.contains('orage')) {
+    await envoyerNotificationOra(
+      title: 'Météo ORA',
+      body: meteo.conseil,
+      type: 'meteo',
+      iconType: 'weather',
+      data: {
+        'temperature': meteo.temperature,
+        'description': meteo.description,
+      },
+    );
+  }
+
+  if (meteo.temperature >= 32) {
+    await envoyerNotificationOra(
+      title: 'Chaleur élevée',
+      body: meteo.conseil,
+      type: 'meteo',
+      iconType: 'weather',
+    );
+  }
 }
 Future<void> envoyerNotificationOra({
   required String title,
