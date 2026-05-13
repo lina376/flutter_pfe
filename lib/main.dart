@@ -32,9 +32,7 @@ Future<void> main() async {
 
   await EasyLocalization.ensureInitialized();
   await Firebase.initializeApp();
-
-  tz.initializeTimeZones();
-  tz.setLocalLocation(tz.getLocation('Africa/Tunis'));
+tz.initializeTimeZones();
   await ServiceNotificationLocale.instance.initialiser();
 
   runApp(

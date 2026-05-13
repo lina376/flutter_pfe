@@ -51,7 +51,7 @@ class ServiceTache {
       where: 'userId = ? AND estSupprimee = ?',
       whereArgs: [_userId ?? '', 0],
       orderBy:
-          "date ASC, CASE priorite WHEN 'haute' THEN 1 WHEN 'moyenne' THEN 2 ELSE 3 END ASC, heure ASC",
+          "date ASC, CASE LOWER(priorite) WHEN 'haute' THEN 1 WHEN 'moyenne' THEN 2 ELSE 3 END ASC, heure ASC",
     );
 
     return result.map((e) => ModeleTache.fromMap(e)).toList();
@@ -69,12 +69,24 @@ class ServiceTache {
 
   Future<void> _insererOuMajLocal(ModeleTache tache) async {
     final db = await _baseLocale.database;
-
     await db.insert(
       'taches',
       tache.copyWith(userId: _userId ?? '').toLocalMap(),
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
+  }
+
+  Future<ModeleTache?> _recupererTacheLocale(String idTache) async {
+    final db = await _baseLocale.database;
+    final rows = await db.query(
+      'taches',
+      where: 'userId = ? AND id = ?',
+      whereArgs: [_userId ?? '', idTache],
+      limit: 1,
+    );
+
+    if (rows.isEmpty) return null;
+    return ModeleTache.fromMap(rows.first);
   }
 
   Future<List<ModeleTache>> _recupererTachesNonSynchronisees() async {
@@ -87,6 +99,18 @@ class ServiceTache {
     );
 
     return result.map((e) => ModeleTache.fromMap(e)).toList();
+  }
+
+  Future<void> _envoyerTacheVersFirebase(ModeleTache tache) async {
+    final ref = _tachesRef;
+    if (ref == null) return;
+
+    await ref
+        .doc(tache.id)
+        .set(tache.copyWith(userId: _userId ?? '').toCloudMap())
+        .timeout(const Duration(seconds: 5));
+
+    await _insererOuMajLocal(tache.copyWith(estSynchronisee: true));
   }
 
   Future<void> ajouterTache({
@@ -114,6 +138,8 @@ class ServiceTache {
       );
 
       await _insererOuMajLocal(tache);
+      await _rafraichirFluxTaches();
+
       await ServiceNotificationLocale.instance.programmerNotificationTache(
         idTache: tache.id,
         titre: tache.titre,
@@ -121,17 +147,12 @@ class ServiceTache {
         date: tache.date,
         heure: tache.heure,
       );
-      try {
-        final ref = _tachesRef;
-        if (ref != null) {
-          await ref
-              .doc(id)
-              .set(tache.toCloudMap())
-              .timeout(const Duration(seconds: 2));
 
-          await _insererOuMajLocal(tache.copyWith(estSynchronisee: true));
-        }
-      } catch (_) {}
+      try {
+        await _envoyerTacheVersFirebase(tache);
+      } catch (e) {
+        print('Sync ajout tâche en attente: $e');
+      }
 
       await _rafraichirFluxTaches();
     } catch (e) {
@@ -140,8 +161,8 @@ class ServiceTache {
   }
 
   Future<void> supprimerTache(String idTache) async {
-    await ServiceNotificationLocale.instance.annulerNotificationTache(idTache);
     try {
+      await ServiceNotificationLocale.instance.annulerNotificationTache(idTache);
       final db = await _baseLocale.database;
 
       await db.update(
@@ -150,11 +171,12 @@ class ServiceTache {
         where: 'userId = ? AND id = ?',
         whereArgs: [_userId ?? '', idTache],
       );
+      await _rafraichirFluxTaches();
 
       try {
         final ref = _tachesRef;
         if (ref != null) {
-          await ref.doc(idTache).delete().timeout(const Duration(seconds: 2));
+          await ref.doc(idTache).delete().timeout(const Duration(seconds: 5));
         }
 
         await db.delete(
@@ -162,11 +184,13 @@ class ServiceTache {
           where: 'userId = ? AND id = ?',
           whereArgs: [_userId ?? '', idTache],
         );
-      } catch (_) {}
+      } catch (e) {
+        print('Suppression tâche cloud en attente: $e');
+      }
 
       await _rafraichirFluxTaches();
     } catch (e) {
-      print(' Erreur suppression tâche: $e');
+      print('Erreur suppression tâche: $e');
     }
   }
 
@@ -175,25 +199,20 @@ class ServiceTache {
     required bool terminee,
   }) async {
     try {
-      final db = await _baseLocale.database;
+      final ancienne = await _recupererTacheLocale(idTache);
+      if (ancienne == null) return;
 
-      final rows = await db.query(
-        'taches',
-        where: 'userId = ? AND id = ?',
-        whereArgs: [_userId ?? '', idTache],
-        limit: 1,
+      final maj = ancienne.copyWith(
+        terminee: terminee,
+        estSynchronisee: false,
+        estSupprimee: false,
       );
 
-      if (rows.isEmpty) return;
-
-      final ancienne = ModeleTache.fromMap(rows.first);
-      final maj = ancienne.copyWith(terminee: terminee, estSynchronisee: false);
-
       await _insererOuMajLocal(maj);
+      await _rafraichirFluxTaches();
+
       if (terminee) {
-        await ServiceNotificationLocale.instance.annulerNotificationTache(
-          idTache,
-        );
+        await ServiceNotificationLocale.instance.annulerNotificationTache(idTache);
       } else {
         await ServiceNotificationLocale.instance.programmerNotificationTache(
           idTache: maj.id,
@@ -203,21 +222,16 @@ class ServiceTache {
           heure: maj.heure,
         );
       }
-      try {
-        final ref = _tachesRef;
-        if (ref != null) {
-          await ref
-              .doc(idTache)
-              .set(maj.toCloudMap())
-              .timeout(const Duration(seconds: 2));
 
-          await _insererOuMajLocal(maj.copyWith(estSynchronisee: true));
-        }
-      } catch (_) {}
+      try {
+        await _envoyerTacheVersFirebase(maj);
+      } catch (e) {
+        print('Sync état tâche en attente: $e');
+      }
 
       await _rafraichirFluxTaches();
     } catch (e) {
-      print(' Erreur modification état tâche: $e');
+      print('Erreur modification état tâche: $e');
     }
   }
 
@@ -242,9 +256,9 @@ class ServiceTache {
   List<ModeleTache> trierParPriorite(List<ModeleTache> taches) {
     final copie = List<ModeleTache>.from(taches);
     copie.sort((a, b) {
-      final priorite = _rangPriorite(
-        a.priorite,
-      ).compareTo(_rangPriorite(b.priorite));
+      final priorite = _rangPriorite(a.priorite).compareTo(
+        _rangPriorite(b.priorite),
+      );
       if (priorite != 0) return priorite;
       if (a.heure == '--:--' && b.heure != '--:--') return 1;
       if (a.heure != '--:--' && b.heure == '--:--') return -1;
@@ -294,6 +308,7 @@ class ServiceTache {
     String? priorite,
   }) async {
     try {
+      final ancienne = await _recupererTacheLocale(idTache);
       final dateSansHeure = DateTime(date.year, date.month, date.day);
 
       final tache = ModeleTache(
@@ -303,17 +318,16 @@ class ServiceTache {
         heure: heure,
         date: dateSansHeure,
         categorie: categorie,
-        priorite: priorite ?? 'moyenne',
+        priorite: priorite ?? ancienne?.priorite ?? 'moyenne',
         terminee: terminee,
         estSynchronisee: false,
         estSupprimee: false,
       );
 
       await _insererOuMajLocal(tache);
-      await ServiceNotificationLocale.instance.annulerNotificationTache(
-        idTache,
-      );
+      await _rafraichirFluxTaches();
 
+      await ServiceNotificationLocale.instance.annulerNotificationTache(idTache);
       if (!terminee) {
         await ServiceNotificationLocale.instance.programmerNotificationTache(
           idTache: tache.id,
@@ -323,21 +337,16 @@ class ServiceTache {
           heure: tache.heure,
         );
       }
-      try {
-        final ref = _tachesRef;
-        if (ref != null) {
-          await ref
-              .doc(idTache)
-              .set(tache.toCloudMap())
-              .timeout(const Duration(seconds: 2));
 
-          await _insererOuMajLocal(tache.copyWith(estSynchronisee: true));
-        }
-      } catch (_) {}
+      try {
+        await _envoyerTacheVersFirebase(tache);
+      } catch (e) {
+        print('Sync mise à jour tâche en attente: $e');
+      }
 
       await _rafraichirFluxTaches();
     } catch (e) {
-      print(' Erreur mise à jour tâche: $e');
+      print('Erreur mise à jour tâche: $e');
     }
   }
 
@@ -346,29 +355,42 @@ class ServiceTache {
       final ref = _tachesRef;
       if (ref == null) return;
 
-      final snapshot = await ref.get();
+      final snapshot = await ref.get().timeout(const Duration(seconds: 8));
 
       for (final doc in snapshot.docs) {
-        final data = doc.data();
+        try {
+          final data = doc.data();
+          final locale = await _recupererTacheLocale(doc.id);
 
-        final tache = ModeleTache(
-          id: doc.id,
-          userId: _userId ?? '',
-          titre: (data['titre'] ?? '').toString(),
-          heure: (data['heure'] ?? '--:--').toString(),
-          date: DateTime.parse(data['date']),
-          categorie: (data['categorie'] ?? 'Autre').toString(),
-          priorite: (data['priorite'] ?? 'moyenne').toString(),
-          terminee: (data['terminee'] ?? false) == true,
-          estSynchronisee: true,
-          estSupprimee: false,
-        );
+          // Important: ne pas écraser une modification locale pas encore synchronisée.
+          if (locale != null && !locale.estSynchronisee) continue;
 
-        await _insererOuMajLocal(tache);
+          final dateTexte = (data['date'] ?? '').toString();
+          if (dateTexte.isEmpty) continue;
+
+          final tache = ModeleTache(
+            id: doc.id,
+            userId: _userId ?? '',
+            titre: (data['titre'] ?? '').toString(),
+            heure: (data['heure'] ?? '--:--').toString(),
+            date: DateTime.parse(dateTexte),
+            categorie: (data['categorie'] ?? 'Autre').toString(),
+            priorite: (data['priorite'] ?? 'moyenne').toString(),
+            terminee: (data['terminee'] ?? false) == true,
+            estSynchronisee: true,
+            estSupprimee: false,
+          );
+
+          await _insererOuMajLocal(tache);
+        } catch (e) {
+          print('Erreur lecture tâche cloud ${doc.id}: $e');
+        }
       }
 
       await _rafraichirFluxTaches();
-    } catch (_) {}
+    } catch (e) {
+      print('Erreur synchronisation depuis Firebase: $e');
+    }
   }
 
   Future<void> synchroniserVersFirebase() async {
@@ -380,21 +402,30 @@ class ServiceTache {
       final db = await _baseLocale.database;
 
       for (final t in nonSync) {
-        if (t.estSupprimee) {
-          await ref.doc(t.id).delete();
-          await db.delete(
-            'taches',
-            where: 'userId = ? AND id = ?',
-            whereArgs: [_userId ?? '', t.id],
-          );
-        } else {
-          await ref.doc(t.id).set(t.toCloudMap());
-          await _insererOuMajLocal(t.copyWith(estSynchronisee: true));
+        try {
+          if (t.estSupprimee) {
+            await ref.doc(t.id).delete().timeout(const Duration(seconds: 5));
+            await db.delete(
+              'taches',
+              where: 'userId = ? AND id = ?',
+              whereArgs: [_userId ?? '', t.id],
+            );
+          } else {
+            await ref
+                .doc(t.id)
+                .set(t.copyWith(userId: _userId ?? '').toCloudMap())
+                .timeout(const Duration(seconds: 5));
+            await _insererOuMajLocal(t.copyWith(estSynchronisee: true));
+          }
+        } catch (e) {
+          print('Tâche ${t.id} gardée en attente de synchronisation: $e');
         }
       }
 
       await _rafraichirFluxTaches();
-    } catch (_) {}
+    } catch (e) {
+      print('Erreur synchronisation vers Firebase: $e');
+    }
   }
 
   Future<void> _rafraichirFluxTaches() async {

@@ -36,11 +36,11 @@ class ControleurEau {
       litres = poids * 0.03;
     }
 
-    if (activite == 'sportif') {
+    if (activite.toLowerCase() == 'sportif') {
       litres += 0.5;
     }
 
-    if (activite == 'faible') {
+    if (activite.toLowerCase() == 'faible') {
       litres -= 0.2;
     }
 
@@ -86,37 +86,61 @@ class ControleurEau {
     final debut = DateFormat('yyyy-MM-dd').format(debutSemaine);
     final fin = DateFormat('yyyy-MM-dd').format(finSemaine);
 
+    // Offline-first: on pousse d'abord les changements locaux, puis on récupère Firebase.
+    await synchroniserTout();
+
+    try {
+      final donneesFirebase = await _firebase.obtenirEntreDates(
+        userId: userId,
+        debut: debut,
+        fin: fin,
+      );
+
+      for (final item in donneesFirebase) {
+        await _local.sauvegarderDepuisFirebase(item.copyWith(synced: true));
+      }
+    } catch (_) {
+      // Pas d'internet: on garde SQLite sans bloquer l'interface.
+    }
+
     return _local.obtenirEntreDates(userId: userId, debut: debut, fin: fin);
   }
 
   Future<ModeleEau> chargerAujourdhui() async {
     final utilisateurId = _userId;
     final date = dateAujourdhui;
+
+    // 1) Envoyer les données locales en attente si internet est revenu.
+    await synchroniserTout();
+
+    // 2) SQLite reste prioritaire si l'utilisateur a modifié offline.
     final existant = await _local.obtenirParDate(utilisateurId, date);
     if (existant != null) {
-      final profilSante = await ControleurSante().obtenirDernierProfil();
-
-      final objectifActuel = calculerObjectifVerres(
-        age: profilSante?.age ?? 20,
-        poids: profilSante?.poids ?? 65.0,
-        activite: profilSante?.activite ?? 'Normale',
-      );
-
-      if (existant.objectif != objectifActuel) {
-        final maj = existant.copyWith(
-          objectif: objectifActuel,
-          updatedAt: DateTime.now(),
-          synced: false,
+      if (existant.synced) {
+        await _recupererDepuisFirebaseSansEcraserLocal(
+          userId: utilisateurId,
+          date: date,
         );
-
-        await _local.sauvegarder(maj);
-        await synchroniser(maj);
-
-        return maj;
       }
 
-      return existant;
+      final apresSync = await _local.obtenirParDate(utilisateurId, date);
+      final local = apresSync ?? existant;
+      return _mettreAJourObjectifSiNecessaire(local);
     }
+
+    // 3) Si rien en local, on essaye Firebase. Si internet est coupé, on crée localement.
+    try {
+      final distant = await _firebase.obtenirParDate(
+        userId: utilisateurId,
+        date: date,
+      );
+      if (distant != null) {
+        final local = distant.copyWith(synced: true);
+        await _local.sauvegarder(local);
+        return _mettreAJourObjectifSiNecessaire(local);
+      }
+    } catch (_) {}
+
     final profilSante = await ControleurSante().obtenirDernierProfil();
 
     final objectif = calculerObjectifVerres(
@@ -142,18 +166,7 @@ class ControleurEau {
   }
 
   Future<List<ModeleEau>> chargerSemaine() async {
-    final maintenant = DateTime.now();
-
-    final debutSemaine = maintenant.subtract(
-      Duration(days: maintenant.weekday - 1),
-    );
-
-    final finSemaine = debutSemaine.add(const Duration(days: 6));
-
-    final debut = DateFormat('yyyy-MM-dd').format(debutSemaine);
-    final fin = DateFormat('yyyy-MM-dd').format(finSemaine);
-
-    return _local.obtenirEntreDates(userId: _userId, debut: debut, fin: fin);
+    return chargerSemaineDepuis(DateTime.now());
   }
 
   Future<ModeleEau> ajouterVerre(ModeleEau eau) async {
@@ -171,7 +184,7 @@ class ControleurEau {
     await _local.sauvegarder(maj);
     await synchroniser(maj);
 
-    return maj;
+    return _local.obtenirParDate(maj.userId, maj.date).then((v) => v ?? maj);
   }
 
   Future<ModeleEau> retirerVerre(ModeleEau eau) async {
@@ -187,7 +200,7 @@ class ControleurEau {
     await _local.sauvegarder(maj);
     await synchroniser(maj);
 
-    return maj;
+    return _local.obtenirParDate(maj.userId, maj.date).then((v) => v ?? maj);
   }
 
   Future<void> synchroniser(ModeleEau eau) async {
@@ -201,7 +214,7 @@ class ControleurEau {
   }
 
   Future<void> sauvegarderEtSynchroniser(ModeleEau eau) async {
-    final donnees = eau.copyWith(userId: _userId);
+    final donnees = eau.copyWith(userId: _userId, synced: false);
     await _local.sauvegarder(donnees);
     await synchroniser(donnees);
   }
@@ -225,5 +238,40 @@ class ControleurEau {
 
     await _local.sauvegarder(maj);
     await synchroniser(maj);
+  }
+
+  Future<void> _recupererDepuisFirebaseSansEcraserLocal({
+    required String userId,
+    required String date,
+  }) async {
+    try {
+      final distant = await _firebase.obtenirParDate(userId: userId, date: date);
+      if (distant != null) {
+        await _local.sauvegarderDepuisFirebase(distant.copyWith(synced: true));
+      }
+    } catch (_) {}
+  }
+
+  Future<ModeleEau> _mettreAJourObjectifSiNecessaire(ModeleEau eau) async {
+    final profilSante = await ControleurSante().obtenirDernierProfil();
+
+    final objectifActuel = calculerObjectifVerres(
+      age: profilSante?.age ?? 20,
+      poids: profilSante?.poids ?? 65.0,
+      activite: profilSante?.activite ?? 'Normale',
+    );
+
+    if (eau.objectif == objectifActuel) return eau;
+
+    final maj = eau.copyWith(
+      objectif: objectifActuel,
+      updatedAt: DateTime.now(),
+      synced: false,
+    );
+
+    await _local.sauvegarder(maj);
+    await synchroniser(maj);
+
+    return _local.obtenirParDate(maj.userId, maj.date).then((v) => v ?? maj);
   }
 }

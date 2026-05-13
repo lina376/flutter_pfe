@@ -66,6 +66,20 @@ class ServiceSanteLocal {
     );
   }
 
+  Future<void> sauvegarderDepuisFirebase(ModeleSante santeFirebase) async {
+    final local = await obtenirParDate(
+      userId: santeFirebase.userId,
+      date: santeFirebase.date,
+    );
+
+    // Ne jamais écraser une modification locale pas encore synchronisée.
+    if (local != null && !local.synced) return;
+
+    if (local == null || santeFirebase.updatedAt.isAfter(local.updatedAt)) {
+      await sauvegarder(santeFirebase.copyWith(synced: true));
+    }
+  }
+
   Future<List<ModeleSante>> obtenirEntreDates({
     required String userId,
     required String debut,
@@ -90,6 +104,7 @@ class ServiceSanteLocal {
       'sante',
       where: 'userId = ? AND synced = ?',
       whereArgs: [userId, 0],
+      orderBy: 'updatedAt ASC',
     );
 
     return result.map((e) => ModeleSante.fromMap(e)).toList();

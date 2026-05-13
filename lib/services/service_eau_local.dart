@@ -71,6 +71,17 @@ class ServiceEauLocal {
     );
   }
 
+  Future<void> sauvegarderDepuisFirebase(ModeleEau eauFirebase) async {
+    final local = await obtenirParDate(eauFirebase.userId, eauFirebase.date);
+
+    // Ne jamais écraser une modification locale pas encore synchronisée.
+    if (local != null && !local.synced) return;
+
+    if (local == null || eauFirebase.updatedAt.isAfter(local.updatedAt)) {
+      await sauvegarder(eauFirebase.copyWith(synced: true));
+    }
+  }
+
   Future<List<ModeleEau>> obtenirEntreDates({
     required String userId,
     required String debut,
@@ -95,6 +106,7 @@ class ServiceEauLocal {
       'eau',
       where: 'userId = ? AND synced = ?',
       whereArgs: [userId, 0],
+      orderBy: 'updatedAt ASC',
     );
 
     return result.map((e) => ModeleEau.fromMap(e)).toList();

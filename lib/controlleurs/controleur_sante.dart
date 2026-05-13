@@ -25,9 +25,29 @@ class ControleurSante {
     final userId = _userId;
     final date = dateAujourdhui;
 
-    final existant = await _local.obtenirParDate(userId: userId, date: date);
+    // 1) D'abord on tente d'envoyer les données locales en attente.
+    await synchroniserTout();
 
-    if (existant != null) return existant;
+    // 2) Si une donnée locale existe, elle est prioritaire pour éviter la perte offline.
+    final existantLocal = await _local.obtenirParDate(userId: userId, date: date);
+    if (existantLocal != null) {
+      if (existantLocal.synced) {
+        await _recupererDepuisFirebaseSansEcraserLocal(userId: userId, date: date);
+        final apresSync = await _local.obtenirParDate(userId: userId, date: date);
+        return apresSync ?? existantLocal;
+      }
+      return existantLocal;
+    }
+
+    // 3) Si rien en local, on essaye Firebase. Si internet est coupé, on crée localement.
+    try {
+      final distant = await _firebase.obtenirParDate(userId: userId, date: date);
+      if (distant != null) {
+        final local = distant.copyWith(synced: true);
+        await _local.sauvegarder(local);
+        return local;
+      }
+    } catch (_) {}
 
     final nouveau = ModeleSante(
       id: '$userId-$date',
@@ -48,31 +68,41 @@ class ControleurSante {
     return nouveau;
   }
 
- Future<List<ModeleSante>> chargerSemaine() async {
-  final userId = _userId;
-  final maintenant = DateTime.now();
-
-  final debutSemaine = maintenant.subtract(
-    Duration(days: maintenant.weekday - 1),
-  );
-
-  final finSemaine = debutSemaine.add(const Duration(days: 6));
-
-  final debut = DateFormat('yyyy-MM-dd').format(debutSemaine);
-  final fin = DateFormat('yyyy-MM-dd').format(finSemaine);
-
-  final donneesFirebase = await _firebase.obtenirEntreDates(
-    userId: userId,
-    debut: debut,
-    fin: fin,
-  );
-
-  for (final item in donneesFirebase) {
-    await _local.sauvegarder(item.copyWith(synced: true));
+  Future<List<ModeleSante>> chargerSemaine() async {
+    return chargerSemaineDepuis(DateTime.now());
   }
 
-  return _local.obtenirEntreDates(userId: userId, debut: debut, fin: fin);
-}
+  Future<List<ModeleSante>> chargerSemaineDepuis(DateTime dateReference) async {
+    final userId = _userId;
+
+    final debutSemaine = dateReference.subtract(
+      Duration(days: dateReference.weekday - 1),
+    );
+
+    final finSemaine = debutSemaine.add(const Duration(days: 6));
+
+    final debut = DateFormat('yyyy-MM-dd').format(debutSemaine);
+    final fin = DateFormat('yyyy-MM-dd').format(finSemaine);
+
+    // Offline-first: on pousse les modifications locales, puis on récupère Firebase.
+    await synchroniserTout();
+
+    try {
+      final donneesFirebase = await _firebase.obtenirEntreDates(
+        userId: userId,
+        debut: debut,
+        fin: fin,
+      );
+
+      for (final item in donneesFirebase) {
+        await _local.sauvegarderDepuisFirebase(item.copyWith(synced: true));
+      }
+    } catch (_) {
+      // Pas d'internet: on garde les données SQLite sans bloquer l'interface.
+    }
+
+    return _local.obtenirEntreDates(userId: userId, debut: debut, fin: fin);
+  }
 
   Future<ModeleSante> modifierSommeil(ModeleSante sante, double heures) async {
     final maj = sante.copyWith(
@@ -83,8 +113,12 @@ class ControleurSante {
 
     await _local.sauvegarder(maj);
     await synchroniser(maj);
-    await ControleurEau().mettreAJourObjectifDepuisSante(maj);
-    return maj;
+
+    try {
+      await ControleurEau().mettreAJourObjectifDepuisSante(maj);
+    } catch (_) {}
+
+    return _local.obtenirParDate(userId: maj.userId, date: maj.date).then((v) => v ?? maj);
   }
 
   Future<ModeleSante> modifierHumeur(ModeleSante sante, String humeur) async {
@@ -96,7 +130,7 @@ class ControleurSante {
 
     await _local.sauvegarder(maj);
     await synchroniser(maj);
-    return maj;
+    return _local.obtenirParDate(userId: maj.userId, date: maj.date).then((v) => v ?? maj);
   }
 
   Future<ModeleSante> modifierPoids(ModeleSante sante, double poids) async {
@@ -108,7 +142,7 @@ class ControleurSante {
 
     await _local.sauvegarder(maj);
     await synchroniser(maj);
-    return maj;
+    return _local.obtenirParDate(userId: maj.userId, date: maj.date).then((v) => v ?? maj);
   }
 
   Future<ModeleSante> modifierProfil({
@@ -119,7 +153,7 @@ class ControleurSante {
   }) async {
     final maj = sante.copyWith(
       age: age,
-      poids: poids,
+      poids: double.parse(poids.toStringAsFixed(1)),
       activite: activite,
       updatedAt: DateTime.now(),
       synced: false,
@@ -127,7 +161,12 @@ class ControleurSante {
 
     await _local.sauvegarder(maj);
     await synchroniser(maj);
-    return maj;
+
+    try {
+      await ControleurEau().mettreAJourObjectifDepuisSante(maj);
+    } catch (_) {}
+
+    return _local.obtenirParDate(userId: maj.userId, date: maj.date).then((v) => v ?? maj);
   }
 
   Future<void> synchroniser(ModeleSante sante) async {
@@ -139,34 +178,6 @@ class ControleurSante {
     }
   }
 
-  Future<List<ModeleSante>> chargerSemaineDepuis(DateTime dateReference) async {
-  final userId = _userId;
-
-  final debutSemaine = dateReference.subtract(
-    Duration(days: dateReference.weekday - 1),
-  );
-
-  final finSemaine = debutSemaine.add(const Duration(days: 6));
-
-  final debut = DateFormat('yyyy-MM-dd').format(debutSemaine);
-  final fin = DateFormat('yyyy-MM-dd').format(finSemaine);
-
-  final donneesFirebase = await _firebase.obtenirEntreDates(
-    userId: userId,
-    debut: debut,
-    fin: fin,
-  );
-
-  for (final item in donneesFirebase) {
-    await _local.sauvegarder(item.copyWith(synced: true));
-  }
-
-  return _local.obtenirEntreDates(userId: userId, debut: debut, fin: fin);
-}
-  Future<ModeleSante?> obtenirDernierProfil() async {
-    return await chargerAujourdhui();
-  }
-
   Future<void> synchroniserTout() async {
     final userId = _userId;
     final nonSynchronises = await _local.obtenirNonSynchronises(userId);
@@ -174,5 +185,21 @@ class ControleurSante {
     for (final item in nonSynchronises) {
       await synchroniser(item);
     }
+  }
+
+  Future<void> _recupererDepuisFirebaseSansEcraserLocal({
+    required String userId,
+    required String date,
+  }) async {
+    try {
+      final distant = await _firebase.obtenirParDate(userId: userId, date: date);
+      if (distant != null) {
+        await _local.sauvegarderDepuisFirebase(distant.copyWith(synced: true));
+      }
+    } catch (_) {}
+  }
+
+  Future<ModeleSante?> obtenirDernierProfil() async {
+    return await chargerAujourdhui();
   }
 }
