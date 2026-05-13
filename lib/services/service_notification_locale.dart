@@ -1,4 +1,3 @@
-//init notif demande permission progremme lalarme annuler l allarme
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 
@@ -96,41 +95,6 @@ class ServiceNotificationLocale {
     await androidPlugin?.requestNotificationsPermission();
     await androidPlugin?.requestExactAlarmsPermission();
   }
-
-  Future<void> programmerAlarme({
-    required int id,
-    required String titre,
-    required String body,
-    required DateTime dateTime,
-  }) async {
-    const androidDetails = AndroidNotificationDetails(
-      'ora_alarm_channel',
-      'Alarmes ORA',
-      channelDescription: 'Notifications des alarmes ORA',
-      importance: Importance.max,
-      priority: Priority.high,
-      playSound: true,
-      sound: RawResourceAndroidNotificationSound('alarm'),
-      enableVibration: true,
-      fullScreenIntent: true,
-    );
-
-    const details = NotificationDetails(android: androidDetails);
-
-    await _plugin.zonedSchedule(
-      id,
-      titre,
-      body,
-      tz.TZDateTime.from(dateTime, tz.local),
-      details,
-      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-    );
-  }
-
-  Future<void> annulerAlarme(int id) async {
-    await _plugin.cancel(id);
-  }
-
   Future<void> programmerNotificationTrajet({
     required String idTrajet,
     required String destination,
