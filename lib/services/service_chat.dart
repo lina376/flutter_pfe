@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-
+import 'package:easy_localization/easy_localization.dart';
 import 'package:ora/services/service_gemini.dart';
 import 'service_note.dart';
 import 'service_tache.dart';
@@ -294,7 +294,7 @@ final ControleurSport _controleurSport = ControleurSport();
 
     final reponseOra = reponses.where((e) => e.trim().isNotEmpty).join("\n");
     await conversationRef.collection('messages').add({
-      'texte': reponseOra.isEmpty ? "Je n'ai pas bien compris." : reponseOra,
+      'texte': reponseOra.isEmpty ? 'chat_pas_compris'.tr() : reponseOra,
       'sender': 'ora',
       'date': Timestamp.now(),
     });
@@ -316,12 +316,12 @@ final ControleurSport _controleurSport = ControleurSport();
     if (action == "OPEN_MAP_ROUTE") {
       if (contexte == null || contexte.type != "trajet") {
         return _ResultatExecution(
-          " Dis-moi d'abord ta destination (ex: je vais à Sousse)",
+          'chat_destination_dabord'.tr(),
           contexte,
         );
       }
       return _ResultatExecution(
-        "Clique pour voir le trajet vers ${contexte.id}",
+        'chat_voir_trajet'.tr(args: [contexte.id]),
         contexte,
       );
     }
@@ -345,7 +345,7 @@ final ControleurSport _controleurSport = ControleurSport();
 
       await _enregistrerContexte(conversationRef, nouveauContexte);
       return _ResultatExecution(
-        "La note a été ajoutée avec succès.",
+        'message_note_ajoutee'.tr(),
         nouveauContexte,
       );
     }
@@ -378,7 +378,7 @@ final ControleurSport _controleurSport = ControleurSport();
         );
         await _enregistrerContexte(conversationRef, nouveauContexte);
         return _ResultatExecution(
-          "La note actuelle a été modifiée avec succès.",
+          'message_note_actuelle_modifiee'.tr(),
           nouveauContexte,
         );
       }
@@ -386,7 +386,7 @@ final ControleurSport _controleurSport = ControleurSport();
       final note = await _serviceNote.trouverNoteParTitre(titre);
       if (note == null)
         return _ResultatExecution(
-          "Je n'ai pas trouvé la note à modifier.",
+          'message_note_introuvable_modification'.tr(),
           contexte,
         );
 
@@ -408,7 +408,7 @@ final ControleurSport _controleurSport = ControleurSport();
       );
       await _enregistrerContexte(conversationRef, nouveauContexte);
       return _ResultatExecution(
-        "La note a été modifiée avec succès.",
+        'message_note_modifiee'.tr(),
         nouveauContexte,
       );
     }
@@ -423,7 +423,7 @@ final ControleurSport _controleurSport = ControleurSport();
         await _serviceNote.supprimerNote(contexte.id);
         await _enregistrerContexte(conversationRef, null);
         return _ResultatExecution(
-          "La note actuelle a été supprimée avec succès.",
+          'message_note_actuelle_supprimee'.tr(),
           null,
         );
       }
@@ -431,14 +431,14 @@ final ControleurSport _controleurSport = ControleurSport();
       final note = await _serviceNote.trouverNoteParTitre(titre);
       if (note == null)
         return _ResultatExecution(
-          "Je n'ai pas trouvé la note à supprimer.",
+          'message_note_introuvable_suppression'.tr(),
           contexte,
         );
 
       await _serviceNote.supprimerNote(note.id);
       await _serviceNote.synchroniserVersFirebase();
       return _ResultatExecution(
-        "La note a été supprimée avec succès.",
+        'message_note_supprimee'.tr(),
         contexte,
       );
     }
@@ -449,7 +449,7 @@ final ControleurSport _controleurSport = ControleurSport();
 
       if (notes.isEmpty)
         return _ResultatExecution(
-          "Je n'ai trouvé aucune note avec ce titre.",
+          'message_aucune_note'.tr(),
           contexte,
         );
 
@@ -464,14 +464,14 @@ final ControleurSport _controleurSport = ControleurSport();
         );
         await _enregistrerContexte(conversationRef, nouveauContexte);
         return _ResultatExecution(
-          'J\'ai trouvé la note "${note.titre}" : ${note.contenu}',
+          'message_note_trouvee' .tr(args: [note.titre, note.contenu]),
           nouveauContexte,
         );
       }
 
       final titres = notes.map((n) => n.titre).join(", ");
       return _ResultatExecution(
-        "J'ai trouvé plusieurs notes : $titres",
+        'message_plusieurs_notes'.tr(args: [titres]),
         contexte,
       );
     }
@@ -508,7 +508,7 @@ final ControleurSport _controleurSport = ControleurSport();
 
       await _enregistrerContexte(conversationRef, nouveauContexte);
       return _ResultatExecution(
-        "La tâche a été ajoutée avec succès. Priorité : $priorite.",
+        'chat_tache_ajoutee'.tr(args: [priorite]),
         nouveauContexte,
       );
     }
@@ -541,7 +541,7 @@ final ControleurSport _controleurSport = ControleurSport();
 
       if (tache == null)
         return _ResultatExecution(
-          "Je n'ai pas trouvé la tâche à modifier.",
+          'message_tache_introuvable_modification'.tr(),
           contexte,
         );
 
@@ -575,18 +575,18 @@ final ControleurSport _controleurSport = ControleurSport();
 
       if (contientTerminee && etatFinal) {
         return _ResultatExecution(
-          "La tâche a été marquée comme terminée.",
+          'message_tache_terminee'.tr(),
           nouveauContexte,
         );
       }
       if (contientTerminee && !etatFinal) {
         return _ResultatExecution(
-          "La tâche a été marquée comme non terminée.",
+          'message_tache_non_terminee'.tr(),
           nouveauContexte,
         );
       }
       return _ResultatExecution(
-        "La tâche a été modifiée avec succès.",
+        'message_tache_modifiee'.tr(),
         nouveauContexte,
       );
     }
@@ -611,13 +611,13 @@ final ControleurSport _controleurSport = ControleurSport();
 
       if (tache == null)
         return _ResultatExecution(
-          "Je n'ai pas trouvé la tâche à supprimer.",
+          'message_tache_introuvable_suppression'.tr(),
           contexte,
         );
 
       await _serviceTache.supprimerTache(tache.id);
       await _enregistrerContexte(conversationRef, null);
-      return _ResultatExecution("La tâche a été supprimée avec succès.", null);
+      return _ResultatExecution('message_tache_supprimee'.tr(), null);
     }
 
     if (action == "SEARCH_TASK") {
@@ -626,7 +626,7 @@ final ControleurSport _controleurSport = ControleurSport();
 
       if (taches.isEmpty)
         return _ResultatExecution(
-          "Je n'ai trouvé aucune tâche avec ce titre.",
+          'message_aucune_tache'.tr(),
           contexte,
         );
 
@@ -641,14 +641,14 @@ final ControleurSport _controleurSport = ControleurSport();
         );
         await _enregistrerContexte(conversationRef, nouveauContexte);
         return _ResultatExecution(
-          'J\'ai trouvé la tâche "${tache.titre}" - ${tache.categorie}, priorité ${tache.priorite}, à ${tache.heure}.',
+         'message_tache_trouvee'.tr( args: [ tache.titre, tache.categorie, tache.priorite, tache.heure, ], ),
           nouveauContexte,
         );
       }
 
       final titres = taches.map((t) => t.titre).join(", ");
       return _ResultatExecution(
-        "J'ai trouvé plusieurs tâches : $titres",
+        'message_plusieurs_taches'.tr(args: [titres]),
         contexte,
       );
     }
@@ -662,21 +662,26 @@ final ControleurSport _controleurSport = ControleurSport();
 
       if (taches.isEmpty) {
         return _ResultatExecution(
-          "Tu n’as aucune tâche pour le ${_formaterDate(dateDemandee)}.",
+          'message_aucune_tache_date'.tr(args: [_formaterDate(dateDemandee)]),
           contexte,
         );
       }
 
       final lignes = taches
           .map((t) {
-            final etat = t.terminee ? "terminée" : "à faire";
-            final heure = t.heure == "--:--" ? "sans heure" : t.heure;
+            final etat = t.terminee
+    ? 'etat_tache_terminee'.tr()
+    : 'etat_tache_a_faire'.tr();
+
+final heure = t.heure == "--:--"
+    ? 'heure_sans_heure'.tr()
+    : t.heure;
             return "${_iconePriorite(t.priorite)} ${t.titre} - ${t.categorie} - $heure - $etat";
           })
           .join("\n");
 
       return _ResultatExecution(
-        "Voici tes tâches du ${_formaterDate(dateDemandee)}, classées par priorité :\n$lignes",
+        'message_taches_date' .tr(args: [_formaterDate(dateDemandee), lignes]),
         contexte,
       );
     }
@@ -697,7 +702,7 @@ final ControleurSport _controleurSport = ControleurSport();
 
       if (positionActuelle == null || destinationMaps == null) {
         return _ResultatExecution(
-          "J'ai compris le trajet vers $destination, mais je n'ai pas pu calculer la position ou la destination. Vérifie GPS et internet.",
+          'message_trajet_compris'.tr(args: [destination]),
           contexte,
         );
       }
@@ -714,9 +719,7 @@ final ControleurSport _controleurSport = ControleurSport();
         Duration(minutes: tempsTrajet + margeMeteo),
       );
 
-      final messageNotification =
-          "Météo à ${meteo.ville}: ${meteo.description}, ${meteo.temperature}°. Pars maintenant pour arriver à ${_formaterHeure(heureArrivee)}.";
-
+      final messageNotification = 'message_notification_trajet'.tr( args: [ meteo.ville, meteo.description, meteo.temperature.toString(), _formaterHeure(heureArrivee), ], );
       await ServiceNotificationLocale.instance.programmerNotificationTrajet(
         idTrajet:
             "${destination}_${heureArrivee.toIso8601String()}_${DateTime.now().millisecondsSinceEpoch}",
@@ -725,13 +728,7 @@ final ControleurSport _controleurSport = ControleurSport();
         message: messageNotification,
       );
 
-      final texteReponse =
-          "Trajet vers $destination préparé.\n"
-          "📍 Distance estimée : $distanceKm km\n"
-          "🕒 Temps trajet estimé : $tempsTrajet min\n"
-          "🌦️ Météo à ${meteo.ville} : ${meteo.description}, ${meteo.temperature}°\n"
-          "⏱️ Marge météo : $margeMeteo min\n"
-          "🚶 Sors vers ${_formaterHeure(heureSortie)} pour arriver à ${_formaterHeure(heureArrivee)}.";
+      final texteReponse = 'message_trajet_prepare'.tr( args: [ destination, distanceKm, tempsTrajet.toString(), meteo.ville, meteo.description, meteo.temperature.toString(), margeMeteo.toString(), _formaterHeure(heureSortie), _formaterHeure(heureArrivee), ], );
       final nouveauContexte = ModeleContexte(
         type: "trajet",
         id: destination,
@@ -766,6 +763,7 @@ final ControleurSport _controleurSport = ControleurSport();
         for (int i = 0; i < valeur; i++) {
           maj = await _controleurEau.ajouterVerre(maj);
         }
+        
       }
 
       if (action == "REMOVE_WATER") {
@@ -787,7 +785,7 @@ final ControleurSport _controleurSport = ControleurSport();
 }
 
       return _ResultatExecution(
-        "💧 Hydratation mise à jour : ${maj.verres}/${maj.objectif} verres.",
+        'message_hydratation' .tr(args: [maj.verres.toString(), maj.objectif.toString()]),
         contexte,
       );
     }
@@ -813,7 +811,7 @@ final ControleurSport _controleurSport = ControleurSport();
       final maj = await _controleurSante.modifierPoids(sante, nouveauPoids);
 
       return _ResultatExecution(
-        "⚖️ Poids mis à jour : ${maj.poids.toStringAsFixed(1)} kg.",
+        'message_poids' .tr(args: [maj.poids.toStringAsFixed(1)]),
         contexte,
       );
     }
@@ -825,7 +823,7 @@ final ControleurSport _controleurSport = ControleurSport();
       final maj = await _controleurSante.modifierHumeur(sante, humeur);
 
       return _ResultatExecution(
-        "😊 Humeur enregistrée : ${maj.humeur}.",
+        'message_humeur'.tr(args: [maj.humeur]),
         contexte,
       );
     }
@@ -841,7 +839,7 @@ final ControleurSport _controleurSport = ControleurSport();
       final maj = await _controleurSante.modifierSommeil(sante, heures);
 
       return _ResultatExecution(
-        "😴 Sommeil enregistré : ${maj.heuresSommeil} h.",
+        'message_sommeil' .tr(args: [maj.heuresSommeil.toString()]),
         contexte,
       );
     }
@@ -864,7 +862,7 @@ final ControleurSport _controleurSport = ControleurSport();
       final maj = await _controleurSport.modifierMinutes(sport, nouveauTotal);
 
       return _ResultatExecution(
-        "🏃 Sport mis à jour : ${maj.minutes}/${maj.objectifMinutes} min.",
+        'message_sport' .tr(args: [maj.minutes.toString(), maj.objectifMinutes.toString()]),
         contexte,
       );
     }
@@ -876,7 +874,7 @@ final ControleurSport _controleurSport = ControleurSport();
       final maj = await _controleurSport.modifierEtatSante(sport, etat);
 
       return _ResultatExecution(
-        "🩺 État de santé mis à jour : ${maj.etatSante}.",
+        'message_etat_sante'.tr(args: [maj.etatSante]),
         contexte,
       );
     }
@@ -890,40 +888,32 @@ final ControleurSport _controleurSport = ControleurSport();
 
   String conseil = "";
 
-  if (verresRestants > 0) {
-    conseil += "💧 Il te reste $verresRestants verre(s) d’eau à boire.\n";
-  } else {
-    conseil += "💧 Objectif hydratation atteint.\n";
-  }
+if (verresRestants > 0) {
+  conseil += 'conseil_eau_reste'
+      .tr(args: [verresRestants.toString()]);
+} else {
+  conseil += 'conseil_eau_atteint'.tr();
+}
 
-  if (sportRestant > 0) {
-    conseil += "🏃 Il te reste $sportRestant min de sport pour atteindre ton objectif.\n";
-  } else {
-    conseil += "🏃 Objectif sport atteint.\n";
-  }
+if (sportRestant > 0) {
+  conseil += 'conseil_sport_reste'
+      .tr(args: [sportRestant.toString()]);
+} else {
+  conseil += 'conseil_sport_atteint'.tr();
+}
 
-  if (sante.heuresSommeil < 6) {
-    conseil += "😴 Ton sommeil est faible, essaie de te reposer plus.\n";
-  } else if (sante.heuresSommeil >= 7) {
-    conseil += "😴 Sommeil satisfaisant aujourd’hui.\n";
-  }
+if (sante.heuresSommeil < 6) {
+  conseil += 'conseil_sommeil_faible'.tr();
+} else if (sante.heuresSommeil >= 7) {
+  conseil += 'conseil_sommeil_bon'.tr();
+}
 
-  if (sante.humeur.toLowerCase().contains("triste") ||
-      sante.humeur.toLowerCase().contains("stress")) {
-    conseil += "😊 Essaie de faire une petite pause ou une activité relaxante.\n";
-  }
+if (sante.humeur.toLowerCase().contains("triste") ||
+    sante.humeur.toLowerCase().contains("stress")) {
+  conseil += 'conseil_humeur_pause'.tr();
+}
 
-  return _ResultatExecution(
-    "📊 Bilan du jour :\n"
-    "💧 Hydratation : ${eau.verres}/${eau.objectif} verres\n"
-    "🏃 Sport : ${sport.minutes}/${sport.objectifMinutes} min\n"
-    "⚖️ Poids : ${sante.poids.toStringAsFixed(1)} kg\n"
-    "😊 Humeur : ${sante.humeur}\n"
-    "😴 Sommeil : ${sante.heuresSommeil} h\n"
-    "🩺 État santé : ${sport.etatSante}\n\n"
-    "✅ Conseil ORA :\n$conseil",
-    contexte,
-  );
+return _ResultatExecution( 'message_bilan_complet'.tr( args: [ eau.verres.toString(), eau.objectif.toString(), sport.minutes.toString(), sport.objectifMinutes.toString(), sante.poids.toStringAsFixed(1), sante.humeur, sante.heuresSommeil.toString(), sport.etatSante, conseil, ], ), contexte, );
 }
     if (action == "RECOMMENDATION") {
       final maintenant = DateTime.now();
@@ -932,7 +922,7 @@ final ControleurSport _controleurSport = ControleurSport();
 
       if (nonTerminees.isEmpty) {
         return _ResultatExecution(
-          "✅ Bravo, tu n’as aucune tâche en attente. Tu peux ajouter une petite tâche utile ou réviser une note importante.",
+          'message_aucune_tache_attente'.tr(),
           contexte,
         );
       }
@@ -956,24 +946,25 @@ final ControleurSport _controleurSport = ControleurSport();
           .where((t) => t.priorite.toLowerCase().trim() == 'haute')
           .length;
       final heure = prochaine.heure == "--:--"
-          ? "sans heure précise"
-          : "à ${prochaine.heure}";
+    ? 'heure_sans_precision'.tr()
+    : 'heure_a'.tr(args: [prochaine.heure]);
       final dateTexte = _formaterDate(prochaine.date);
 
       var conseil =
-          "🎯 Je te conseille de commencer par : ${prochaine.titre}\n"
-          "${_iconePriorite(prochaine.priorite)} Priorité : ${prochaine.priorite}\n"
-          "📂 Catégorie : ${prochaine.categorie}\n"
-          "📅 Date : $dateTexte, $heure";
+    "${'message_conseil_commencer'.tr(args: [prochaine.titre])}\n"
+    "${_iconePriorite(prochaine.priorite)} ${'message_priorite'.tr(args: ['', prochaine.priorite])}\n"
+    "${'message_categorie'.tr(args: [prochaine.categorie])}\n"
+    "${'message_date_heure'.tr(args: [dateTexte, heure])}";
 
       if (nombreHaute >= 2) {
         conseil +=
-            "\n\n⚠️ Tu as $nombreHaute tâches de priorité haute. Commence par une seule, puis passe à la suivante.";
+    "\n\n${'message_plusieurs_taches_haute'.tr(args: [nombreHaute.toString()])}";
       } else if (aujourdhui.length >= 3) {
         conseil +=
-            "\n\n⏳ Tu as plusieurs tâches aujourd’hui. Essaie de les faire par petites sessions.";
+    "\n\n${'message_plusieurs_taches_aujourdhui'.tr()}";
       } else {
-        conseil += "\n\n✅ C’est le meilleur choix pour avancer sans stress.";
+        conseil +=
+    "\n\n${'message_meilleur_choix'.tr()}";
       }
 
       return _ResultatExecution(conseil, contexte);

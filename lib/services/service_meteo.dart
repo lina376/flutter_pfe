@@ -1,19 +1,25 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/modele_meteo.dart';
-
+import 'package:easy_localization/easy_localization.dart';
 class ServiceMeteo {
-  String _descriptionDepuisCode(int code) {
-    if (code == 0) return 'Ciel dégagé';
-    if ([1, 2, 3].contains(code)) return 'Partiellement nuageux';
-    if ([45, 48].contains(code)) return 'Brouillard';
-    if ([51, 53, 55, 56, 57].contains(code)) return 'Bruine';
-    if ([61, 63, 65, 66, 67].contains(code)) return 'Pluie';
-    if ([71, 73, 75, 77].contains(code)) return 'Neige';
-    if ([80, 81, 82].contains(code)) return 'Averses';
-    if ([95, 96, 99].contains(code)) return 'Orage';
-    return 'Météo variable';
+
+String _descriptionDepuisCode(int code) {
+  if (code == 0) return 'meteo_ciel_degage'.tr();
+  if ([1, 2, 3].contains(code)) {
+    return 'meteo_partiellement_nuageux'.tr();
   }
+  if ([45, 48].contains(code)) return 'meteo_brouillard'.tr();
+  if ([51, 53, 55, 56, 57].contains(code)) return 'meteo_bruine'.tr();
+  if ([61, 63, 65, 66, 67].contains(code)) return 'meteo_pluie'.tr();
+  if ([71, 73, 75, 77].contains(code)) return 'meteo_neige'.tr();
+  if ([80, 81, 82].contains(code)) return 'meteo_averses'.tr();
+  if ([95, 96, 99].contains(code)) return 'meteo_orage'.tr();
+
+  return 'meteo_variable'.tr();
+}
+
+
 
   String _conseilDepuisMeteo({
     required String description,
@@ -22,26 +28,34 @@ class ServiceMeteo {
   }) {
     final d = description.toLowerCase();
 
-    if (d.contains('orage')) {
-      return 'Attention, risque d’orage. Évite de sortir sans nécessité et prends une marge de temps.';
-    }
-    if (d.contains('pluie') || d.contains('averse') || d.contains('bruine')) {
-      return 'Il peut pleuvoir. Prends un parapluie et sors un peu plus tôt.';
-    }
-    if (d.contains('brouillard')) {
-      return 'Visibilité faible. Fais attention sur la route et pars plus tôt.';
-    }
-    if (vent >= 35) {
-      return 'Il y a du vent. Fais attention pendant le trajet.';
-    }
-    if (temperature >= 32) {
-      return 'Il fait chaud. Bois de l’eau et évite l’effort prolongé.';
-    }
-    if (temperature <= 10) {
-      return 'Il fait froid. Habille-toi bien avant de sortir.';
-    }
+if (d.contains('orage')) {
+  return 'meteo_conseil_orage'.tr();
+}
 
-    return 'Temps acceptable aujourd’hui.';
+if (d.contains('pluie') ||
+    d.contains('averse') ||
+    d.contains('bruine')) {
+  return 'meteo_conseil_pluie'.tr();
+}
+
+if (d.contains('brouillard')) {
+  return 'meteo_conseil_brouillard'.tr();
+}
+
+if (vent >= 35) {
+  return 'meteo_conseil_vent'.tr();
+}
+
+if (temperature >= 32) {
+  return 'meteo_conseil_chaud'.tr();
+}
+
+if (temperature <= 10) {
+  return 'meteo_conseil_froid'.tr();
+}
+
+return 'meteo_conseil_normal'.tr();
+
   }
 
   int margeTrajetSelonMeteo(MeteoActuelle meteo) {
@@ -120,14 +134,12 @@ class ServiceMeteo {
       return MeteoActuelle(
         ville: ville,
         temperature: 24,
-        description: 'Météo indisponible',
+        description: 'meteo_indisponible'.tr(),
         ressenti: 24,
         humidite: 0,
         vent: 0,
         pression: 1015,
-        conseil:
-            'Je n’ai pas pu récupérer la météo réelle. Vérifie la connexion internet.',
-      );
+        conseil: 'meteo_erreur_connexion'.tr(), );
     }
   }
 
@@ -169,10 +181,11 @@ class ServiceMeteo {
     } catch (_) {
       return [
         PrevisionJour(
-          jour: 'Auj',
+          jour: 'meteo_auj'.tr(),
+description: 'meteo_indisponible'.tr(),
           temperatureMax: 24,
           temperatureMin: 18,
-          description: 'Indisponible',
+  
         ),
       ];
     }

@@ -1,3 +1,7 @@
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:easy_localization/easy_localization.dart';
+
 import '../models/modele_note.dart';
 import '../services/service_note.dart';
 import '../services/service_favori.dart';
@@ -29,7 +33,8 @@ class ControleurNote {
     required String contenu,
     required bool aimee,
   }) async {
-    final titreFinal = titre.isEmpty ? 'Sans titre' : titre;
+    final titreFinal =
+        titre.isEmpty ? 'note_sans_titre'.tr() : titre;
 
     if (idNote != null && idNote.isNotEmpty) {
       await _serviceNote.mettreAJourNote(
@@ -67,26 +72,10 @@ class ControleurNote {
     }
   }
 
-  String formaterDate(DateTime date) {
-    final jour = date.day.toString().padLeft(2, '0');
-    const mois = [
-      'Jan',
-      'Fév',
-      'Mar',
-      'Avr',
-      'Mai',
-      'Juin',
-      'Juil',
-      'Aoû',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Déc',
-    ];
-    final moisTexte = mois[date.month - 1];
-    final heure = date.hour.toString().padLeft(2, '0');
-    final minute = date.minute.toString().padLeft(2, '0');
-
-    return "$jour $moisTexte $heure:$minute";
+  String formaterDate(DateTime date, BuildContext context) {
+    return DateFormat(
+      'dd MMM HH:mm',
+      context.locale.toString(),
+    ).format(date);
   }
 }

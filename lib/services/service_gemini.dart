@@ -5,7 +5,7 @@ import 'package:ora/models/modele_contexte.dart';
 class ServiceGemini {
   static const String apiKey = String.fromEnvironment(
     'GEMINI_API_KEY',
-    defaultValue: 'AIzaSyBj5lzp-68iZQPIf7F62xwZbMIKnOa6esk',
+    defaultValue: 'AIzaSyAnMzm9p8s5ILoJrVOD_nT4j9flAclQYvo',
   );
 
   Uri get _url => Uri.parse(
@@ -117,7 +117,7 @@ Règles générales :
 Si l'utilisateur dit:
 - montre moi le trajet
 - ouvre la carte
-
+Réponds toujours dans la langue actuelle de l'application.
 → retourne:
 { "action": "OPEN_MAP_ROUTE" }
 Formats :
@@ -241,7 +241,20 @@ Recommandation :
 
 Discussion normale :
 {"action":"CHAT"}
+final langue = context.locale.languageCode;
 
+String instructionLangue = '';
+
+if (langue == 'ar') {
+  instructionLangue =
+      'أجب باللغة العربية الفصحى فقط دون استعمال اللهجة.';
+} else if (langue == 'fr') {
+  instructionLangue =
+      'Réponds uniquement en français.';
+} else {
+  instructionLangue =
+      'Reply only in English.';
+}
 Message utilisateur :
 $message
 """;

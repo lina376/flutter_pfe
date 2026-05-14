@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 import '../models/modele_utilisateur.dart';
 
@@ -62,7 +63,7 @@ class ServiceProfil {
   }) async {
     final utilisateur = _authentification.currentUser;
     if (utilisateur == null) {
-      throw Exception("Aucun utilisateur connecté.");
+      throw Exception("profil_aucun_utilisateur_connecte".tr());
     }
 
     final credential = EmailAuthProvider.credential(
@@ -79,12 +80,12 @@ class ServiceProfil {
   }) async {
     final utilisateur = _authentification.currentUser;
     if (utilisateur == null) {
-      throw Exception("Aucun utilisateur connecté.");
+      throw Exception("profil_aucun_utilisateur_connecte".tr());
     }
 
     final ancienEmail = utilisateur.email;
     if (ancienEmail == null || ancienEmail.isEmpty) {
-      throw Exception("Email actuel introuvable.");
+      throw Exception("profil_email_actuel_introuvable".tr());
     }
 
     await _reauthentifier(
@@ -105,12 +106,12 @@ class ServiceProfil {
   }) async {
     final utilisateur = _authentification.currentUser;
     if (utilisateur == null) {
-      throw Exception("Aucun utilisateur connecté.");
+      throw Exception("profil_aucun_utilisateur_connecte".tr());
     }
 
     final email = utilisateur.email;
     if (email == null || email.isEmpty) {
-      throw Exception("Email utilisateur introuvable.");
+      throw Exception("profil_email_utilisateur_introuvable".tr());
     }
 
     await _reauthentifier(email: email, motDePasseActuel: motDePasseActuel);
@@ -121,7 +122,7 @@ class ServiceProfil {
   Future<String> televerserPhotoProfil(File imageFile) async {
     final utilisateur = _authentification.currentUser;
     if (utilisateur == null) {
-      throw Exception("Aucun utilisateur connecté.");
+      throw Exception("profil_aucun_utilisateur_connecte".tr());
     }
 
     final reference = _storage

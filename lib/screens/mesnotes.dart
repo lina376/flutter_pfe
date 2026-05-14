@@ -225,7 +225,7 @@ class _mesnotesState extends State<mesnotes> {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        _controleurNote.formaterDate(note.date),
+                                        _controleurNote.formaterDate(note.date, context),
                                         style: TextStyle(
                                           color: Colors.white.withOpacity(0.75),
                                           fontSize: 12,

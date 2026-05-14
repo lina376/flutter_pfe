@@ -5,7 +5,7 @@ import 'package:ora/models/modele_eau.dart';
 import 'package:ora/services/service_eau_local.dart';
 import 'package:ora/services/service_eau_firebase.dart';
 import 'package:ora/controlleurs/controleur_sante.dart';
-
+import 'package:easy_localization/easy_localization.dart';
 class ControleurEau {
   final ServiceEauLocal _local = ServiceEauLocal.instance;
   final ServiceEauFirebase _firebase = ServiceEauFirebase();
@@ -18,8 +18,7 @@ class ControleurEau {
   String get _userId {
     final utilisateur = _authentification.currentUser;
     if (utilisateur == null) {
-      throw Exception('Utilisateur non connecté');
-    }
+throw Exception('utilisateur_non_connecte'.tr());    }
     return utilisateur.uid;
   }
 
@@ -52,7 +51,7 @@ class ControleurEau {
   Future<int> obtenirObjectifHydratation() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getInt(clePreference('objectif_hydratation')) ??
-        calculerObjectifVerres(age: 22, poids: 70, activite: 'normale');
+        calculerObjectifVerres(age: 22, poids: 70, activite: 'normale'.tr(),);
   }
 
   Future<void> mettreAJourObjectifDepuisSante(profilSante) async {

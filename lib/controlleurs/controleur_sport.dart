@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
 import 'package:ora/controlleurs/controleur_eau.dart';
@@ -20,7 +21,7 @@ class ControleurSport {
   String get _userId {
     final utilisateur = _authentification.currentUser;
     if (utilisateur == null) {
-      throw Exception('Utilisateur non connecté');
+      throw Exception('utilisateur_non_connecte'.tr());
     }
     return utilisateur.uid;
   }
@@ -144,7 +145,10 @@ class ControleurSport {
     if (age >= 50 || etatSante == 'Malade') coefficient *= 0.85;
     if (age < 18) coefficient *= 0.90;
 
-    return ((minutes * coefficient * poids) / 70).round().clamp(0, 2000).toInt();
+    return ((minutes * coefficient * poids) / 70)
+        .round()
+        .clamp(0, 2000)
+        .toInt();
   }
 
   ModeleSport _mettreAJourSelonProfil({
@@ -244,76 +248,59 @@ class ControleurSport {
   }
 
   Future<List<ModeleSport>> chargerSemaineDepuis(DateTime dateReference) async {
-  final userId = _userId;
+    final userId = _userId;
 
-  final debutSemaine = dateReference.subtract(
-    Duration(days: dateReference.weekday - 1),
-  );
+    final debutSemaine = dateReference.subtract(
+      Duration(days: dateReference.weekday - 1),
+    );
 
-  final finSemaine = debutSemaine.add(const Duration(days: 6));
+    final finSemaine = debutSemaine.add(const Duration(days: 6));
 
-  final debut = DateFormat('yyyy-MM-dd').format(debutSemaine);
-  final fin = DateFormat('yyyy-MM-dd').format(finSemaine);
+    final debut = DateFormat('yyyy-MM-dd').format(debutSemaine);
+    final fin = DateFormat('yyyy-MM-dd').format(finSemaine);
 
-  try {
-    final donneesFirebase = await _firebase
-        .obtenirEntreDates(
-          userId: userId,
-          debut: debut,
-          fin: fin,
-        )
-        .timeout(const Duration(seconds: 5));
+    try {
+      final donneesFirebase = await _firebase
+          .obtenirEntreDates(userId: userId, debut: debut, fin: fin)
+          .timeout(const Duration(seconds: 5));
 
-    for (final item in donneesFirebase) {
-      await _local.sauvegarder(item.copyWith(synced: true));
+      for (final item in donneesFirebase) {
+        await _local.sauvegarder(item.copyWith(synced: true));
+      }
+    } catch (e) {
+      print('erreur_firebase_sport_semaine'.tr(args: ['$e']));
     }
-  } catch (e) {
-    print("Erreur Firebase sport semaine: $e");
+
+    return _local.obtenirEntreDates(userId: userId, debut: debut, fin: fin);
   }
 
-  return _local.obtenirEntreDates(
-    userId: userId,
-    debut: debut,
-    fin: fin,
-  );
-}
+  Future<List<ModeleSport>> chargerSemaine() async {
+    final userId = _userId;
+    final maintenant = DateTime.now();
 
-Future<List<ModeleSport>> chargerSemaine() async {
-  final userId = _userId;
+    final debutSemaine = maintenant.subtract(
+      Duration(days: maintenant.weekday - 1),
+    );
 
-  final maintenant = DateTime.now();
+    final finSemaine = debutSemaine.add(const Duration(days: 6));
 
-  final debutSemaine = maintenant.subtract(
-    Duration(days: maintenant.weekday - 1),
-  );
+    final debut = DateFormat('yyyy-MM-dd').format(debutSemaine);
+    final fin = DateFormat('yyyy-MM-dd').format(finSemaine);
 
-  final finSemaine = debutSemaine.add(const Duration(days: 6));
+    try {
+      final donneesFirebase = await _firebase
+          .obtenirEntreDates(userId: userId, debut: debut, fin: fin)
+          .timeout(const Duration(seconds: 5));
 
-  final debut = DateFormat('yyyy-MM-dd').format(debutSemaine);
-  final fin = DateFormat('yyyy-MM-dd').format(finSemaine);
-
-  try {
-    final donneesFirebase = await _firebase
-        .obtenirEntreDates(
-          userId: userId,
-          debut: debut,
-          fin: fin,
-        )
-        .timeout(const Duration(seconds: 5));
-
-    for (final item in donneesFirebase) {
-      await _local.sauvegarder(item.copyWith(synced: true));
+      for (final item in donneesFirebase) {
+        await _local.sauvegarder(item.copyWith(synced: true));
+      }
+    } catch (e) {
+      print('erreur_firebase_sport'.tr(args: ['$e']));
     }
-  } catch (e) {
-    print("Erreur Firebase sport: $e");
-  }
 
-  return _local.obtenirEntreDates(
-    userId: userId,
-    debut: debut,
-    fin: fin,
-  );
-}
+    return _local.obtenirEntreDates(userId: userId, debut: debut, fin: fin);
+  }
 
   Future<ModeleSport> modifierMinutes(ModeleSport sport, int minutes) async {
     final profilSante = await ControleurSante().obtenirDernierProfil();
@@ -454,32 +441,35 @@ Future<List<ModeleSport>> chargerSemaine() async {
   }) {
     if (_personneFragile(sante, sport.etatSante) || _estFatigue(sante)) {
       return [
-        {'titre': 'Marche douce', 'duree': '15-20 min'},
-        {'titre': 'Étirement', 'duree': '10-15 min'},
-        {'titre': 'Yoga', 'duree': '15-20 min'},
+        {'titre': 'sport_marche_douce'.tr(), 'duree': '15-20 min'},
+        {'titre': 'sport_etirement'.tr(), 'duree': '10-15 min'},
+        {'titre': 'sport_yoga'.tr(), 'duree': '15-20 min'},
       ];
     }
 
     if (sport.objectifSport == 'Perte de poids') {
       return [
-        {'titre': 'Cardio léger', 'duree': sante != null && sante.poids >= 85 ? '25-35 min' : '30-45 min'},
-        {'titre': 'Marche active', 'duree': '30-45 min'},
-        {'titre': 'Renforcement', 'duree': '15-25 min'},
+        {
+          'titre': 'sport_cardio_leger'.tr(),
+          'duree': sante != null && sante.poids >= 85 ? '25-35 min' : '30-45 min',
+        },
+        {'titre': 'sport_marche_active'.tr(), 'duree': '30-45 min'},
+        {'titre': 'sport_renforcement'.tr(), 'duree': '15-25 min'},
       ];
     }
 
     if (sport.objectifSport == 'Prise de poids') {
       return [
-        {'titre': 'Renforcement', 'duree': '30-40 min'},
-        {'titre': 'Marche active', 'duree': '15-20 min'},
-        {'titre': 'Étirement', 'duree': '10-15 min'},
+        {'titre': 'sport_renforcement'.tr(), 'duree': '30-40 min'},
+        {'titre': 'sport_marche_active'.tr(), 'duree': '15-20 min'},
+        {'titre': 'sport_etirement'.tr(), 'duree': '10-15 min'},
       ];
     }
 
     return [
-      {'titre': 'Marche active', 'duree': '20-30 min'},
-      {'titre': 'Yoga', 'duree': '15-25 min'},
-      {'titre': 'Cardio léger', 'duree': '20-30 min'},
+      {'titre': 'sport_marche_active'.tr(), 'duree': '20-30 min'},
+      {'titre': 'sport_yoga'.tr(), 'duree': '15-25 min'},
+      {'titre': 'sport_cardio_leger'.tr(), 'duree': '20-30 min'},
     ];
   }
 
@@ -488,60 +478,59 @@ Future<List<ModeleSport>> chargerSemaine() async {
     required ModeleSante? sante,
     required ModeleEau? eau,
   }) {
-    final progressionEau = eau == null || eau.objectif == 0
-        ? 0.0
-        : eau.verres / eau.objectif;
+    final progressionEau =
+        eau == null || eau.objectif == 0 ? 0.0 : eau.verres / eau.objectif;
 
     if (_personneFragile(sante, sport.etatSante)) {
-      return 'ORA adapte le sport à votre état de santé 🌿\n'
-          'Séance légère recommandée : ${sport.typeSeance}, ${sport.objectifMinutes} min maximum.\n'
-          'Évitez l’effort intense et reposez-vous si vous vous sentez fatigué.';
+      return 'conseil_sport_fragile'.tr(args: [
+        sport.typeSeance,
+        sport.objectifMinutes.toString(),
+      ]);
     }
 
     if (sante != null && sante.age < 18) {
-      return 'ORA propose un programme adapté à votre âge ✨\n'
-          'Objectif : ${sport.objectifSport}. Séance conseillée : ${sport.typeSeance}.\n'
-          'On évite les séances trop longues ou trop intenses.';
+      return 'conseil_sport_age'.tr(args: [
+        sport.objectifSport,
+        sport.typeSeance,
+      ]);
     }
 
     if (sante != null && sante.heuresSommeil <= 4) {
-      return 'ORA détecte une fatigue importante 😴\n'
-          'Aujourd’hui, privilégiez une activité douce.\n'
-          'Objectif conseillé : ${sport.objectifMinutes} min, sans forcer.';
+      return 'conseil_sport_fatigue'.tr(args: [
+        sport.objectifMinutes.toString(),
+      ]);
     }
 
     if (sante != null && sante.humeur == 'Stressé') {
-      return 'Votre niveau de stress semble élevé 🌿\n'
-          'ORA recommande yoga, respiration ou marche calme.\n'
-          'Buvez régulièrement avant et après l’effort.';
+      return 'conseil_sport_stress'.tr();
     }
 
     if (progressionEau < 0.40 && sport.minutes > 0) {
-      return 'ORA remarque que votre hydratation est faible 💧\n'
-          'Avant de continuer le sport, essayez de boire un verre d’eau.\n'
-          'La durée est réduite pour rester raisonnable : ${sport.objectifMinutes} min.';
+      return 'conseil_sport_hydratation_faible'.tr(args: [
+        sport.objectifMinutes.toString(),
+      ]);
     }
 
     if (sport.minutes >= sport.objectifMinutes) {
-      return 'Excellent travail ✨\n'
-          'Votre objectif sportif est atteint aujourd’hui.\n'
-          'Pensez maintenant à la récupération et à l’hydratation.';
+      return 'conseil_sport_objectif_atteint'.tr();
     }
 
     if (sport.objectifSport == 'Perte de poids') {
-      return 'Objectif perte de poids 🔥\n'
-          'ORA recommande ${sport.typeSeance} avec intensité ${sport.intensite.toLowerCase()}.\n'
-          'Le programme tient compte de votre poids, sommeil et hydratation.';
+      return 'conseil_sport_perte_poids'.tr(args: [
+        sport.typeSeance,
+        sport.intensite.toLowerCase(),
+      ]);
     }
 
     if (sport.objectifSport == 'Prise de poids') {
-      return 'Objectif prise de poids saine 💪\n'
-          'ORA recommande surtout le renforcement musculaire.\n'
-          'Associez la séance avec une alimentation régulière.';
+      return 'conseil_sport_prise_poids'.tr();
     }
 
-    return 'ORA propose une activité équilibrée aujourd’hui 💪\n'
-        'Séance recommandée : ${sport.typeSeance}, intensité ${sport.intensite.toLowerCase()}.\n'
-        'Avancement : ${sport.minutes}/${sport.objectifMinutes} min.';
+    return 'conseil_sport_default'.tr(args: [
+      sport.typeSeance,
+      sport.intensite.toLowerCase(),
+      sport.minutes.toString(),
+      sport.objectifMinutes.toString(),
+    ]);
   }
 }

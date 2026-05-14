@@ -4,8 +4,7 @@ import 'package:ora/models/modele_eau.dart';
 
 class ServiceEauFirebase {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-
+final FirebaseAuth _auth = FirebaseAuth.instance;
   CollectionReference<Map<String, dynamic>> _collection(String userId) {
     return _firestore.collection('users').doc(userId).collection('eau');
   }

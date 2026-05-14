@@ -19,62 +19,23 @@ class _rencontreState extends State<rencontre> {
   final utilisateur = FirebaseAuth.instance.currentUser;
 
   if (utilisateur == null) {
-    if (!mounted) return;
-
-    Navigator.pushReplacementNamed(
-      context,
-      connecter.screenRoute,
-    );
+    Navigator.pushReplacementNamed(context, connecter.screenRoute);
     return;
   }
 
   await utilisateur.reload();
 
-  final user = FirebaseAuth.instance.currentUser;
-
-  if (user == null) {
-    if (!mounted) return;
-
-    Navigator.pushReplacementNamed(
-      context,
-      connecter.screenRoute,
-    );
-    return;
-  }
-
-  if (!user.emailVerified) {
-    await FirebaseAuth.instance.signOut();
-
-    if (!mounted) return;
-
-    Navigator.pushReplacementNamed(
-      context,
-      connecter.screenRoute,
-    );
-    return;
-  }
-
   final doc = await FirebaseFirestore.instance
       .collection('users')
-      .doc(user.uid)
+      .doc(utilisateur.uid)
       .get();
 
   final role = doc.data()?['role'] ?? 'user';
 
-  if (!mounted) return;
-
   if (role == 'admin') {
-    Navigator.pushReplacementNamed(
-      context,
-      AdminHome.screenRoute,
-    );
-  }
-
-  else {
-    Navigator.pushReplacementNamed(
-      context,
-      principal.screenRoute,
-    );
+    Navigator.pushReplacementNamed(context, AdminHome.screenRoute);
+  } else {
+    Navigator.pushReplacementNamed(context, principal.screenRoute);
   }
 }
 

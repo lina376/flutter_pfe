@@ -8,6 +8,7 @@ import 'package:ora/models/modele_sport.dart';
 import 'package:ora/services/service_eau_local.dart';
 import 'package:ora/services/service_sante_local.dart';
 import 'package:ora/services/service_sport_local.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class ServiceCoachOra {
   final ServiceEauLocal _serviceEau = ServiceEauLocal.instance;
@@ -52,13 +53,12 @@ class ServiceCoachOra {
       objectifSport: 30,
       heuresSommeil: 7,
       humeur: 'Stable',
-      etatGeneral: 'Connectez-vous pour personnaliser votre suivi.',
+      etatGeneral: 'coach_invite_etat'.tr(),
       scoreBienEtre: 65,
-      conseilDuJour:
-          'Commencez par remplir votre profil santé, puis suivez votre hydratation et votre activité sportive.',
-      recommandationHydratation: 'Objectif conseillé : environ 2 L par jour.',
-      recommandationSport: 'Activité douce conseillée : 20 à 30 minutes de marche.',
-      alerteSante: 'Aucune alerte disponible sans profil connecté.',
+      conseilDuJour: 'coach_invite_conseil'.tr(),
+      recommandationHydratation: 'coach_invite_hydratation'.tr(),
+      recommandationSport: 'coach_invite_sport'.tr(),
+      alerteSante: 'coach_invite_alerte'.tr(),
       updatedAt: DateTime.now(),
     );
   }
@@ -92,22 +92,22 @@ class ServiceCoachOra {
         .toInt();
 
     final recommandationHydratation = tauxEau < 0.5
-        ? 'Votre hydratation est faible aujourd’hui. Essayez de boire un verre maintenant et de continuer progressivement.'
+        ? 'coach_hydratation_faible'.tr()
         : tauxEau < 1
-            ? 'Vous êtes proche de votre objectif. Continuez à boire régulièrement.'
-            : 'Objectif hydratation atteint. Gardez ce rythme.';
+            ? 'coach_hydratation_proche'.tr()
+            : 'coach_hydratation_atteint'.tr();
 
     final recommandationSport = minutesSport == 0
-        ? 'Commencez par une activité simple : marche, étirement ou respiration pendant 10 minutes.'
+        ? 'coach_sport_debut'.tr()
         : minutesSport < objectifSport
-            ? 'Bonne progression. Il vous reste quelques minutes pour atteindre votre objectif sportif.'
-            : 'Objectif sport atteint. Pensez à la récupération et à l’étirement.';
+            ? 'coach_sport_progression'.tr()
+            : 'coach_sport_atteint'.tr();
 
     final alerteSante = heuresSommeil < 6
-        ? 'Sommeil faible : évitez une séance intense et privilégiez une activité légère.'
+        ? 'coach_alerte_sommeil'.tr()
         : humeur.toLowerCase().contains('stress')
-            ? 'Votre humeur indique du stress. Prenez une pause respiration de 5 minutes.'
-            : 'Aucune alerte importante pour aujourd’hui.';
+            ? 'coach_alerte_stress'.tr()
+            : 'coach_alerte_aucune'.tr();
 
     final conseil = _genererConseil(score, tauxEau, tauxSport, heuresSommeil);
 
@@ -121,10 +121,10 @@ class ServiceCoachOra {
       heuresSommeil: heuresSommeil,
       humeur: humeur,
       etatGeneral: score >= 80
-          ? 'Très bon équilibre'
+          ? 'coach_etat_tres_bon'.tr()
           : score >= 55
-              ? 'Équilibre moyen'
-              : 'Besoin d’attention',
+              ? 'coach_etat_moyen'.tr()
+              : 'coach_etat_attention'.tr(),
       scoreBienEtre: score,
       conseilDuJour: conseil,
       recommandationHydratation: recommandationHydratation,
@@ -141,18 +141,18 @@ class ServiceCoachOra {
     double sommeil,
   ) {
     if (sommeil < 6) {
-      return 'Votre priorité aujourd’hui est la récupération : hydratez-vous bien et évitez les efforts intenses.';
+      return 'coach_conseil_recuperation'.tr();
     }
     if (tauxEau < 0.5) {
-      return 'ORA vous conseille de renforcer votre hydratation avant de penser à une séance sportive.';
+      return 'coach_conseil_hydratation'.tr();
     }
     if (tauxSport < 0.4) {
-      return 'Une marche courte peut améliorer votre énergie sans pression.';
+      return 'coach_conseil_marche'.tr();
     }
     if (score >= 80) {
-      return 'Excellent rythme. Gardez votre équilibre entre hydratation, sommeil et activité.';
+      return 'coach_conseil_excellent'.tr();
     }
-    return 'Avancez doucement : un verre d’eau, un mouvement léger et une bonne nuit peuvent améliorer votre journée.';
+    return 'coach_conseil_general'.tr();
   }
 
   Future<void> sauvegarderResumeFirebase(ModeleCoachOra coach) async {

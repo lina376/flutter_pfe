@@ -4,7 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sqflite/sqflite.dart';
 import '../database/base_locale.dart';
 import '../models/modele_note.dart';
-
+import 'package:easy_localization/easy_localization.dart';
 class ServiceNote {
   final FirebaseAuth _authentification = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -161,7 +161,7 @@ class ServiceNote {
     final note = ModeleNote(
       id: id,
       userId: _userId ?? '',
-      titre: titre.isEmpty ? 'Sans titre' : titre,
+      titre: titre.isEmpty ? 'note_sans_titre'.tr() : titre,
       contenu: contenu,
       liked: aimee,
       date: DateTime.now(),
@@ -198,7 +198,7 @@ class ServiceNote {
     final note = ModeleNote(
       id: idNote,
       userId: _userId ?? '',
-      titre: titre.isEmpty ? 'Sans titre' : titre,
+      titre: titre.isEmpty ? 'note_sans_titre'.tr() : titre,
       contenu: contenu,
       liked: aimee,
       date: DateTime.now(),

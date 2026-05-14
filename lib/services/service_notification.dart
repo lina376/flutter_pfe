@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../models/modele_notification.dart';
 
 class ServiceNotification {
@@ -21,11 +22,8 @@ class ServiceNotification {
     if (ref == null) return Stream.value([]);
 
     return ref
-    .where(
-      'scheduledFor',
-      isLessThanOrEqualTo: Timestamp.now(),
-    )
-    .orderBy('scheduledFor', descending: true)
+        .where('scheduledFor', isLessThanOrEqualTo: Timestamp.now())
+        .orderBy('scheduledFor', descending: true)
         .snapshots()
         .map(
           (snapshot) => snapshot.docs
@@ -53,8 +51,8 @@ class ServiceNotification {
     if (ref == null) return;
 
     await ref.add({
-      'title': 'Rappel hydratation',
-      'body': 'Il est temps de boire $waterMl ml d’eau.',
+      'title': 'notif_title_hydratation'.tr(),
+      'body': 'notif_body_hydratation'.tr(args: [waterMl.toString()]),
       'type': 'water',
       'iconType': 'water',
       'isRead': false,
@@ -72,8 +70,8 @@ class ServiceNotification {
     if (ref == null) return;
 
     await ref.add({
-      'title': 'Rendez-vous médical',
-      'body': 'Vous avez un rendez-vous avec $doctorName.',
+      'title': 'notif_title_doctor'.tr(),
+      'body': 'notif_body_doctor'.tr(args: [doctorName]),
       'type': 'doctor',
       'iconType': 'doctor',
       'isRead': false,
@@ -82,73 +80,76 @@ class ServiceNotification {
       'data': {'doctorName': doctorName},
     });
   }
-Stream<int> compterNonLues() {
-  final ref = _refNotifications();
-  if (ref == null) return Stream.value(0);
 
-  return ref.snapshots().map((snapshot) {
-    final now = DateTime.now();
+  Stream<int> compterNonLues() {
+    final ref = _refNotifications();
+    if (ref == null) return Stream.value(0);
 
-    return snapshot.docs.where((doc) {
-      final data = doc.data();
+    return ref.snapshots().map((snapshot) {
+      final now = DateTime.now();
 
-      final isRead = data['isRead'] == true;
+      return snapshot.docs.where((doc) {
+        final data = doc.data();
 
-      final scheduledFor =
-          (data['scheduledFor'] as Timestamp?)?.toDate();
+        final isRead = data['isRead'] == true;
 
-      if (scheduledFor == null) return false;
+        final scheduledFor = (data['scheduledFor'] as Timestamp?)?.toDate();
 
-      return !isRead && !scheduledFor.isAfter(now);
-    }).length;
-  });
-}
-Future<void> creerNotification({
-  required String title,
-  required String body,
-  required String type,
-  required String iconType,
-  required DateTime scheduledFor,
-  Map<String, dynamic> data = const {},
-}) async {
-  final ref = _refNotifications();
-  if (ref == null) return;
+        if (scheduledFor == null) return false;
 
-  await ref.add({
-    'title': title,
-    'body': body,
-    'type': type,
-    'iconType': iconType,
-    'isRead': false,
-    'createdAt': Timestamp.now(),
-    'scheduledFor': Timestamp.fromDate(scheduledFor),
-    'data': data,
-  });
-}
-Future<bool> notificationExisteAujourdHui({
-  required String type,
-}) async {
-  final ref = _refNotifications();
-  if (ref == null) return false;
+        return !isRead && !scheduledFor.isAfter(now);
+      }).length;
+    });
+  }
 
-  final aujourdHui = DateTime.now();
+  Future<void> creerNotification({
+    required String title,
+    required String body,
+    required String type,
+    required String iconType,
+    required DateTime scheduledFor,
+    Map<String, dynamic> data = const {},
+  }) async {
+    final ref = _refNotifications();
+    if (ref == null) return;
 
-  final debut = DateTime(
-    aujourdHui.year,
-    aujourdHui.month,
-    aujourdHui.day,
-  );
+    await ref.add({
+      'title': title,
+      'body': body,
+      'type': type,
+      'iconType': iconType,
+      'isRead': false,
+      'createdAt': Timestamp.now(),
+      'scheduledFor': Timestamp.fromDate(scheduledFor),
+      'data': data,
+    });
+  }
 
-  final fin = debut.add(const Duration(days: 1));
+  Future<bool> notificationExisteAujourdHui({
+    required String type,
+  }) async {
+    final ref = _refNotifications();
+    if (ref == null) return false;
 
-  final snapshot = await ref
-      .where('type', isEqualTo: type)
-      .where('createdAt', isGreaterThanOrEqualTo: Timestamp.fromDate(debut))
-      .where('createdAt', isLessThan: Timestamp.fromDate(fin))
-      .get();
+    final aujourdHui = DateTime.now();
 
-  return snapshot.docs.isNotEmpty;
-}
+    final debut = DateTime(
+      aujourdHui.year,
+      aujourdHui.month,
+      aujourdHui.day,
+    );
+
+    final fin = debut.add(const Duration(days: 1));
+
+    final snapshot = await ref
+        .where('type', isEqualTo: type)
+        .where('createdAt', isGreaterThanOrEqualTo: Timestamp.fromDate(debut))
+        .where('createdAt', isLessThan: Timestamp.fromDate(fin))
+        .get();
+
+    return snapshot.docs.isNotEmpty;
+  }
+
   Future<void> sendMedicineReminder({
     required String medicineName,
     required DateTime reminderTime,
@@ -157,8 +158,8 @@ Future<bool> notificationExisteAujourdHui({
     if (ref == null) return;
 
     await ref.add({
-      'title': 'Rappel médicament',
-      'body': 'N’oubliez pas de prendre $medicineName.',
+      'title': 'notif_title_medicine'.tr(),
+      'body': 'notif_body_medicine'.tr(args: [medicineName]),
       'type': 'medicine',
       'iconType': 'medicine',
       'isRead': false,

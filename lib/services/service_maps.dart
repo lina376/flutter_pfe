@@ -1,7 +1,7 @@
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import '../models/modele_maps.dart';
-
+import 'package:easy_localization/easy_localization.dart';
 class ServiceMaps {
   Future<bool> verifierServiceGPS() async {
     return await Geolocator.isLocationServiceEnabled();
@@ -51,7 +51,7 @@ class ServiceMaps {
       final placemarks = await placemarkFromCoordinates(latitude, longitude);
 
       if (placemarks.isEmpty) {
-        return "Adresse inconnue";
+        return 'adresse_inconnue'.tr();
       }
 
       final p = placemarks.first;
@@ -61,7 +61,7 @@ class ServiceMaps {
       final country = p.country ?? "";
 
       if (street.isEmpty && locality.isEmpty && country.isEmpty) {
-        return "Adresse inconnue";
+        return 'adresse_inconnue'.tr();
       }
 
       if (street.isNotEmpty && locality.isNotEmpty) {
@@ -79,10 +79,9 @@ class ServiceMaps {
       if (country.isNotEmpty) {
         return country;
       }
-
-      return "Adresse inconnue";
+return 'adresse_inconnue'.tr();
     } catch (_) {
-      return "Adresse inconnue";
+   return 'adresse_inconnue'.tr();
     }
   }
 

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../database/base_locale.dart';
 import '../models/modele_tache.dart';
 import 'service_notification_locale.dart';
@@ -151,12 +152,12 @@ class ServiceTache {
       try {
         await _envoyerTacheVersFirebase(tache);
       } catch (e) {
-        print('Sync ajout tâche en attente: $e');
+        print('sync_ajout_tache_attente'.tr(args: ['$e']));
       }
 
       await _rafraichirFluxTaches();
     } catch (e) {
-      print('Erreur ajout tâche: $e');
+      print('erreur_ajout_tache'.tr(args: ['$e']));
     }
   }
 
@@ -185,12 +186,12 @@ class ServiceTache {
           whereArgs: [_userId ?? '', idTache],
         );
       } catch (e) {
-        print('Suppression tâche cloud en attente: $e');
+        print('suppression_tache_cloud_attente'.tr(args: ['$e']));
       }
 
       await _rafraichirFluxTaches();
     } catch (e) {
-      print('Erreur suppression tâche: $e');
+      print('erreur_suppression_tache'.tr(args: ['$e']));
     }
   }
 
@@ -226,12 +227,12 @@ class ServiceTache {
       try {
         await _envoyerTacheVersFirebase(maj);
       } catch (e) {
-        print('Sync état tâche en attente: $e');
+        print('sync_etat_tache_attente'.tr(args: ['$e']));
       }
 
       await _rafraichirFluxTaches();
     } catch (e) {
-      print('Erreur modification état tâche: $e');
+      print('erreur_modification_etat_tache'.tr(args: ['$e']));
     }
   }
 
@@ -341,12 +342,12 @@ class ServiceTache {
       try {
         await _envoyerTacheVersFirebase(tache);
       } catch (e) {
-        print('Sync mise à jour tâche en attente: $e');
+        print('sync_mise_a_jour_tache_attente'.tr(args: ['$e']));
       }
 
       await _rafraichirFluxTaches();
     } catch (e) {
-      print('Erreur mise à jour tâche: $e');
+      print('erreur_mise_a_jour_tache'.tr(args: ['$e']));
     }
   }
 
@@ -362,7 +363,6 @@ class ServiceTache {
           final data = doc.data();
           final locale = await _recupererTacheLocale(doc.id);
 
-          // Important: ne pas écraser une modification locale pas encore synchronisée.
           if (locale != null && !locale.estSynchronisee) continue;
 
           final dateTexte = (data['date'] ?? '').toString();
@@ -383,13 +383,13 @@ class ServiceTache {
 
           await _insererOuMajLocal(tache);
         } catch (e) {
-          print('Erreur lecture tâche cloud ${doc.id}: $e');
+          print('erreur_lecture_tache_cloud'.tr(args: ['${doc.id}', '$e']));
         }
       }
 
       await _rafraichirFluxTaches();
     } catch (e) {
-      print('Erreur synchronisation depuis Firebase: $e');
+      print('erreur_sync_depuis_firebase'.tr(args: ['$e']));
     }
   }
 
@@ -418,13 +418,13 @@ class ServiceTache {
             await _insererOuMajLocal(t.copyWith(estSynchronisee: true));
           }
         } catch (e) {
-          print('Tâche ${t.id} gardée en attente de synchronisation: $e');
+          print('tache_gardee_attente_sync'.tr(args: ['${t.id}', '$e']));
         }
       }
 
       await _rafraichirFluxTaches();
     } catch (e) {
-      print('Erreur synchronisation vers Firebase: $e');
+      print('erreur_sync_vers_firebase'.tr(args: ['$e']));
     }
   }
 

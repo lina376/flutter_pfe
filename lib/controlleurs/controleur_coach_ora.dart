@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:ora/models/modele_coach_ora.dart';
 import 'package:ora/services/service_coach_ora.dart';
 
@@ -9,11 +10,14 @@ class ControleurCoachOra {
   }
 
   String creerQuestionPourAssistant(ModeleCoachOra coach) {
-    return '''Analyse mon état aujourd’hui et donne-moi un conseil personnalisé court.
-Hydratation: ${coach.eauBu.toStringAsFixed(1)}L / ${coach.objectifEau.toStringAsFixed(1)}L.
-Sport: ${coach.minutesSport} min / ${coach.objectifSport} min.
-Sommeil: ${coach.heuresSommeil.toStringAsFixed(1)} h.
-Humeur: ${coach.humeur}.
-Score bien-être: ${coach.scoreBienEtre}/100.''';
+    return 'coach_question_assistant'.tr(args: [
+      coach.eauBu.toStringAsFixed(1),
+      coach.objectifEau.toStringAsFixed(1),
+      coach.minutesSport.toString(),
+      coach.objectifSport.toString(),
+      coach.heuresSommeil.toStringAsFixed(1),
+      coach.humeur,
+      coach.scoreBienEtre.toString(),
+    ]);
   }
 }

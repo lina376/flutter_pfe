@@ -1,5 +1,6 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
+import 'package:easy_localization/easy_localization.dart';
 
 class ServiceNotificationLocale {
   static final ServiceNotificationLocale instance =
@@ -9,22 +10,29 @@ class ServiceNotificationLocale {
 
   final FlutterLocalNotificationsPlugin _plugin =
       FlutterLocalNotificationsPlugin();
+
   String messageTacheParCategorie(String categorie, String titre) {
     switch (categorie.toLowerCase()) {
       case "sport":
-        return "Prépare-toi pour ton activité sportive : $titre.";
+        return "notif_sport".tr(args: [titre]);
+
       case "études":
-        return "C’est bientôt le moment de réviser : $titre.";
+        return "notif_etudes".tr(args: [titre]);
+
       case "travail":
-        return "Rappel travail : $titre commence bientôt.";
+        return "notif_travail".tr(args: [titre]);
+
       case "santé":
-        return "Rappel santé : n’oublie pas $titre.";
+        return "notif_sante".tr(args: [titre]);
+
       case "rendez-vous":
-        return "Tu as bientôt un rendez-vous : $titre.";
+        return "notif_rdv".tr(args: [titre]);
+
       case "courses":
-        return "N’oublie pas tes courses : $titre.";
+        return "notif_courses".tr(args: [titre]);
+
       default:
-        return "Rappel : $titre commence bientôt.";
+        return "notif_default".tr(args: [titre]);
     }
   }
 
@@ -45,7 +53,6 @@ class ServiceNotificationLocale {
 
     final dateTache = DateTime(date.year, date.month, date.day, h, m);
 
-    // notification 10 minutes avant
     final dateNotification = dateTache.subtract(const Duration(minutes: 10));
 
     if (dateNotification.isBefore(DateTime.now())) return;
@@ -67,7 +74,7 @@ class ServiceNotificationLocale {
 
     await _plugin.zonedSchedule(
       idNotification,
-      "Rappel tâche",
+      "rappel_tache".tr(),
       messageTacheParCategorie(categorie, titre),
       tz.TZDateTime.from(dateNotification, tz.local),
       details,
@@ -95,6 +102,7 @@ class ServiceNotificationLocale {
     await androidPlugin?.requestNotificationsPermission();
     await androidPlugin?.requestExactAlarmsPermission();
   }
+
   Future<void> programmerNotificationTrajet({
     required String idTrajet,
     required String destination,
@@ -120,7 +128,7 @@ class ServiceNotificationLocale {
 
     await _plugin.zonedSchedule(
       idNotification,
-      "ORA trajet vers $destination",
+      "trajet_destination".tr(args: [destination]),
       message,
       tz.TZDateTime.from(dateSortie, tz.local),
       details,
@@ -131,65 +139,67 @@ class ServiceNotificationLocale {
   Future<void> annulerNotificationTrajet(String idTrajet) async {
     await _plugin.cancel(idTrajet.hashCode.abs());
   }
-Future<void> afficherNotification({
-  required int id,
-  required String titre,
-  required String corps,
-}) async {
-  await _plugin.show(
-    id,
-    titre,
-    corps,
-    NotificationDetails(
-      android: AndroidNotificationDetails(
-        'ora_channel',
-        'ORA Notifications',
-        importance: Importance.max,
-        priority: Priority.high,
+
+  Future<void> afficherNotification({
+    required int id,
+    required String titre,
+    required String corps,
+  }) async {
+    await _plugin.show(
+      id,
+      titre,
+      corps,
+      NotificationDetails(
+        android: AndroidNotificationDetails(
+          'ora_channel',
+          'ORA Notifications',
+          importance: Importance.max,
+          priority: Priority.high,
+        ),
       ),
-    ),
-  );
-}
-Future<void> programmerRappelQuotidien({
-  required int id,
-  required String titre,
-  required String corps,
-  required int heure,
-  required int minute,
-}) async {
-  final maintenant = tz.TZDateTime.now(tz.local);
-
-  var dateProgramme = tz.TZDateTime(
-    tz.local,
-    maintenant.year,
-    maintenant.month,
-    maintenant.day,
-    heure,
-    minute,
-  );
-
-  if (dateProgramme.isBefore(maintenant)) {
-    dateProgramme = dateProgramme.add(const Duration(days: 1));
+    );
   }
 
-  await _plugin.zonedSchedule(
-    id,
-    titre,
-    corps,
-    dateProgramme,
-    const NotificationDetails(
-      android: AndroidNotificationDetails(
-        'ora_rappels',
-        'Rappels ORA',
-        importance: Importance.max,
-        priority: Priority.high,
-      ),
-    ),
-    androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-    matchDateTimeComponents: DateTimeComponents.time,
+  Future<void> programmerRappelQuotidien({
+    required int id,
+    required String titre,
+    required String corps,
+    required int heure,
+    required int minute,
+  }) async {
+    final maintenant = tz.TZDateTime.now(tz.local);
 
-  );
-}
+    var dateProgramme = tz.TZDateTime(
+      tz.local,
+      maintenant.year,
+      maintenant.month,
+      maintenant.day,
+      heure,
+      minute,
+    );
+
+    if (dateProgramme.isBefore(maintenant)) {
+      dateProgramme = dateProgramme.add(const Duration(days: 1));
+    }
+
+    await _plugin.zonedSchedule(
+      id,
+      titre,
+      corps,
+      dateProgramme,
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'ora_rappels',
+          'Rappels ORA',
+          importance: Importance.max,
+          priority: Priority.high,
+        ),
+      ),
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      matchDateTimeComponents: DateTimeComponents.time,
+    );
+  }
+
   Future<void> testerNotification() async {
     const androidDetails = AndroidNotificationDetails(
       'ora_alarm_channel',
@@ -203,6 +213,11 @@ Future<void> programmerRappelQuotidien({
 
     const details = NotificationDetails(android: androidDetails);
 
-    await _plugin.show(999, 'Test ORA', 'Notification immédiate', details);
+    await _plugin.show(
+      999,
+      'test_ora'.tr(),
+      'notification_immediate'.tr(),
+      details,
+    );
   }
 }

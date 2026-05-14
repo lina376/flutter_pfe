@@ -1,3 +1,5 @@
+import 'package:easy_localization/easy_localization.dart';
+
 import '../models/modele_tache.dart';
 import '../services/service_tache.dart';
 import 'package:ora/services/service_notification.dart';
@@ -55,8 +57,8 @@ class ControleurTache {
 
     if (categorieNormalisee == 'rendez-vous') {
       await ServiceNotification().creerNotification(
-        title: 'Rendez-vous : $titre',
-        body: 'Rendez-vous : $titre. Consultez le trajet pour arriver à l’heure 📍',
+        title: 'notif_rendez_vous_title'.tr(args: [titre]),
+        body: 'notif_rendez_vous_body'.tr(args: [titre]),
         type: 'rendez_vous',
         iconType: 'trip',
         scheduledFor: dateNotification,
@@ -71,8 +73,8 @@ class ControleurTache {
 
     if (categorieNormalisee == 'étude' || categorieNormalisee == 'etude') {
       await ServiceNotification().creerNotification(
-        title: 'Étude : $titre',
-        body: 'Il est temps de commencer votre séance d’étude 📚',
+        title: 'notif_etude_title'.tr(args: [titre]),
+        body: 'notif_etude_body'.tr(),
         type: 'etude',
         iconType: 'study',
         scheduledFor: dateNotification,
@@ -87,8 +89,8 @@ class ControleurTache {
 
     if (categorieNormalisee == 'courses') {
       await ServiceNotification().creerNotification(
-        title: 'Courses : $titre',
-        body: 'N’oublie pas tes courses 🛒',
+        title: 'notif_courses_title'.tr(args: [titre]),
+        body: 'notif_courses_body'.tr(),
         type: 'courses',
         iconType: 'shopping',
         scheduledFor: dateNotification,
@@ -103,8 +105,8 @@ class ControleurTache {
 
     if (categorieNormalisee == 'travail') {
       await ServiceNotification().creerNotification(
-        title: 'Travail : $titre',
-        body: 'Votre tâche de travail approche 💼',
+        title: 'notif_travail_title'.tr(args: [titre]),
+        body: 'notif_travail_body'.tr(),
         type: 'travail',
         iconType: 'work',
         scheduledFor: dateNotification,
@@ -119,8 +121,8 @@ class ControleurTache {
 
     if (categorieNormalisee == 'personnelle') {
       await ServiceNotification().creerNotification(
-        title: 'Personnel : $titre',
-        body: 'Votre activité personnelle approche 😊',
+        title: 'notif_personnel_title'.tr(args: [titre]),
+        body: 'notif_personnel_body'.tr(),
         type: 'personnelle',
         iconType: 'personnel',
         scheduledFor: dateNotification,
@@ -135,8 +137,8 @@ class ControleurTache {
 
     if (categorieNormalisee == 'santé' || categorieNormalisee == 'sante') {
       await ServiceNotification().creerNotification(
-        title: 'Santé : $titre',
-        body: 'Votre activité santé approche ❤️',
+        title: 'notif_sante_title'.tr(args: [titre]),
+        body: 'notif_sante_body'.tr(),
         type: 'sante',
         iconType: 'health',
         scheduledFor: dateNotification,
@@ -150,8 +152,8 @@ class ControleurTache {
     }
 
     await ServiceNotification().creerNotification(
-      title: 'Rappel : $titre',
-      body: 'Votre tâche approche ⏰',
+      title: 'notif_rappel_title'.tr(args: [titre]),
+      body: 'notif_rappel_body'.tr(),
       type: 'autre',
       iconType: 'task',
       scheduledFor: dateNotification,
