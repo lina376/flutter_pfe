@@ -1,12 +1,12 @@
 import 'dart:io';
-
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:ora/controlleurs/controleur_profil.dart';
 import 'package:ora/models/modele_utilisateur.dart';
 import 'package:ora/screens/principal.dart';
-
+import 'package:shared_preferences/shared_preferences.dart';
 class Profil extends StatefulWidget {
   static const String screenRoute = 'pageprofil';
 
@@ -42,6 +42,7 @@ class _ProfilState extends State<Profil> {
   void initState() {
     super.initState();
     _loadUserData();
+    _loadImage();
   }
 
   @override
@@ -122,7 +123,30 @@ class _ProfilState extends State<Profil> {
     setState(() {
       _imageFile = File(result.files.single.path!);
     });
+    final prefs = await SharedPreferences.getInstance();
+
+final uid = FirebaseAuth.instance.currentUser!.uid;
+
+await prefs.setString(
+  '${uid}_photo_profil',
+  result.files.single.path!,
+);
   }
+  Future<void> _loadImage() async {
+  final prefs = await SharedPreferences.getInstance();
+
+final uid = FirebaseAuth.instance.currentUser!.uid;
+
+final path = prefs.getString(
+  '${uid}_photo_profil',
+);
+
+  if (path != null) {
+    setState(() {
+      _imageFile = File(path);
+    });
+  }
+}
 
   Future<void> _removePhoto() async {
     setState(() {
