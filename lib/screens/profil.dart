@@ -1,12 +1,9 @@
-import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:ora/controlleurs/controleur_profil.dart';
 import 'package:ora/models/modele_utilisateur.dart';
 import 'package:ora/screens/principal.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 class Profil extends StatefulWidget {
   static const String screenRoute = 'pageprofil';
 
@@ -35,14 +32,12 @@ class _ProfilState extends State<Profil> {
   bool _obscureConfirmPassword = true;
 
   String _emailInitial = '';
-  String _photoUrl = '';
-  File? _imageFile;
+ 
 
   @override
   void initState() {
     super.initState();
     _loadUserData();
-    _loadImage();
   }
 
   @override
@@ -70,7 +65,6 @@ class _ProfilState extends State<Profil> {
         _prenomCtrl.text = user.prenom;
         _emailCtrl.text = user.email;
         _emailInitial = user.email;
-        _photoUrl = user.photoUrl;
 
         if (user.dateNaissance.isNotEmpty) {
           final parsed = DateTime.tryParse(user.dateNaissance);
@@ -115,70 +109,6 @@ class _ProfilState extends State<Profil> {
           "${picked.day.toString().padLeft(2, '0')}/${picked.month.toString().padLeft(2, '0')}/${picked.year}";
     });
   }
-
-  Future<void> _pickImage() async {
-    final result = await FilePicker.platform.pickFiles(type: FileType.image);
-    if (result == null || result.files.single.path == null) return;
-
-    setState(() {
-      _imageFile = File(result.files.single.path!);
-    });
-    final prefs = await SharedPreferences.getInstance();
-
-final uid = FirebaseAuth.instance.currentUser!.uid;
-
-await prefs.setString(
-  '${uid}_photo_profil',
-  result.files.single.path!,
-);
-  }
-  Future<void> _loadImage() async {
-  final prefs = await SharedPreferences.getInstance();
-
-final uid = FirebaseAuth.instance.currentUser!.uid;
-
-final path = prefs.getString(
-  '${uid}_photo_profil',
-);
-
-  if (path != null) {
-    setState(() {
-      _imageFile = File(path);
-    });
-  }
-}
-
-  Future<void> _removePhoto() async {
-    setState(() {
-      _isLoading = true;
-    });
-
-    try {
-      await _controleur.supprimerPhotoProfil();
-
-      setState(() {
-        _imageFile = null;
-        _photoUrl = '';
-      });
-
-      if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("profile.photo_deleted".tr())));
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("profile.delete_error".tr(args: ["$e"]))),
-      );
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    }
-  }
-
   Future<void> _saveProfile() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -198,18 +128,12 @@ final path = prefs.getString(
     });
 
     try {
-      String photoFinale = _photoUrl;
-
-      if (_imageFile != null) {
-        photoFinale = await _controleur.televerserPhotoProfil(_imageFile!);
-      }
 
       final utilisateurModel = UserModel(
         nom: _nomCtrl.text.trim(),
         prenom: _prenomCtrl.text.trim(),
         email: _emailCtrl.text.trim(),
         dateNaissance: _birthDate?.toIso8601String() ?? '',
-        photoUrl: photoFinale,
       );
 
       await _controleur.mettreAJourProfil(utilisateurModel: utilisateurModel);
@@ -229,8 +153,6 @@ final path = prefs.getString(
       }
 
       _emailInitial = _emailCtrl.text.trim();
-      _photoUrl = photoFinale;
-      _imageFile = null;
 
       _currentPasswordCtrl.clear();
       _newPasswordCtrl.clear();
@@ -272,54 +194,7 @@ final path = prefs.getString(
     );
   }
 
-  Widget _buildAvatar() {
-    ImageProvider? imageProvider;
 
-    if (_imageFile != null) {
-      imageProvider = FileImage(_imageFile!);
-    } else if (_photoUrl.isNotEmpty) {
-      imageProvider = NetworkImage(_photoUrl);
-    }
-
-    return Column(
-      children: [
-        GestureDetector(
-          onTap: _pickImage,
-          child: CircleAvatar(
-            radius: 45,
-            backgroundColor: Colors.white,
-            backgroundImage: imageProvider,
-            child: imageProvider == null
-                ? const Icon(Icons.person, size: 40, color: Colors.black54)
-                : null,
-          ),
-        ),
-        const SizedBox(height: 10),
-        Wrap(
-          spacing: 10,
-          children: [
-            OutlinedButton(
-              onPressed: _isLoading ? null : _pickImage,
-              style: OutlinedButton.styleFrom(
-                foregroundColor: Colors.white,
-                side: const BorderSide(color: Colors.white),
-              ),
-              child: Text("profile.change_photo".tr()),
-            ),
-            if (_photoUrl.isNotEmpty || _imageFile != null)
-              OutlinedButton(
-                onPressed: _isLoading ? null : _removePhoto,
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: Colors.white,
-                  side: const BorderSide(color: Colors.white),
-                ),
-                child: Text("profile.delete_photo".tr()),
-              ),
-          ],
-        ),
-      ],
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -375,8 +250,7 @@ final path = prefs.getString(
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        const SizedBox(height: 12),
-                        _buildAvatar(),
+                        
                         const SizedBox(height: 24),
 
                         Align(

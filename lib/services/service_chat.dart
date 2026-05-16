@@ -477,7 +477,12 @@ final ControleurSport _controleurSport = ControleurSport();
     }
 
     if (action == "CREATE_TASK") {
-      final titre = _valeur(resultat, "titre", "Nouvelle tâche");
+     String titre = _valeur(resultat, "titre", "Nouvelle tâche").trim();
+
+if (titre.isEmpty ||
+    RegExp(r'^r+$', caseSensitive: false).hasMatch(titre)) {
+  titre = "Nouvelle tâche";
+}
       final heure = _valeur(resultat, "heure", "--:--");
       final categorie = _valeur(resultat, "categorie", "Autre");
       final priorite = _normaliserPriorite(
@@ -942,9 +947,9 @@ return _ResultatExecution( 'message_bilan_complet'.tr( args: [ eau.verres.toStri
       });
 
       final prochaine = triees.first;
-      final nombreHaute = nonTerminees
-          .where((t) => t.priorite.toLowerCase().trim() == 'haute')
-          .length;
+      final nombreHaute = aujourdhui
+    .where((t) => t.priorite.toLowerCase().trim() == 'haute')
+    .length;
       final heure = prochaine.heure == "--:--"
     ? 'heure_sans_precision'.tr()
     : 'heure_a'.tr(args: [prochaine.heure]);

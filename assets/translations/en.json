@@ -650,6 +650,7 @@
 "notif_sante_title": "Health: {}",
 "notif_sante_body": "Your health activity is approaching ❤️",
 "notif_rappel_title": "Reminder: {}",
-"notif_rappel_body": "Your task is approaching ⏰"
+"notif_rappel_body": "Your task is approaching ⏰",
+"meteo_ma_position": "My location"
 
 }

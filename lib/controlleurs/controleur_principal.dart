@@ -47,7 +47,4 @@ class ControleurPrincipal {
     return utilisateur.nomAffichageAvecLangue(languageCode);
   }
 
-  String obtenirPhotoUrl(ModeleUtilisateurPrincipal? utilisateur) {
-    return utilisateur?.photoUrl ?? '';
-  }
 }

@@ -5,7 +5,7 @@ import 'package:ora/models/modele_contexte.dart';
 class ServiceGemini {
   static const String apiKey = String.fromEnvironment(
     'GEMINI_API_KEY',
-    defaultValue: 'AIzaSyDtzQGa8Zgv3LjAEwrPwGU343ylLXwKZKs',
+    defaultValue: 'AIzaSyDdNJocTm6MgjnzLXeqzNq5vpqtje5JJbI',
   );
 
   Uri get _url => Uri.parse(

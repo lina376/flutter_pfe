@@ -647,5 +647,6 @@
 "notif_sante_title": "صحة: {}",
 "notif_sante_body": "نشاطك الصحي يقترب ❤️",
 "notif_rappel_title": "تذكير: {}",
-"notif_rappel_body": "مهمتك تقترب ⏰"
+"notif_rappel_body": "مهمتك تقترب ⏰",
+"meteo_ma_position": "موقعي"
 }

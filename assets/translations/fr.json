@@ -647,5 +647,6 @@
 "notif_sante_title": "Santé : {}",
 "notif_sante_body": "Votre activité santé approche ❤️",
 "notif_rappel_title": "Rappel : {}",
-"notif_rappel_body": "Votre tâche approche ⏰"
+"notif_rappel_body": "Votre tâche approche ⏰",
+"meteo_ma_position": "Ma position"
 }

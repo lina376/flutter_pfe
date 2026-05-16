@@ -1,8 +1,5 @@
-import 'dart:io';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:easy_localization/easy_localization.dart';
 
 import '../models/modele_utilisateur.dart';
@@ -10,7 +7,6 @@ import '../models/modele_utilisateur.dart';
 class ServiceProfil {
   final FirebaseAuth _authentification = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final FirebaseStorage _storage = FirebaseStorage.instance;
 
   Future<UserModel?> chargerProfil() async {
     final utilisateur = _authentification.currentUser;
@@ -30,7 +26,6 @@ class ServiceProfil {
         prenom: '',
         email: utilisateurMisAJour?.email ?? utilisateur.email ?? '',
         dateNaissance: '',
-        photoUrl: '',
       );
     }
 
@@ -40,7 +35,6 @@ class ServiceProfil {
       ...donnees,
       'email': (utilisateurMisAJour?.email ?? donnees['email'] ?? '')
           .toString(),
-      'photoUrl': (donnees['photoUrl'] ?? '').toString(),
     });
   }
 
@@ -53,7 +47,6 @@ class ServiceProfil {
       'prenom': utilisateurModel.prenom,
       'email': utilisateurModel.email,
       'dateNaissance': utilisateurModel.dateNaissance,
-      'photoUrl': utilisateurModel.photoUrl,
     }, SetOptions(merge: true));
   }
 
@@ -117,45 +110,5 @@ class ServiceProfil {
     await _reauthentifier(email: email, motDePasseActuel: motDePasseActuel);
 
     await utilisateur.updatePassword(nouveauMotDePasse);
-  }
-
-  Future<String> televerserPhotoProfil(File imageFile) async {
-    final utilisateur = _authentification.currentUser;
-    if (utilisateur == null) {
-      throw Exception("profil_aucun_utilisateur_connecte".tr());
-    }
-
-    final reference = _storage
-        .ref()
-        .child('photos_profils')
-        .child('${utilisateur.uid}.jpg');
-
-    await reference.putFile(imageFile);
-
-    final url = await reference.getDownloadURL();
-
-    await _firestore.collection('users').doc(utilisateur.uid).set({
-      'photoUrl': url,
-    }, SetOptions(merge: true));
-
-    return url;
-  }
-
-  Future<void> supprimerPhotoProfil() async {
-    final utilisateur = _authentification.currentUser;
-    if (utilisateur == null) return;
-
-    final reference = _storage
-        .ref()
-        .child('photos_profils')
-        .child('${utilisateur.uid}.jpg');
-
-    try {
-      await reference.delete();
-    } catch (_) {}
-
-    await _firestore.collection('users').doc(utilisateur.uid).set({
-      'photoUrl': '',
-    }, SetOptions(merge: true));
   }
 }

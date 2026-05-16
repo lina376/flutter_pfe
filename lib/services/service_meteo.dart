@@ -127,7 +127,7 @@ final position = gps != null
     ? (
         latitude: gps.latitude,
         longitude: gps.longitude,
-        nom: 'Ma position',
+        nom: 'meteo_ma_position'.tr(),
       )
     : await _chercherVille(ville);
 

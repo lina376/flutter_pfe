@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import '../models/modele_utilisateur.dart';
 import '../services/service_profil.dart';
 
@@ -12,14 +10,6 @@ class ControleurProfil {
 
   Future<void> mettreAJourProfil({required UserModel utilisateurModel}) {
     return _serviceProfil.mettreAJourProfil(utilisateurModel: utilisateurModel);
-  }
-
-  Future<String> televerserPhotoProfil(File imageFile) {
-    return _serviceProfil.televerserPhotoProfil(imageFile);
-  }
-
-  Future<void> supprimerPhotoProfil() {
-    return _serviceProfil.supprimerPhotoProfil();
   }
 
   Future<void> mettreAJourEmail({

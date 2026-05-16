@@ -286,9 +286,7 @@ Future<void> verifierHydratation() async {
                                           utilisateur,
                                           context.locale.languageCode,
                                         );
-                                    final photoUrl =
-                                        utilisateur?.photoUrl ?? '';
-
+                                   
                                     return Container(
                                       margin: const EdgeInsets.only(bottom: 12),
                                       padding: const EdgeInsets.all(10),
@@ -302,20 +300,14 @@ Future<void> verifierHydratation() async {
                                       child: Row(
                                         children: [
                                           CircleAvatar(
-                                            radius: 24,
-                                            backgroundColor: Colors.white
-                                                .withOpacity(0.18),
-                                            backgroundImage: photoUrl.isNotEmpty
-                                                ? NetworkImage(photoUrl)
-                                                : null,
-                                            child: photoUrl.isEmpty
-                                                ? const Icon(
-                                                    Icons.person,
-                                                    color: Colors.white,
-                                                    size: 24,
-                                                  )
-                                                : null,
-                                          ),
+  radius: 24,
+  backgroundColor: Colors.white24,
+  child: const Icon(
+    Icons.person,
+    color: Colors.white,
+    size: 24,
+  ),
+),
                                           const SizedBox(width: 12),
                                           Expanded(
                                             child: Text(
@@ -480,33 +472,20 @@ Future<void> verifierHydratation() async {
   }
 
   Widget _buildPhotoProfil() {
-    return StreamBuilder<ModeleUtilisateurPrincipal?>(
-      stream: _controleurPrincipal.obtenirFluxUtilisateur(),
-      builder: (context, snapshot) {
-        final utilisateur = snapshot.data;
-        final photoUrl = utilisateur?.photoUrl ?? '';
-
-        return Padding(
-          padding: const EdgeInsets.only(right: 5),
-          child: GestureDetector(
-            onTap: () {
-              Navigator.pushNamed(context, 'pageprofil');
-            },
-            child: CircleAvatar(
-              radius: 20,
-              backgroundColor: const Color.fromARGB(92, 88, 70, 142),
-              backgroundImage: photoUrl.isNotEmpty
-                  ? NetworkImage(photoUrl)
-                  : null,
-              child: photoUrl.isEmpty
-                  ? const Icon(Icons.person, color: Colors.white, size: 20)
-                  : null,
-            ),
-          ),
-        );
+  return Padding(
+    padding: const EdgeInsets.only(right: 5),
+    child: GestureDetector(
+      onTap: () {
+        Navigator.pushNamed(context, 'pageprofil');
       },
-    );
-  }
+      child: const CircleAvatar(
+        radius: 20,
+        backgroundColor: Color.fromARGB(92, 88, 70, 142),
+        child: Icon(Icons.person, color: Colors.white, size: 20),
+      ),
+    ),
+  );
+}
 
   Widget sectionHistorique() {
     final user = _controleurPrincipal.obtenirUtilisateurActuel();
